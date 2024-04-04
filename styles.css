@@ -17,7 +17,7 @@ main {
 }
 
 .sobremim{
-    margin-bottom: 50px;
+    margin-bottom: 70px;
 }
 
 .projetos {
@@ -30,6 +30,11 @@ main {
 .projeto {
     width: calc(25% - 20px);
     margin: 0 10px 20px;
+}
+
+.titulo_projetos{
+    text-align: left;
+    justify-content: left;
 }
 
 .projeto img {
