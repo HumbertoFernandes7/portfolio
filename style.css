@@ -365,3 +365,14 @@ footer p {
     font-size: 0.9rem;
     color: var(--text-gray);
 }
+
+/* Media Query para dispositivos móveis */
+@media (max-width: 600px) {
+    .hero-title {
+        font-size: 2.5rem; /* Reduz o tamanho do título principal */
+    }
+
+    h2 {
+        font-size: 2rem; /* Reduz o tamanho dos títulos de seção */
+    }
+}
