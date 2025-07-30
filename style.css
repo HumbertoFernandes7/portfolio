@@ -1,4 +1,7 @@
-/* Importando a fonte e definindo variáveis de cor */
+/* ==========================================================================
+   1. Variáveis Globais e Estilos de Reset
+   ========================================================================== */
+
 :root {
     --bg-dark: #111827;
     --bg-light-dark: #1F2937;
@@ -7,7 +10,7 @@
     --text-gray: #D1D5DB;
 }
 
-/* Reset básico e estilos globais */
+/* Reset básico e estilos de corpo */
 * {
     margin: 0;
     padding: 0;
@@ -15,7 +18,7 @@
 }
 
 html {
-    scroll-behavior: smooth; /* Rolagem suave ao clicar em links internos */
+    scroll-behavior: smooth;
 }
 
 body {
@@ -24,17 +27,20 @@ body {
     color: var(--text-light);
 }
 
-/* Estilo para todas as seções de conteúdo */
+/* ==========================================================================
+   2. Estilos de Componentes e Seções
+   ========================================================================== */
+
+/* Estilo geral para todas as seções de conteúdo */
 .content-section {
     max-width: 1000px;
-    margin: 0 auto; /* Centraliza o conteúdo */
+    margin: 0 auto;
     padding: 80px 20px;
-    opacity: 0; /* Começa invisível para a animação */
-    transform: translateY(20px); /* Levemente deslocado para a animação */
+    opacity: 0;
+    transform: translateY(20px);
     transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
-/* Classe que será adicionada via JS para animar a entrada */
 .content-section.visible {
     opacity: 1;
     transform: translateY(0);
@@ -48,24 +54,51 @@ h2 {
     font-weight: 600;
 }
 
-/* Estilo da Seção Hero (Header) */
+.section-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--text-gray);
+}
+
+/* --- Seção Hero (Cabeçalho) --- */
 .hero {
-    height: 100vh; /* Ocupa a altura inteira da tela */
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
     padding: 20px;
     position: relative;
 }
 
 .hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    max-width: 1000px;
+    margin: 0 auto;
     animation: fadeIn 2s ease-in-out;
+}
+
+.hero-image img {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--accent-blue);
+}
+
+.hero-text {
+    text-align: left;
 }
 
 .hero-title {
     font-size: 3.5rem;
     font-weight: 700;
+    text-align: left;
 }
 
 .hero-subtitle {
@@ -73,10 +106,12 @@ h2 {
     color: var(--accent-blue);
     margin-top: 10px;
     font-weight: 400;
+    text-align: left;
 }
 
 .hero-links {
     margin-top: 30px;
+    justify-content: flex-start;
 }
 
 .hero-links a {
@@ -85,7 +120,7 @@ h2 {
     border: 1px solid var(--text-light);
     padding: 10px 20px;
     border-radius: 5px;
-    margin: 0 10px;
+    margin: 0 15px 0 0;
     transition: background-color 0.3s, color 0.3s;
 }
 
@@ -109,39 +144,11 @@ h2 {
     color: var(--text-light);
 }
 
-/* Animações Keyframes */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-10px);
-    }
-    60% {
-        transform: translateY(-5px);
-    }
-}
-
-/* Estilo do texto da seção */
-.section-text {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    color: var(--text-gray);
-}
-
-/* Grid de Habilidades */
+/* --- Seção de Habilidades --- */
 .skills-grid {
-    display: flex; /* Muda para Flexbox */
-    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
-    justify-content: center; /* Centraliza os itens horizontalmente */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
     margin-top: 50px;
 }
@@ -160,12 +167,12 @@ h2 {
     box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
 }
 
-/* Grid de Projetos */
+/* --- Seção de Projetos --- */
 .projects-grid {
-    display: flex;           /* Muda para Flexbox */
-    flex-wrap: wrap;         /* Permite que os cards quebrem a linha */
-    justify-content: center; /* Centraliza os cards no container */
-    align-items: stretch;    /* ESSA É A MÁGICA! Força todos os cards da mesma linha a terem a mesma altura */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
     gap: 30px;
 }
 
@@ -193,7 +200,7 @@ h2 {
 .project-card p {
     margin: 15px 0;
     color: var(--text-gray);
-    flex-grow: 1; /* Faz o parágrafo crescer para alinhar os botões */
+    flex-grow: 1;
 }
 
 .project-links a {
@@ -220,11 +227,11 @@ h2 {
     pointer-events: none;
 }
 
-/* Linha do Tempo - Experiência e Formação */
+/* --- Seção de Experiência (Linha do Tempo) --- */
 .timeline {
     position: relative;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 50px auto 0;
 }
 
 .timeline::after {
@@ -261,7 +268,6 @@ h2 {
     position: absolute;
     width: 15px;
     height: 15px;
-    right: -7.5px;
     background-color: var(--accent-blue);
     border: 3px solid var(--bg-dark);
     top: 25px;
@@ -272,6 +278,7 @@ h2 {
 .timeline-item:nth-child(odd) .timeline-dot {
     right: -7.5px;
 }
+
 .timeline-item:nth-child(even) .timeline-dot {
     left: -7.5px;
 }
@@ -307,7 +314,8 @@ h2 {
     line-height: 1.6;
 }
 
-/* Rodapé */
+
+/* --- Rodapé --- */
 footer {
     padding: 60px 20px;
     text-align: center;
@@ -366,13 +374,63 @@ footer p {
     color: var(--text-gray);
 }
 
-/* Media Query para dispositivos móveis */
+
+/* ==========================================================================
+   3. Animações Keyframes
+   ========================================================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+
+/* ==========================================================================
+   4. Media Queries (Estilos Responsivos)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .hero-content {
+        flex-direction: column-reverse;
+        gap: 30px;
+    }
+
+    .hero-text, .hero-title, .hero-subtitle {
+        text-align: center;
+    }
+
+    .hero-links {
+        justify-content: center;
+    }
+
+    .hero-links a {
+        margin: 0 10px;
+    }
+
+    .hero-image img {
+        width: 200px;
+        height: 200px;
+    }
+}
+
 @media (max-width: 600px) {
     .hero-title {
-        font-size: 2.5rem; /* Reduz o tamanho do título principal */
+        font-size: 2.5rem;
     }
 
     h2 {
-        font-size: 2rem; /* Reduz o tamanho dos títulos de seção */
+        font-size: 2rem;
     }
 }
