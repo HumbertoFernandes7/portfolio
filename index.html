@@ -3,114 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Portfólio</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Humberto Fernandes | Desenvolvedor de Software</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Humberto Fernandes de Oliveira Pinto</h1>
-    </header>
-    <main>
 
-        <div class="sobremim">
-            <h1> Sobre Mim</h1>
-            <p>
-                Conhecimento em desenvolvimento front-end e back-end utilizando tecnologias como Spring Boot, Angular, React, TypeScript, entre outras.
-            </p>
-            <p>
-                Experiência de 1 ano e 5 meses no desenvolvimento de software para web, envolvendo a criação e a manutenção de projetos.
-            </p>
-            <p>
-                Possuo cerca de 80 certificações na área.
-            </p>
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Humberto Fernandes</h1>
+            <p class="hero-subtitle">Desenvolvedor Java</p>
+            <div class="hero-links">
+                <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank">LinkedIn</a>
+                <a href="https://github.com/HumbertoFernandes7" target="_blank">GitHub</a>
+            </div>
+            <a href="#sobre" class="scroll-down-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+            </a>
         </div>
+    </header>
 
-        <section class="projetos">
-                <section class="projetos">
+    <main>
+        <section id="sobre" class="content-section">
+            <h2>Sobre Mim</h2>
+            <p class="section-text">
+                Desenvolvedor de Software com cerca de 3 anos de experiência em Java e Spring Boot, atuando em projetos internos e pessoais com foco em APIs REST. Atualmente em especialização em Arquitetura Java pela FIAP, Busco aplicar boas práticas de código, testes automatizados e estou em constante evolução com tecnologias como AWS e Docker.
+            </p>
+        </section>
 
-                    <div class="projeto">
-                        <a href="https://github.com/HumbertoFernandes7/EstoqueMercadinhoFront" target="_blank">
-                            <img src="assets/mercadinho_front.png" alt="estoqueMercadinhoAPI">
-                        </a>
-                        <div class="descricao">
-                            <h3>Estoque front-end</h3>
-                        </div>
+        <section id="habilidades" class="content-section">
+            <h2>Habilidades</h2>
+            <div class="skills-grid">
+                <div class="skill-card">JAVA</div>
+                <div class="skill-card">SPRING BOOT</div>
+                <div class="skill-card">SPRING SECURITY</div>
+                <div class="skill-card">HIBERNATE</div>
+                <div class="skill-card">JPA</div>
+                <div class="skill-card">JUnit</div>
+                <div class="skill-card">MAVEN</div>
+                <div class="skill-card">ANGULAR</div>
+                <div class="skill-card">TYPESCRIPT</div>
+                <div class="skill-card">MYSQL</div>
+                <div class="skill-card">POSTGRESQL</div>
+                <div class="skill-card">DOCKER</div>
+                <div class="skill-card">AWS</div>
+            </div>
+        </section>
+
+        <section id="projetos" class="content-section">
+            <h2>Projetos</h2>
+            <div class="projects-grid">
+
+                <div class="project-card">
+                    <h3>Nester (Em deploy)</h3>
+                    <p>Uma rede social desenvolvida com Java e Spring Boot, Angular no front-end e Banco de dados relacional PostgreSQL.</p>
+                    <div class="project-links">
+                        <a href="https://nester-front-web.onrender.com/home">Ver Deploy</a>
+                        <a href="https://github.com/HumbertoFernandes7/NesterAPI">Back-end</a>
+                        <a href="https://github.com/HumbertoFernandes7/NesterAngular">Front-end</a>
                     </div>
+                </div>
 
-                    <div class="projeto">
-                        <a href="https://github.com/HumbertoFernandes7/EstoqueMercadinho" target="_blank">
-                            <img src="assets/mercadinho_back-end.png" alt="estoqueMercadinhoAPI">
-                        </a>
-                        <div class="descricao">
-                            <h3>Estoque API</h3>
-                        </div>
+                <div class="project-card">
+                    <h3>AuthAPI (Back-End)</h3>
+                    <p>API de autenticação com Spring Security e JWT.</p>
+                    <div class="project-links">
+                        <a href="https://github.com/HumbertoFernandes7/AuthAPI">Ver no GitHub</a>
                     </div>
+                </div>
 
-                    <div class="projeto">
-                        <a href="https://github.com/HumbertoFernandes7/bibliotecaAPI" target="_blank">
-                            <img src="assets/biblioteca.png" alt="bibliotecaAPI">
-                        </a>
-                        <div class="descricao">
-                            <h3>Biblioteca API</h3>
-                        </div>
+                <div class="project-card">
+                    <h3>EstoqueAPI (Back-End)</h3>
+                    <p>Gestão de produtos e estoque com Spring Boot e banco relacional.</p>
+                    <div class="project-links">
+                        <a href="https://github.com/HumbertoFernandes7/EstoqueMercadinho">Ver no GitHub</a>
                     </div>
+                </div>
+                
+                <div class="project-card">
+                    <h3>BibliotecaAPI (Back-End)</h3>
+                    <p>Sistema CRUD para gestão de autores e livros.</p>
+                    <div class="project-links">
+                        <a href="https://github.com/HumbertoFernandes7/bibliotecaAPI">Ver no GitHub</a>
+                    </div>
+                </div>
 
-                    <div class="projeto">
-                        <a href="https://github.com/HumbertoFernandes7/DesafioSuperaBackEnd" target="_blank">
-                            <img src="assets/banco.png" alt="bancoAPI">
-                        </a>
-                        <div class="descricao">
-                            <h3>Banco API</h3>
-                        </div>
+                <div class="project-card">
+                    <h3>FilmesAPI (Back-End)</h3>
+                    <p>Sistema de CRUD para gestão de filmes.</p>
+                    <div class="project-links">
+                        <a href="https://github.com/HumbertoFernandes7/bibliotecaAPI">Ver no GitHub</a>
                     </div>
+                </div>
+
+                <div class="project-card">
+                    <h3>Estoque Mercadinho (Front-End)</h3>
+                    <p>Interface Angular para a EstoqueAPI.</p>
+                    <div class="project-links">
+                        <a href="https://github.com/HumbertoFernandes7/EstoqueMercadinhoFront">Ver no GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </section>
         
-                </section>
-                <!-- 
-                    <section class="projetos">
-                    <div class="projeto">
-                        <a href="link_do_projeto_no_github" target="_blank">
-                            <img src="imagem_do_projeto.png" alt="Projeto 1">
-                        </a>
-                        <div class="descricao">
-                            <h2>Projeto 1</h2>
-                            <p>Descrição do projeto 1.</p>
-                        </div>
-                    </div>
+        <section id="experiencia" class="content-section">
+            <h2>Experiência e Formação</h2>
+            <div class="timeline">
 
-                    <div class="projeto">
-                        <a href="link_do_projeto_no_github" target="_blank">
-                            <img src="imagem_do_projeto.png" alt="Projeto 1">
-                        </a>
-                        <div class="descricao">
-                            <h2>Projeto 1</h2>
-                            <p>Descrição do projeto 1.</p>
-                        </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">fev 2023 - jun 2023</div>
+                    <div class="timeline-content">
+                        <h3>Desenvolvedor Full-Stack (Júnior)</h3>
+                        <h4>G&P Projetos e Sistemas S.A</h4>
+                        <p>Participei do projeto Acelera G&P, desenvolvendo habilidades com Java, Spring Boot, Angular, TypeScript e Testes unitários com JUnit na criação de 3 projetos internos: Jogo Quiz, site do projeto Acelera e um sistema de Recrutamento e Seleção.</p>
                     </div>
+                </div>
 
-                   <div class="projeto">
-                        <a href="link_do_projeto_no_github" target="_blank">
-                            <img src="imagem_do_projeto.png" alt="Projeto 1">
-                        </a>
-                        <div class="descricao">
-                            <h2>Projeto 1</h2>
-                            <p>Descrição do projeto 1.</p>
-                        </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">mar 2022 - jan 2023</div>
+                    <div class="timeline-content">
+                        <h3>Desenvolvedor Full-Stack (Estagiário)</h3>
+                        <h4>G&P Projetos e Sistemas S.A</h4>
+                        <p>Participei do projeto Acelera G&P onde desenvolvi fortes habilidades como Desenvolvedor de Software Back-End e participei dos 3 projetos internos da empresa.</p>
                     </div>
+                </div>
 
-                    <div class="projeto">
-                        <a href="link_do_projeto_no_github" target="_blank">
-                            <img src="imagem_do_projeto.png" alt="Projeto 1">
-                        </a>
-                        <div class="descricao">
-                            <h2>Projeto 1</h2>
-                            <p>Descrição do projeto 1.</p>
-                        </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">Conclusão: 03/2026</div>
+                    <div class="timeline-content">
+                        <h3>Pós-graduação - Arquitetura e Desenvolvimento em JAVA</h3>
+                        <h4>FIAP</h4>
                     </div>
+                </div>
 
-                </section>
-                -->
-            </main>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">Concluído - 2024</div>
+                    <div class="timeline-content">
+                        <h3>Graduação em Análise e Desenvolvimento de Sistemas</h3>
+                        <h4>Universidade Nove de Julho (UNINOVE)</h4>
+                    </div>
+                </div>
+
+            </div>
         </section>
     </main>
+
+    <footer id="contato">
+        <h2>Entre em Contato</h2>
+        <p>Estou disponível para novas oportunidades e colaborações. Vamos conversar!</p>
+        <div class="contact-info">
+            <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
+            <span>•</span>
+            <a href="tel:+5511977728104">+55 (11) 97772-8104</a>
+        </div>
+        <div class="footer-social-links">
+             <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank">LinkedIn</a>
+             <a href="https://github.com/HumbertoFernandes7" target="_blank">GitHub</a>
+        </div>
+        <p class="footer-copy">© 2025 • Criado por Humberto Fernandes de Oliveira Pinto.</p>
+    </footer>
+
+    <script src="script.js" defer></script>
 </body>
 </html>
