@@ -434,3 +434,41 @@ footer p {
         font-size: 2rem;
     }
 }
+
+/* ==========================================================================
+   5. Media Queries para Responsividade Adicional
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+    /* --- Ajuste da Timeline para uma única coluna --- */
+
+    /* Centraliza a linha guia da timeline à esquerda */
+    .timeline::after {
+        left: 30px;
+    }
+
+    /* Faz cada item da timeline ocupar 100% da largura */
+    .timeline-item {
+        width: 100%;
+        padding-left: 70px; /* Abre espaço para o conteúdo */
+        padding-right: 15px;
+    }
+
+    /* Remove o posicionamento alternado (esquerda/direita) */
+    .timeline-item:nth-child(odd),
+    .timeline-item:nth-child(even) {
+        left: 0;
+        text-align: left; /* Alinha todo o texto à esquerda */
+    }
+    
+    /* Alinha o ponto decorativo com a nova linha */
+    .timeline-dot {
+        left: 22.5px;
+    }
+
+    .timeline-item:nth-child(odd) .timeline-dot,
+    .timeline-item:nth-child(even) .timeline-dot {
+        left: 22.5px;
+    }
+}
