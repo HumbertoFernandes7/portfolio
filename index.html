@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portfólio de Humberto Fernandes, Desenvolvedor de Software especializado em Java, Spring Boot e ecossistema back-end.">
+    <meta name="description" content="Portfólio de Humberto Fernandes, Desenvolvedor de Software especializado em Java, Spring Boot, RabbitMQ, Quarkus e ecossistema back-end.">
     <title>Humberto Fernandes | Desenvolvedor de Software</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
@@ -21,14 +21,14 @@
         </div>
         <div class="hero-text">
             <h1 class="hero-title">Humberto Fernandes</h1>
-            <p class="hero-subtitle">Desenvolvedor Java</p>
+            <p class="hero-subtitle">Desenvolvedor de Software</p>
             <div class="hero-links">
-                <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank">LinkedIn</a>
-                <a href="https://github.com/HumbertoFernandes7" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
         </div>
     </div>
-    <a href="#sobre" class="scroll-down-arrow">
+    <a href="#sobre" class="scroll-down-arrow" aria-label="Rolar para a seção Sobre Mim">
         </a>
 </header>
 
@@ -36,7 +36,7 @@
         <section id="sobre" class="content-section">
             <h2>Sobre Mim</h2>
             <p class="section-text">
-                Desenvolvedor de Software com cerca de 3 anos de experiência em Java e Spring Boot, atuando em projetos internos e pessoais com foco em APIs REST. Atualmente em especialização em Arquitetura Java pela FIAP, Busco aplicar boas práticas de código, testes automatizados e estou em constante evolução com tecnologias como AWS e Docker.
+                Desenvolvedor de Software com cerca de 3 anos de experiência em Java e Spring Boot, atuando em projetos internos e pessoais com foco em APIs REST. Atualmente em especialização em Arquitetura Java pela FIAP. Busco aplicar boas práticas de código, testes automatizados e estou em constante evolução com tecnologias como AWS, Docker e Quarkus.
             </p>
         </section>
 
@@ -55,7 +55,9 @@
                 <div class="skill-card">MYSQL</div>
                 <div class="skill-card">POSTGRESQL</div>
                 <div class="skill-card">DOCKER</div>
+                <div class="skill-card">RABBITMQ</div>
                 <div class="skill-card">AWS</div>
+                <div class="skill-card">QUARKUS</div>
             </div>
         </section>
 
@@ -65,7 +67,7 @@
 
                 <div class="project-card">
                     <h3>Nester (Em deploy)</h3>
-                    <p>Uma rede social desenvolvida com Java e Spring Boot, Angular no front-end e Banco de dados relacional PostgreSQL.</p>
+                    <p>Uma rede social desenvolvida com Java e Spring Boot, Angular no front-end e banco de dados relacional PostgreSQL. O deploy é gratuito no Render, então o primeiro acesso pode levar alguns minutos para iniciar.</p>
                     <div class="project-links">
                         <a href="https://nester-front-web.onrender.com/home">Ver Deploy</a>
                         <a href="https://github.com/HumbertoFernandes7/NesterAPI">Back-end</a>
@@ -121,21 +123,11 @@
 
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
-                    <div class="timeline-date">fev 2023 - jun 2023</div>
+                    <div class="timeline-date">fev 2026 - atual</div>
                     <div class="timeline-content">
-                        <h3>Desenvolvedor Full-Stack (Júnior)</h3>
-                        <h4>G&P Projetos e Sistemas S.A</h4>
-                        <p>Participei do projeto Acelera G&P, desenvolvendo habilidades com Java, Spring Boot, Angular, TypeScript e Testes unitários com JUnit na criação de 3 projetos internos: Jogo Quiz, site do projeto Acelera e um sistema de Recrutamento e Seleção.</p>
-                    </div>
-                </div>
-
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">mar 2022 - jan 2023</div>
-                    <div class="timeline-content">
-                        <h3>Desenvolvedor Full-Stack (Estagiário)</h3>
-                        <h4>G&P Projetos e Sistemas S.A</h4>
-                        <p>Participei do projeto Acelera G&P onde desenvolvi fortes habilidades como Desenvolvedor de Software Back-End e participei dos 3 projetos internos da empresa.</p>
+                        <h3>Desenvolvedor back-end Java</h3>
+                        <h4>EVIG</h4>
+                        <p>Atuo no desenvolvimento de novas features e na manutenção do back-end de um assistente financeiro baseado em Inteligência Artificial. Sou responsável por implementar regras de negócio complexas e motores de insights, processando e normalizando grandes volumes de dados provenientes de integrações Open Finance. Desenvolvo a comunicação entre microsserviços (Machine-to-Machine), garantindo a integridade dos dados e a performance das APIs. Tecnologias: Java, Spring Boot, Open Finance, OpenFeign, Flyway, RESTful APIs, Criptografia (AES), Clean Architecture, Clean Code, SOLID e PostgreSQL.</p>
                     </div>
                 </div>
 
@@ -157,6 +149,50 @@
                     </div>
                 </div>
 
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">fev 2023 - jun 2023</div>
+                    <div class="timeline-content">
+                        <h3>Desenvolvedor Full-Stack (Júnior)</h3>
+                        <h4>G&P Projetos e Sistemas S.A</h4>
+                        <p>Participei do projeto Acelera G&P, com acesso à plataforma Alura para formação contínua em diversas tecnologias. Atuei como Desenvolvedor Full-Stack em 3 projetos internos da empresa, desenvolvendo habilidades com Java, Spring Boot, Angular, TypeScript, Maven e testes unitários com JUnit. Também participei da documentação e construção dos projetos: Jogo Quiz, site do projeto Acelera G&P e sistema de Recrutamento e Seleção.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">mar 2022 - jan 2023</div>
+                    <div class="timeline-content">
+                        <h3>Desenvolvedor Full-Stack (Estagiário)</h3>
+                        <h4>G&P Projetos e Sistemas S.A</h4>
+                        <p>Participei do projeto Acelera G&P, onde desenvolvi fortes habilidades como Desenvolvedor de Software Back-End e atuei nos 3 projetos internos da empresa.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="idiomas-certificados" class="content-section">
+            <h2>Idiomas e Certificados</h2>
+            <div class="credentials-grid">
+                <article class="credential-card">
+                    <h3>Idiomas</h3>
+                    <ul class="credential-list">
+                        <li>Português - Nativo</li>
+                        <li>Inglês - Intermediário</li>
+                    </ul>
+                </article>
+
+                <article class="credential-card cert-focus">
+                    <h3>Certificados (Foco Alura)</h3>
+                    <p class="credential-text">Seleção dos certificados mais relevantes para sua atuação back-end Java.</p>
+                    <ul class="credential-list">
+                        <li>Formação Java e Spring Boot</li>
+                        <li>CRUD Angular + Spring</li>
+                        <li>Lógica de Programação com Java</li>
+                    </ul>
+                    <a class="credential-link" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/certifications/" target="_blank" rel="noopener noreferrer">Ver todos os certificados</a>
+                </article>
             </div>
         </section>
     </main>
@@ -170,10 +206,10 @@
             <a href="tel:+5511977728104">+55 (11) 97772-8104</a>
         </div>
         <div class="footer-social-links">
-             <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank">LinkedIn</a>
-             <a href="https://github.com/HumbertoFernandes7" target="_blank">GitHub</a>
+             <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+             <a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
-        <p class="footer-copy">© 2025 • Criado por Humberto Fernandes de Oliveira Pinto.</p>
+        <p class="footer-copy">© 2026 • Criado por Humberto Fernandes de Oliveira Pinto.</p>
     </footer>
 
     <script src="script.js" defer></script>
