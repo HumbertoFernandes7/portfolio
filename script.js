@@ -1,27 +1,137 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+    const body = document.body;
+    const header = document.querySelector("[data-header]");
+    const hero = document.querySelector(".hero");
+    const revealElements = document.querySelectorAll("[data-reveal]");
+    const navLinks = document.querySelectorAll('.site-nav a[href^="#"]');
+    const sections = document.querySelectorAll("[data-section]");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const sections = document.querySelectorAll('.content-section');
+    body.classList.add("js-ready");
 
-    const observerOptions = {
-        root: null, // usa o viewport como a área de observação
-        rootMargin: '0px',
-        threshold: 0.1 // A animação começa quando 10% do elemento está visível
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            // Se o elemento está intersectando (visível)
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                // Para de observar o elemento depois que ele se tornou visível
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-
-    // Observa cada uma das seções
-    sections.forEach(section => {
-        observer.observe(section);
+    revealElements.forEach((element) => {
+        const delay = Number(element.dataset.delay || 0);
+        element.style.setProperty("--reveal-delay", `${delay}ms`);
     });
 
+    const setActiveLink = (id) => {
+        navLinks.forEach((link) => {
+            const isActive = link.getAttribute("href") === `#${id}`;
+            link.classList.toggle("active", isActive);
+
+            if (isActive) {
+                link.setAttribute("aria-current", "location");
+            } else {
+                link.removeAttribute("aria-current");
+            }
+        });
+    };
+
+    const updateHeaderState = () => {
+        if (!header) {
+            return;
+        }
+
+        header.classList.toggle("is-scrolled", window.scrollY > 24);
+    };
+
+    updateHeaderState();
+    window.addEventListener("scroll", updateHeaderState, { passive: true });
+
+    if (!reduceMotion && "IntersectionObserver" in window) {
+        const revealObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("is-visible");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            {
+                threshold: 0.14,
+                rootMargin: "0px 0px -8% 0px"
+            }
+        );
+
+        revealElements.forEach((element) => revealObserver.observe(element));
+    } else {
+        revealElements.forEach((element) => element.classList.add("is-visible"));
+    }
+
+    if (sections[0]) {
+        setActiveLink(sections[0].id);
+    }
+
+    if ("IntersectionObserver" in window) {
+        const sectionObserver = new IntersectionObserver(
+            (entries) => {
+                const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+
+                if (visibleEntries.length === 0) {
+                    return;
+                }
+
+                visibleEntries
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+                    .slice(0, 1)
+                    .forEach((entry) => setActiveLink(entry.target.id));
+            },
+            {
+                threshold: [0.2, 0.4, 0.6],
+                rootMargin: "-30% 0px -45% 0px"
+            }
+        );
+
+        sections.forEach((section) => sectionObserver.observe(section));
+    }
+
+    if (!reduceMotion && hero) {
+        let frameId = null;
+        let pointerX = 0;
+        let pointerY = 0;
+
+        const renderParallax = () => {
+            hero.style.setProperty("--hero-shift-x", `${pointerX * 10}px`);
+            hero.style.setProperty("--hero-shift-y", `${pointerY * 14}px`);
+            hero.style.setProperty("--hero-orb-shift-x", `${pointerX * 22}px`);
+            hero.style.setProperty("--hero-orb-shift-y", `${pointerY * 18}px`);
+            frameId = null;
+        };
+
+        const requestParallaxFrame = () => {
+            if (frameId !== null) {
+                return;
+            }
+
+            frameId = window.requestAnimationFrame(renderParallax);
+        };
+
+        hero.addEventListener("pointermove", (event) => {
+            const rect = hero.getBoundingClientRect();
+            const xRatio = (event.clientX - rect.left) / rect.width - 0.5;
+            const yRatio = (event.clientY - rect.top) / rect.height - 0.5;
+
+            pointerX = xRatio;
+            pointerY = yRatio;
+            requestParallaxFrame();
+        });
+
+        hero.addEventListener("pointerleave", () => {
+            pointerX = 0;
+            pointerY = 0;
+            requestParallaxFrame();
+        });
+
+        const updateHeroScroll = () => {
+            const rect = hero.getBoundingClientRect();
+            const progress = Math.max(0, Math.min(1, -rect.top / (window.innerHeight * 0.9)));
+            const shift = progress * 18;
+            hero.style.setProperty("--hero-scroll-shift", `${shift}px`);
+        };
+
+        updateHeroScroll();
+        window.addEventListener("scroll", updateHeroScroll, { passive: true });
+        window.addEventListener("resize", updateHeroScroll);
+    }
 });
