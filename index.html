@@ -1,11 +1,32 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Portfólio de Humberto Fernandes, desenvolvedor back-end Java focado em APIs, arquitetura de software, integrações e experiências digitais com acabamento profissional.">
     <meta name="theme-color" content="#f5f5f7">
     <title>Humberto Fernandes | Desenvolvedor Back-end Java</title>
+    <script>
+        (function () {
+            try {
+                var key = "portfolio-theme";
+                var stored = localStorage.getItem(key);
+                var root = document.documentElement;
+                if (stored === "dark" || stored === "light") {
+                    root.setAttribute("data-theme", stored);
+                } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    root.setAttribute("data-theme", "dark");
+                }
+                var meta = document.querySelector("meta[name=\"theme-color\"]");
+                if (meta) {
+                    meta.setAttribute(
+                        "content",
+                        root.getAttribute("data-theme") === "dark" ? "#0e1015" : "#f5f5f7"
+                    );
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,13 +42,31 @@
                 <span class="brand-text">Humberto Fernandes</span>
             </a>
 
-            <nav class="site-nav" aria-label="Navegação principal">
-                <a href="#inicio">Início</a>
-                <a href="#sobre">Sobre</a>
-                <a href="#projetos">Projetos</a>
-                <a href="#trajetoria">Trajetória</a>
-                <a href="#contato">Contato</a>
-            </nav>
+            <div class="nav-actions">
+                <nav class="site-nav" aria-label="Navegação principal">
+                    <a href="#inicio">Início</a>
+                    <a href="#sobre">Sobre</a>
+                    <a href="#projetos">Projetos</a>
+                    <a href="#trajetoria">Trajetória</a>
+                    <a href="#contato">Contato</a>
+                </nav>
+                <button
+                    type="button"
+                    class="theme-toggle"
+                    id="theme-toggle"
+                    aria-label="Ativar tema escuro"
+                    aria-pressed="false"
+                    title="Alternar tema claro ou escuro"
+                >
+                    <svg class="theme-toggle-svg theme-toggle-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <svg class="theme-toggle-svg theme-toggle-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.75"/>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -71,7 +110,6 @@
 
                 <div class="hero-visual" data-reveal data-delay="140">
                     <div class="portrait-card">
-                        <div class="portrait-badge">Disponível para novas oportunidades</div>
                         <div class="portrait-frame">
                             <img src="assets/foto-perfil.jpg" alt="Foto de perfil de Humberto Fernandes" fetchpriority="high" decoding="async">
                         </div>

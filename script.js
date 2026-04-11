@@ -1,4 +1,60 @@
+const THEME_STORAGE_KEY = "portfolio-theme";
+const THEME_META_COLORS = {
+    light: "#f5f5f7",
+    dark: "#0e1015"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
+    const root = document.documentElement;
+    const themeToggle = document.getElementById("theme-toggle");
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+    const getTheme = () => (root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+    const syncThemeMeta = (theme) => {
+        if (!themeMeta) {
+            return;
+        }
+
+        themeMeta.setAttribute("content", THEME_META_COLORS[theme] || THEME_META_COLORS.light);
+    };
+
+    const syncThemeToggle = (theme) => {
+        if (!themeToggle) {
+            return;
+        }
+
+        const isDark = theme === "dark";
+        themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+        themeToggle.setAttribute(
+            "aria-label",
+            isDark ? "Ativar tema claro" : "Ativar tema escuro"
+        );
+    };
+
+    const applyTheme = (theme) => {
+        const next = theme === "dark" ? "dark" : "light";
+        root.setAttribute("data-theme", next);
+
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, next);
+        } catch (e) {
+            /* ignore */
+        }
+
+        syncThemeMeta(next);
+        syncThemeToggle(next);
+    };
+
+    syncThemeMeta(getTheme());
+    syncThemeToggle(getTheme());
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+            applyTheme(getTheme() === "dark" ? "light" : "dark");
+        });
+    }
+
     const body = document.body;
     const header = document.querySelector("[data-header]");
     const hero = document.querySelector(".hero");
