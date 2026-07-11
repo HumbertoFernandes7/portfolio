@@ -1,9 +1,9 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
    Cada seção tem uma formação que remete a programação:
-   00 </> (código) → 01 xícara de café (Java) → 02 folha
-   (Spring) → 03 cobra (Python) → 04 rede neural (IA).
-   As formas planas são amostradas de um canvas 2D; a rede
+   00 </> (código) → 01 xícara de café (Java) → 02 grafo de
+   branch (git/projetos) → 03 logo do Python → 04 rede neural
+   (IA). As formas planas são amostradas de um canvas 2D; a rede
    neural é gerada por coordenadas. Carrega Three.js via import
    map; sem WebGL, o site segue normalmente sobre o fundo CSS.
    ============================================================ */
@@ -62,7 +62,7 @@
     /* Desenha um símbolo num canvas 2D e vira nuvem de pontos (x/y do
        pixel, z com pequena profundidade). Coordenadas em % do canvas.
        dx desloca a forma no eixo X do mundo (composição com o texto). */
-    const sampleShape = (draw, extent, depth = 3, dx = 0) => {
+    const sampleShape = (draw, extent, depth = 3, dx = 0, count = COUNT) => {
         const s = 360;
         const cv = document.createElement("canvas");
         cv.width = s;
@@ -81,9 +81,9 @@
             }
         }
 
-        const pts = new Float32Array(COUNT * 3);
+        const pts = new Float32Array(count * 3);
         const n = candidates.length / 2;
-        for (let k = 0; k < COUNT; k += 1) {
+        for (let k = 0; k < count; k += 1) {
             if (n === 0) {
                 /* fallback improvável (ex.: fonte indisponível): esfera */
                 const a = Math.random() * Math.PI * 2;
@@ -140,49 +140,61 @@
         });
     };
 
-    /* 02 — Spring: folha com nervura central */
-    const drawLeaf = (ctx, u) => {
-        ctx.beginPath();
-        ctx.moveTo(50 * u, 88 * u);
-        ctx.bezierCurveTo(20 * u, 68 * u, 24 * u, 28 * u, 50 * u, 10 * u);
-        ctx.bezierCurveTo(76 * u, 28 * u, 80 * u, 68 * u, 50 * u, 88 * u);
-        ctx.fill();
+    /* 02 — Projetos: grafo de branch (git) — tronco, curva e commits */
+    const drawBranch = (ctx, u) => {
+        ctx.lineCap = "round";
+        ctx.lineWidth = 5 * u;
 
+        ctx.beginPath();
+        ctx.moveTo(40 * u, 30 * u);
+        ctx.lineTo(40 * u, 70 * u);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(40 * u, 56 * u);
+        ctx.bezierCurveTo(40 * u, 44 * u, 64 * u, 54 * u, 64 * u, 43 * u);
+        ctx.stroke();
+
+        [[40, 24], [40, 76], [64, 36]].forEach(([x, y]) => {
+            ctx.beginPath();
+            ctx.arc(x * u, y * u, 6 * u, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    };
+
+    /* 03 — Python: logo em duas cobras entrelaçadas (cata-vento).
+       Cada cobra é um "L" de cantos bem arredondados com olho; a de
+       baixo é a rotação de 180°. Vãos largos mantêm as duas legíveis. */
+    const drawSnakeHook = (ctx, u, flip) => {
+        ctx.save();
+        if (flip) {
+            ctx.translate(100 * u, 100 * u);
+            ctx.rotate(Math.PI);
+        }
+        const piece = (x, y, w, h) => {
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(x * u, y * u, w * u, h * u, 11 * u);
+            } else {
+                ctx.rect(x * u, y * u, w * u, h * u);
+            }
+            ctx.fill();
+        };
+
+        piece(24, 6, 52, 24); /* cabeça: barra superior */
+        piece(24, 6, 22, 58); /* corpo: coluna esquerda */
+
+        /* olho */
         ctx.globalCompositeOperation = "destination-out";
-        ctx.lineCap = "round";
-        ctx.lineWidth = 3.5 * u;
         ctx.beginPath();
-        ctx.moveTo(50 * u, 84 * u);
-        ctx.bezierCurveTo(45 * u, 64 * u, 55 * u, 42 * u, 50 * u, 14 * u);
-        ctx.stroke();
-        ctx.globalCompositeOperation = "source-over";
-    };
-
-    /* 03 — Python: cobra em "S" com cabeça e língua */
-    const drawSnake = (ctx, u) => {
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.lineWidth = 11 * u;
-        ctx.beginPath();
-        ctx.moveTo(28 * u, 80 * u);
-        ctx.bezierCurveTo(64 * u, 78 * u, 70 * u, 60 * u, 50 * u, 53 * u);
-        ctx.bezierCurveTo(30 * u, 46 * u, 34 * u, 29 * u, 56 * u, 27 * u);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.ellipse(63 * u, 26 * u, 9.5 * u, 7 * u, -0.15, 0, Math.PI * 2);
+        ctx.arc(34 * u, 15 * u, 4.2 * u, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.lineWidth = 3 * u;
-        ctx.beginPath();
-        ctx.moveTo(71 * u, 25 * u);
-        ctx.lineTo(78 * u, 22 * u);
-        ctx.moveTo(78 * u, 22 * u);
-        ctx.lineTo(82 * u, 24 * u);
-        ctx.moveTo(78 * u, 22 * u);
-        ctx.lineTo(81 * u, 19 * u);
-        ctx.stroke();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.restore();
     };
+
+    const drawPyTop = (ctx, u) => drawSnakeHook(ctx, u, false);
+    const drawPyBottom = (ctx, u) => drawSnakeHook(ctx, u, true);
 
     /* 04 — IA: rede neural (camadas de nós + pontos ao longo das conexões) */
     const makeNetwork = () => {
@@ -242,11 +254,21 @@
         return pts;
     };
 
+    /* A formação do Python é bicolor: primeira metade dos pontos é a
+       cobra azul (cima), segunda metade a dourada (baixo). */
+    const PY_SPLIT = Math.floor(COUNT / 2);
+    const makePython = () => {
+        const pts = new Float32Array(COUNT * 3);
+        pts.set(sampleShape(drawPyTop, 27, 2, 0, PY_SPLIT), 0);
+        pts.set(sampleShape(drawPyBottom, 27, 2, 0, COUNT - PY_SPLIT), PY_SPLIT * 3);
+        return pts;
+    };
+
     const formations = [
         sampleShape(drawCode, 30, 3, isSmall ? 0 : 5),
         sampleShape(drawCup, 26),
-        sampleShape(drawLeaf, 26),
-        sampleShape(drawSnake, 28),
+        sampleShape(drawBranch, 28),
+        makePython(),
         makeNetwork()
     ];
 
@@ -255,8 +277,8 @@
     const configs = [
         { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
         { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
-        { rotX: -0.06, camZ: 44, amp: 0.24, speed: 0.5 },
-        { rotX: -0.05, camZ: 43, amp: 0.2, speed: 0.48 },
+        { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
+        { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
         { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
     ];
 
@@ -311,10 +333,15 @@
 
     /* ---------- Tema ---------- */
 
+    let activeIndex = 0;
+    let target = formations[0];
+
     const THEMES = {
         dark: {
             primary: new THREE.Color("#5f8aff"),
             secondary: new THREE.Color("#dfe8ff"),
+            gold: new THREE.Color("#f6c454"),
+            goldSoft: new THREE.Color("#fff0c4"),
             fog: new THREE.Color("#060b16"),
             opacity: 0.85,
             blending: THREE.AdditiveBlending
@@ -322,6 +349,8 @@
         light: {
             primary: new THREE.Color("#1e4fd6"),
             secondary: new THREE.Color("#3c485f"),
+            gold: new THREE.Color("#b07d10"),
+            goldSoft: new THREE.Color("#6e4f0a"),
             fog: new THREE.Color("#eef1f7"),
             opacity: 0.5,
             blending: THREE.NormalBlending
@@ -334,8 +363,13 @@
         const theme = THEMES[name] || THEMES.dark;
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
+        /* na formação do Python, a segunda metade dos pontos fica dourada */
+        const bicolor = activeIndex === 3;
         for (let i = 0; i < COUNT; i += 1) {
-            mixed.copy(theme.primary).lerp(theme.secondary, mixes[i]);
+            const gold = bicolor && i >= PY_SPLIT;
+            mixed
+                .copy(gold ? theme.gold : theme.primary)
+                .lerp(gold ? theme.goldSoft : theme.secondary, mixes[i]);
             colorAttr.setXYZ(i, mixed.r, mixed.g, mixed.b);
         }
         colorAttr.needsUpdate = true;
@@ -358,15 +392,16 @@
 
     /* ---------- Seção ativa ---------- */
 
-    let activeIndex = 0;
-    let target = formations[0];
-
     const setFormation = (index) => {
         if (index === activeIndex || !formations[index]) {
             return;
         }
+        const repaint = (index === 3) !== (activeIndex === 3);
         activeIndex = index;
         target = formations[index];
+        if (repaint) {
+            applyTheme(currentTheme());
+        }
 
         if (reduceMotion) {
             positions.set(target);
@@ -465,7 +500,9 @@
             handleResize();
         }
 
-        const dt = Math.min(clock.getDelta(), 0.05);
+        /* sem clamp: os easings são exponenciais (nunca passam do alvo),
+           então dt grande em quadros lentos só acelera a convergência */
+        const dt = clock.getDelta();
         elapsed += dt;
 
         const morphK = 1 - Math.exp(-2.9 * dt);
