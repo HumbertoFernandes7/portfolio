@@ -15,7 +15,7 @@ Publicado via GitHub Pages direto da raiz do repositório — sem build step.
 | `index.html` | Conteúdo e estrutura |
 | `style.css` | Design system: tema escuro/claro, tipografia editorial, responsivo |
 | `script.js` | Interações de UI: tema, menu, reveals e navegação ativa |
-| `scene.js` | Cena Three.js: partículas que morfam entre 5 formações (uma por seção) |
+| `scene.js` | Cena Three.js: partículas que morfam entre símbolos de programação (`</>`, xícara do Java, folha do Spring, cobra do Python e rede neural), um por seção |
 
 Three.js é carregado via import map (CDN, versão pinada). Sem WebGL ou sem rede para o CDN, o site degrada graciosamente para o fundo em CSS.
 

@@ -1,10 +1,11 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
-   Cada seção tem uma formação; o scroll transforma uma na outra:
-   00 onda (dados em fluxo) → 01 esfera (núcleo) → 02 malha
-   (estrutura) → 03 hélice (evolução) → 04 anéis (conexão).
-   Carrega Three.js via import map; sem WebGL, o site segue
-   funcionando normalmente sobre o fundo em CSS.
+   Cada seção tem uma formação que remete a programação:
+   00 </> (código) → 01 xícara de café (Java) → 02 folha
+   (Spring) → 03 cobra (Python) → 04 rede neural (IA).
+   As formas planas são amostradas de um canvas 2D; a rede
+   neural é gerada por coordenadas. Carrega Three.js via import
+   map; sem WebGL, o site segue normalmente sobre o fundo CSS.
    ============================================================ */
 
 (async () => {
@@ -58,99 +59,205 @@
 
     const rand = (min, max) => min + Math.random() * (max - min);
 
-    const makeWave = () => {
-        const pts = new Float32Array(COUNT * 3);
-        const cols = Math.ceil(Math.sqrt(COUNT * 1.9));
-        const rows = Math.ceil(COUNT / cols);
-        for (let i = 0; i < COUNT; i += 1) {
-            const cx = i % cols;
-            const cz = Math.floor(i / cols);
-            const x = (cx / (cols - 1) - 0.5) * 72;
-            const z = (cz / (rows - 1) - 0.5) * 40;
-            const y =
-                Math.sin(x * 0.24) * 2.1 +
-                Math.cos(z * 0.31) * 1.7 +
-                Math.sin((x + z) * 0.12) * 1.2;
-            pts[i * 3] = x + rand(-0.25, 0.25);
-            pts[i * 3 + 1] = y - 3 + rand(-0.2, 0.2);
-            pts[i * 3 + 2] = z + rand(-0.25, 0.25);
-        }
-        return pts;
-    };
+    /* Desenha um símbolo num canvas 2D e vira nuvem de pontos (x/y do
+       pixel, z com pequena profundidade). Coordenadas em % do canvas.
+       dx desloca a forma no eixo X do mundo (composição com o texto). */
+    const sampleShape = (draw, extent, depth = 3, dx = 0) => {
+        const s = 360;
+        const cv = document.createElement("canvas");
+        cv.width = s;
+        cv.height = s;
+        const ctx = cv.getContext("2d", { willReadFrequently: true });
+        ctx.fillStyle = "#fff";
+        ctx.strokeStyle = "#fff";
+        draw(ctx, s / 100);
+        const data = ctx.getImageData(0, 0, s, s).data;
 
-    const makeSphere = () => {
-        const pts = new Float32Array(COUNT * 3);
-        const golden = Math.PI * (3 - Math.sqrt(5));
-        for (let i = 0; i < COUNT; i += 1) {
-            const t = i / (COUNT - 1);
-            const inclination = Math.acos(1 - 2 * t);
-            const azimuth = golden * i;
-            const r = 13 + rand(-0.5, 0.5);
-            pts[i * 3] = r * Math.sin(inclination) * Math.cos(azimuth);
-            pts[i * 3 + 1] = r * Math.cos(inclination);
-            pts[i * 3 + 2] = r * Math.sin(inclination) * Math.sin(azimuth);
-        }
-        return pts;
-    };
-
-    const makeLattice = () => {
-        const pts = new Float32Array(COUNT * 3);
-        const side = Math.round(Math.cbrt(COUNT));
-        const spacing = 34 / (side - 1);
-        const cube = side * side * side;
-        for (let i = 0; i < COUNT; i += 1) {
-            if (i < cube) {
-                const x = i % side;
-                const y = Math.floor(i / side) % side;
-                const z = Math.floor(i / (side * side)) % side;
-                pts[i * 3] = (x - (side - 1) / 2) * spacing + rand(-0.14, 0.14);
-                pts[i * 3 + 1] = (y - (side - 1) / 2) * spacing + rand(-0.14, 0.14);
-                pts[i * 3 + 2] = (z - (side - 1) / 2) * spacing + rand(-0.14, 0.14);
-            } else {
-                pts[i * 3] = rand(-17, 17);
-                pts[i * 3 + 1] = rand(-17, 17);
-                pts[i * 3 + 2] = rand(-17, 17);
+        const candidates = [];
+        for (let p = 3; p < data.length; p += 4) {
+            if (data[p] > 40) {
+                const idx = (p - 3) / 4;
+                candidates.push(idx % s, (idx / s) | 0);
             }
         }
-        return pts;
-    };
 
-    const makeHelix = () => {
         const pts = new Float32Array(COUNT * 3);
-        const turns = 2.6;
-        for (let i = 0; i < COUNT; i += 1) {
-            const t = i / (COUNT - 1);
-            const angle = t * turns * Math.PI * 2 + (i % 2) * Math.PI;
-            const r = 7.2 + rand(-0.9, 0.9);
-            pts[i * 3] = Math.cos(angle) * r;
-            pts[i * 3 + 1] = (t - 0.5) * 34 + rand(-0.3, 0.3);
-            pts[i * 3 + 2] = Math.sin(angle) * r;
+        const n = candidates.length / 2;
+        for (let k = 0; k < COUNT; k += 1) {
+            if (n === 0) {
+                /* fallback improvável (ex.: fonte indisponível): esfera */
+                const a = Math.random() * Math.PI * 2;
+                const b = Math.acos(rand(-1, 1));
+                pts[k * 3] = 12 * Math.sin(b) * Math.cos(a);
+                pts[k * 3 + 1] = 12 * Math.cos(b);
+                pts[k * 3 + 2] = 12 * Math.sin(b) * Math.sin(a);
+                continue;
+            }
+            const j = (Math.random() * n) | 0;
+            pts[k * 3] = ((candidates[j * 2] + Math.random()) / s - 0.5) * extent + dx;
+            pts[k * 3 + 1] = (0.5 - (candidates[j * 2 + 1] + Math.random()) / s) * extent;
+            pts[k * 3 + 2] = (Math.random() - 0.5) * depth;
         }
         return pts;
     };
 
-    const makeRings = () => {
+    /* 00 — código: glifo </> */
+    const drawCode = (ctx, u) => {
+        ctx.font = `900 ${Math.round(u * 40)}px "JetBrains Mono", Consolas, monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("</>", u * 50, u * 53);
+    };
+
+    /* 01 — Java: xícara com vapor e pires */
+    const drawCup = (ctx, u) => {
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(26 * u, 40 * u, 32 * u, 32 * u, [3 * u, 3 * u, 8 * u, 8 * u]);
+        } else {
+            ctx.rect(26 * u, 40 * u, 32 * u, 32 * u);
+        }
+        ctx.fill();
+
+        ctx.lineWidth = 5 * u;
+        ctx.beginPath();
+        ctx.arc(58 * u, 54 * u, 10 * u, -Math.PI / 2.6, Math.PI / 2.6);
+        ctx.stroke();
+
+        ctx.lineCap = "round";
+        ctx.lineWidth = 4 * u;
+        ctx.beginPath();
+        ctx.moveTo(22 * u, 79 * u);
+        ctx.lineTo(62 * u, 79 * u);
+        ctx.stroke();
+
+        ctx.lineWidth = 4.5 * u;
+        [34, 48].forEach((sx) => {
+            ctx.beginPath();
+            ctx.moveTo(sx * u, 34 * u);
+            ctx.bezierCurveTo((sx - 6) * u, 27 * u, (sx + 6) * u, 21 * u, sx * u, 13 * u);
+            ctx.stroke();
+        });
+    };
+
+    /* 02 — Spring: folha com nervura central */
+    const drawLeaf = (ctx, u) => {
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 88 * u);
+        ctx.bezierCurveTo(20 * u, 68 * u, 24 * u, 28 * u, 50 * u, 10 * u);
+        ctx.bezierCurveTo(76 * u, 28 * u, 80 * u, 68 * u, 50 * u, 88 * u);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 3.5 * u;
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 84 * u);
+        ctx.bezierCurveTo(45 * u, 64 * u, 55 * u, 42 * u, 50 * u, 14 * u);
+        ctx.stroke();
+        ctx.globalCompositeOperation = "source-over";
+    };
+
+    /* 03 — Python: cobra em "S" com cabeça e língua */
+    const drawSnake = (ctx, u) => {
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 11 * u;
+        ctx.beginPath();
+        ctx.moveTo(28 * u, 80 * u);
+        ctx.bezierCurveTo(64 * u, 78 * u, 70 * u, 60 * u, 50 * u, 53 * u);
+        ctx.bezierCurveTo(30 * u, 46 * u, 34 * u, 29 * u, 56 * u, 27 * u);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.ellipse(63 * u, 26 * u, 9.5 * u, 7 * u, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.lineWidth = 3 * u;
+        ctx.beginPath();
+        ctx.moveTo(71 * u, 25 * u);
+        ctx.lineTo(78 * u, 22 * u);
+        ctx.moveTo(78 * u, 22 * u);
+        ctx.lineTo(82 * u, 24 * u);
+        ctx.moveTo(78 * u, 22 * u);
+        ctx.lineTo(81 * u, 19 * u);
+        ctx.stroke();
+    };
+
+    /* 04 — IA: rede neural (camadas de nós + pontos ao longo das conexões) */
+    const makeNetwork = () => {
+        const layers = [
+            { x: -13.5, ys: [-7.5, 0, 7.5] },
+            { x: -4.5, ys: [-10, -5, 0, 5, 10] },
+            { x: 4.5, ys: [-10, -5, 0, 5, 10] },
+            { x: 13.5, ys: [-6, 0, 6] }
+        ];
+        const nodes = [];
+        layers.forEach((layer, li) => {
+            layer.ys.forEach((y) => {
+                nodes.push({ x: layer.x, y, z: rand(-0.6, 0.6), layer: li });
+            });
+        });
+        const edges = [];
+        nodes.forEach((a) => {
+            nodes.forEach((b) => {
+                if (b.layer === a.layer + 1) {
+                    edges.push([a, b]);
+                }
+            });
+        });
+
         const pts = new Float32Array(COUNT * 3);
-        for (let i = 0; i < COUNT; i += 1) {
-            const inner = i % 10 < 3;
-            const radius = (inner ? 7.5 : 13) + rand(-1.1, 1.1);
-            const angle = Math.random() * Math.PI * 2;
-            pts[i * 3] = Math.cos(angle) * radius;
-            pts[i * 3 + 1] = rand(-0.9, 0.9);
-            pts[i * 3 + 2] = Math.sin(angle) * radius;
+        let i = 0;
+        const put = (x, y, z) => {
+            pts[i * 3] = x;
+            pts[i * 3 + 1] = y;
+            pts[i * 3 + 2] = z;
+            i += 1;
+        };
+
+        const perNode = Math.floor((COUNT * 0.4) / nodes.length);
+        nodes.forEach((node) => {
+            for (let k = 0; k < perNode; k += 1) {
+                const r = 0.95 * Math.cbrt(Math.random());
+                const a = Math.random() * Math.PI * 2;
+                const b = Math.acos(rand(-1, 1));
+                put(
+                    node.x + r * Math.sin(b) * Math.cos(a),
+                    node.y + r * Math.cos(b),
+                    node.z + r * Math.sin(b) * Math.sin(a)
+                );
+            }
+        });
+
+        while (i < COUNT) {
+            const [a, b] = edges[(Math.random() * edges.length) | 0];
+            const t = Math.random();
+            put(
+                a.x + (b.x - a.x) * t + rand(-0.12, 0.12),
+                a.y + (b.y - a.y) * t + rand(-0.12, 0.12),
+                a.z + (b.z - a.z) * t + rand(-0.12, 0.12)
+            );
         }
         return pts;
     };
 
-    const formations = [makeWave(), makeSphere(), makeLattice(), makeHelix(), makeRings()];
+    const formations = [
+        sampleShape(drawCode, 30, 3, isSmall ? 0 : 5),
+        sampleShape(drawCup, 26),
+        sampleShape(drawLeaf, 26),
+        sampleShape(drawSnake, 28),
+        makeNetwork()
+    ];
 
-    /* Comportamento por seção: inclinação, distância e giro */
+    /* Comportamento por seção: inclinação, distância e balanço.
+       Os símbolos oscilam em vez de girar para seguirem legíveis. */
     const configs = [
-        { rotX: -0.5, camZ: 42, spin: 0.016 },
-        { rotX: -0.12, camZ: 47, spin: 0.05 },
-        { rotX: -0.2, camZ: 49, spin: 0.04 },
-        { rotX: -0.05, camZ: 45, spin: 0.1 },
-        { rotX: -0.62, camZ: 43, spin: 0.14 }
+        { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
+        { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
+        { rotX: -0.06, camZ: 44, amp: 0.24, speed: 0.5 },
+        { rotX: -0.05, camZ: 43, amp: 0.2, speed: 0.48 },
+        { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
     ];
 
     /* ---------- Geometria e material ---------- */
@@ -206,16 +313,16 @@
 
     const THEMES = {
         dark: {
-            copper: new THREE.Color("#c89b63"),
-            neutral: new THREE.Color("#ece7de"),
-            fog: new THREE.Color("#0c0b0a"),
+            primary: new THREE.Color("#5f8aff"),
+            secondary: new THREE.Color("#dfe8ff"),
+            fog: new THREE.Color("#060b16"),
             opacity: 0.85,
             blending: THREE.AdditiveBlending
         },
         light: {
-            copper: new THREE.Color("#8a5424"),
-            neutral: new THREE.Color("#3a3226"),
-            fog: new THREE.Color("#f2eee7"),
+            primary: new THREE.Color("#1e4fd6"),
+            secondary: new THREE.Color("#3c485f"),
+            fog: new THREE.Color("#eef1f7"),
             opacity: 0.5,
             blending: THREE.NormalBlending
         }
@@ -228,7 +335,7 @@
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
         for (let i = 0; i < COUNT; i += 1) {
-            mixed.copy(theme.copper).lerp(theme.neutral, mixes[i]);
+            mixed.copy(theme.primary).lerp(theme.secondary, mixes[i]);
             colorAttr.setXYZ(i, mixed.r, mixed.g, mixed.b);
         }
         colorAttr.needsUpdate = true;
@@ -343,8 +450,9 @@
 
     const clock = new THREE.Clock();
     let elapsed = 0;
-    let spin = 0;
-    let spinSpeed = configs[0].spin;
+    let phase = 0;
+    let swaySpeed = configs[0].speed;
+    let swayAmp = configs[0].amp;
     let rotX = configs[0].rotX;
     let camZ = configs[0].camZ;
     let frameId = null;
@@ -371,16 +479,18 @@
         posAttr.needsUpdate = true;
 
         const config = configs[activeIndex];
-        spinSpeed += (config.spin - spinSpeed) * easeK;
+        swaySpeed += (config.speed - swaySpeed) * easeK;
+        swayAmp += (config.amp - swayAmp) * easeK;
         rotX += (config.rotX - rotX) * easeK;
         camZ += (config.camZ - camZ) * easeK;
 
         easedX += (pointerX - easedX) * easeK;
         easedY += (pointerY - easedY) * easeK;
 
-        spin += spinSpeed * dt;
-        group.rotation.y = spin + easedX * 0.22;
-        group.rotation.x = rotX + easedY * 0.14;
+        phase += swaySpeed * dt;
+        group.rotation.y = Math.sin(phase) * swayAmp + easedX * 0.22;
+        group.rotation.x = rotX + Math.sin(phase * 0.63) * swayAmp * 0.22 + easedY * 0.14;
+        group.rotation.z = Math.sin(phase * 0.5) * swayAmp * 0.08;
         group.scale.setScalar(baseScale * (1 + Math.sin(elapsed * 0.45) * 0.012));
 
         camera.position.z = camZ;

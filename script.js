@@ -1,5 +1,5 @@
 const THEME_KEY = "portfolio-theme";
-const THEME_META = { dark: "#0c0b0a", light: "#f2eee7" };
+const THEME_META = { dark: "#060b16", light: "#eef1f7" };
 
 document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;

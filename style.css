@@ -1,7 +1,7 @@
 /* ============================================================
    Humberto Fernandes — Portfólio 2026
-   Design: editorial escuro, tipografia serifada + mono, acento
-   cobre, grão de filme e cena 3D persistente entre seções.
+   Design: editorial escuro, tipografia serifada + mono, azul
+   profundo, grão de filme e cena 3D persistente entre seções.
    ============================================================ */
 
 /* ---------- Tokens ---------- */
@@ -11,17 +11,17 @@
     --font-body: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
 
-    --bg: #0c0b0a;
-    --bg-elev: #151311;
-    --text: #ece7de;
-    --text-dim: #a59d8e;
-    --text-faint: #746c5e;
-    --accent: #c89b63;
-    --accent-strong: #e2b87e;
-    --accent-ink: #171208;
-    --line: rgba(236, 231, 222, 0.13);
-    --line-soft: rgba(236, 231, 222, 0.07);
-    --glow: rgba(200, 155, 99, 0.08);
+    --bg: #060b16;
+    --bg-elev: #0c1424;
+    --text: #e8edf6;
+    --text-dim: #97a2b8;
+    --text-faint: #64708a;
+    --accent: #5f8aff;
+    --accent-strong: #8db1ff;
+    --accent-ink: #06101f;
+    --line: rgba(232, 237, 246, 0.13);
+    --line-soft: rgba(232, 237, 246, 0.07);
+    --glow: rgba(95, 138, 255, 0.09);
     --grain-opacity: 0.07;
 
     --shell: 1180px;
@@ -33,17 +33,17 @@
 }
 
 [data-theme="light"] {
-    --bg: #f2eee7;
-    --bg-elev: #faf8f2;
-    --text: #1c1812;
-    --text-dim: #675e4f;
-    --text-faint: #94897a;
-    --accent: #8a5424;
-    --accent-strong: #6e4118;
-    --accent-ink: #f6f1e8;
-    --line: rgba(28, 24, 18, 0.16);
-    --line-soft: rgba(28, 24, 18, 0.08);
-    --glow: rgba(138, 84, 36, 0.06);
+    --bg: #eef1f7;
+    --bg-elev: #f9fbfe;
+    --text: #131a29;
+    --text-dim: #4d596f;
+    --text-faint: #7e899d;
+    --accent: #1e4fd6;
+    --accent-strong: #143a9e;
+    --accent-ink: #f3f6fc;
+    --line: rgba(19, 26, 41, 0.16);
+    --line-soft: rgba(19, 26, 41, 0.08);
+    --glow: rgba(30, 79, 214, 0.07);
     --grain-opacity: 0.05;
     color-scheme: light;
 }
@@ -486,12 +486,6 @@ body.menu-open {
     font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    color: var(--accent);
-}
-
-.code {
-    font-family: var(--font-mono);
-    font-size: 0.88em;
     color: var(--accent);
 }
 
