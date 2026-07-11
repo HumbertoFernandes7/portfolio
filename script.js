@@ -1,53 +1,44 @@
-const THEME_STORAGE_KEY = "portfolio-theme";
-const THEME_META_COLORS = {
-    light: "#f5f5f7",
-    dark: "#0e1015"
-};
+const THEME_KEY = "portfolio-theme";
+const THEME_META = { dark: "#060b16", light: "#eef1f7" };
 
 document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;
+    const body = document.body;
+
+    body.classList.add("js-ready");
+
+    /* ---------- Tema ---------- */
+
     const themeToggle = document.getElementById("theme-toggle");
     const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    const getTheme = () => (root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    const getTheme = () => (root.getAttribute("data-theme") === "light" ? "light" : "dark");
 
-    const syncThemeMeta = (theme) => {
-        if (!themeMeta) {
-            return;
+    const syncThemeUI = (theme) => {
+        if (themeMeta) {
+            themeMeta.setAttribute("content", THEME_META[theme]);
         }
-
-        themeMeta.setAttribute("content", THEME_META_COLORS[theme] || THEME_META_COLORS.light);
-    };
-
-    const syncThemeToggle = (theme) => {
-        if (!themeToggle) {
-            return;
+        if (themeToggle) {
+            themeToggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+            themeToggle.setAttribute(
+                "aria-label",
+                theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"
+            );
         }
-
-        const isDark = theme === "dark";
-        themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
-        themeToggle.setAttribute(
-            "aria-label",
-            isDark ? "Ativar tema claro" : "Ativar tema escuro"
-        );
     };
 
     const applyTheme = (theme) => {
-        const next = theme === "dark" ? "dark" : "light";
-        root.setAttribute("data-theme", next);
-
+        root.setAttribute("data-theme", theme);
         try {
-            localStorage.setItem(THEME_STORAGE_KEY, next);
+            localStorage.setItem(THEME_KEY, theme);
         } catch (e) {
             /* ignore */
         }
-
-        syncThemeMeta(next);
-        syncThemeToggle(next);
+        syncThemeUI(theme);
+        window.dispatchEvent(new CustomEvent("hf:theme", { detail: { theme } }));
     };
 
-    syncThemeMeta(getTheme());
-    syncThemeToggle(getTheme());
+    syncThemeUI(getTheme());
 
     if (themeToggle) {
         themeToggle.addEventListener("click", () => {
@@ -55,44 +46,60 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const body = document.body;
+    /* ---------- Header ---------- */
+
     const header = document.querySelector("[data-header]");
-    const hero = document.querySelector(".hero");
-    const revealElements = document.querySelectorAll("[data-reveal]");
-    const navLinks = document.querySelectorAll('.site-nav a[href^="#"]');
-    const sections = document.querySelectorAll("[data-section]");
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    body.classList.add("js-ready");
-
-    revealElements.forEach((element) => {
-        const delay = Number(element.dataset.delay || 0);
-        element.style.setProperty("--reveal-delay", `${delay}ms`);
-    });
-
-    const setActiveLink = (id) => {
-        navLinks.forEach((link) => {
-            const isActive = link.getAttribute("href") === `#${id}`;
-            link.classList.toggle("active", isActive);
-
-            if (isActive) {
-                link.setAttribute("aria-current", "location");
-            } else {
-                link.removeAttribute("aria-current");
-            }
-        });
+    const updateHeader = () => {
+        if (header) {
+            header.classList.toggle("is-scrolled", window.scrollY > 16);
+        }
     };
 
-    const updateHeaderState = () => {
-        if (!header) {
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+
+    /* ---------- Menu overlay (mobile) ---------- */
+
+    const menuToggle = document.getElementById("menu-toggle");
+    const menuOverlay = document.getElementById("menu-overlay");
+
+    const setMenu = (open) => {
+        if (!menuToggle || !menuOverlay) {
             return;
         }
-
-        header.classList.toggle("is-scrolled", window.scrollY > 24);
+        menuOverlay.classList.toggle("is-open", open);
+        menuOverlay.setAttribute("aria-hidden", open ? "false" : "true");
+        menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        menuToggle.textContent = open ? "Fechar" : "Menu";
+        body.classList.toggle("menu-open", open);
     };
 
-    updateHeaderState();
-    window.addEventListener("scroll", updateHeaderState, { passive: true });
+    if (menuToggle && menuOverlay) {
+        menuToggle.addEventListener("click", () => {
+            setMenu(!menuOverlay.classList.contains("is-open"));
+        });
+
+        menuOverlay.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => setMenu(false));
+        });
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && menuOverlay.classList.contains("is-open")) {
+                setMenu(false);
+                menuToggle.focus();
+            }
+        });
+    }
+
+    /* ---------- Reveal no scroll ---------- */
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealElements = document.querySelectorAll("[data-reveal]");
+
+    revealElements.forEach((element) => {
+        element.style.setProperty("--rd", `${Number(element.dataset.delay || 0)}ms`);
+    });
 
     if (!reduceMotion && "IntersectionObserver" in window) {
         const revealObserver = new IntersectionObserver(
@@ -104,10 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
             },
-            {
-                threshold: 0.14,
-                rootMargin: "0px 0px -8% 0px"
-            }
+            { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
         );
 
         revealElements.forEach((element) => revealObserver.observe(element));
@@ -115,79 +119,37 @@ document.addEventListener("DOMContentLoaded", () => {
         revealElements.forEach((element) => element.classList.add("is-visible"));
     }
 
-    if (sections[0]) {
-        setActiveLink(sections[0].id);
-    }
+    /* ---------- Link ativo na navegação ---------- */
+
+    const navLinks = document.querySelectorAll("[data-nav]");
+    const sections = document.querySelectorAll("[data-section]");
+
+    const setActiveLink = (id) => {
+        navLinks.forEach((link) => {
+            const isActive = link.getAttribute("href") === `#${id}`;
+            link.classList.toggle("active", isActive);
+            if (isActive) {
+                link.setAttribute("aria-current", "location");
+            } else {
+                link.removeAttribute("aria-current");
+            }
+        });
+    };
 
     if ("IntersectionObserver" in window) {
         const sectionObserver = new IntersectionObserver(
             (entries) => {
-                const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+                const visible = entries
+                    .filter((entry) => entry.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
 
-                if (visibleEntries.length === 0) {
-                    return;
+                if (visible) {
+                    setActiveLink(visible.target.id);
                 }
-
-                visibleEntries
-                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-                    .slice(0, 1)
-                    .forEach((entry) => setActiveLink(entry.target.id));
             },
-            {
-                threshold: [0.2, 0.4, 0.6],
-                rootMargin: "-30% 0px -45% 0px"
-            }
+            { threshold: [0.15, 0.35, 0.6], rootMargin: "-25% 0px -45% 0px" }
         );
 
         sections.forEach((section) => sectionObserver.observe(section));
-    }
-
-    if (!reduceMotion && hero) {
-        let frameId = null;
-        let pointerX = 0;
-        let pointerY = 0;
-
-        const renderParallax = () => {
-            hero.style.setProperty("--hero-shift-x", `${pointerX * 10}px`);
-            hero.style.setProperty("--hero-shift-y", `${pointerY * 14}px`);
-            hero.style.setProperty("--hero-orb-shift-x", `${pointerX * 22}px`);
-            hero.style.setProperty("--hero-orb-shift-y", `${pointerY * 18}px`);
-            frameId = null;
-        };
-
-        const requestParallaxFrame = () => {
-            if (frameId !== null) {
-                return;
-            }
-
-            frameId = window.requestAnimationFrame(renderParallax);
-        };
-
-        hero.addEventListener("pointermove", (event) => {
-            const rect = hero.getBoundingClientRect();
-            const xRatio = (event.clientX - rect.left) / rect.width - 0.5;
-            const yRatio = (event.clientY - rect.top) / rect.height - 0.5;
-
-            pointerX = xRatio;
-            pointerY = yRatio;
-            requestParallaxFrame();
-        });
-
-        hero.addEventListener("pointerleave", () => {
-            pointerX = 0;
-            pointerY = 0;
-            requestParallaxFrame();
-        });
-
-        const updateHeroScroll = () => {
-            const rect = hero.getBoundingClientRect();
-            const progress = Math.max(0, Math.min(1, -rect.top / (window.innerHeight * 0.9)));
-            const shift = progress * 18;
-            hero.style.setProperty("--hero-scroll-shift", `${shift}px`);
-        };
-
-        updateHeroScroll();
-        window.addEventListener("scroll", updateHeroScroll, { passive: true });
-        window.addEventListener("resize", updateHeroScroll);
     }
 });

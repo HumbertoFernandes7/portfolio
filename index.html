@@ -1,390 +1,390 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portfólio de Humberto Fernandes, desenvolvedor back-end Java focado em APIs, arquitetura de software, integrações e experiências digitais com acabamento profissional.">
-    <meta name="theme-color" content="#f5f5f7">
-    <title>Humberto Fernandes | Desenvolvedor Back-end Java</title>
+    <meta name="description" content="Humberto Fernandes — desenvolvedor back-end Java e Spring em São Paulo. APIs REST, microsserviços, Open Finance e IA aplicada a finanças na EVIG.">
+    <meta name="theme-color" content="#060b16">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Humberto Fernandes — Desenvolvedor Back-end Java">
+    <meta property="og:description" content="Desenvolvedor back-end Java e Spring. 3+ anos de experiência em APIs REST, microsserviços e Open Finance.">
+    <meta property="og:url" content="https://humbertofernandes7.github.io/portfolio/">
+    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/foto-perfil.jpg">
+    <meta property="og:locale" content="pt_BR">
+    <title>Humberto Fernandes — Desenvolvedor Back-end Java</title>
+
     <script>
         (function () {
+            var root = document.documentElement;
+            root.classList.add("js");
             try {
-                var key = "portfolio-theme";
-                var stored = localStorage.getItem(key);
-                var root = document.documentElement;
-                if (stored === "dark" || stored === "light") {
-                    root.setAttribute("data-theme", stored);
-                } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                    root.setAttribute("data-theme", "dark");
-                }
-                var meta = document.querySelector("meta[name=\"theme-color\"]");
-                if (meta) {
-                    meta.setAttribute(
-                        "content",
-                        root.getAttribute("data-theme") === "dark" ? "#0e1015" : "#f5f5f7"
-                    );
-                }
+                var stored = localStorage.getItem("portfolio-theme");
+                root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
             } catch (e) {}
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#eef1f7" : "#060b16");
+            }
         })();
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..650;1,9..144,300..650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
+
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.min.js" } }
+    </script>
+    <script type="module" src="scene.js"></script>
+    <script src="script.js" defer></script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Humberto Fernandes de Oliveira Pinto",
+        "jobTitle": "Desenvolvedor Back-end Java",
+        "worksFor": { "@type": "Organization", "name": "EVIG" },
+        "address": { "@type": "PostalAddress", "addressLocality": "São Paulo", "addressCountry": "BR" },
+        "url": "https://humbertofernandes7.github.io/portfolio/",
+        "image": "https://humbertofernandes7.github.io/portfolio/assets/foto-perfil.jpg",
+        "sameAs": [
+            "https://www.linkedin.com/in/humberto-fernandes-9a4599234/",
+            "https://github.com/HumbertoFernandes7"
+        ]
+    }
+    </script>
 </head>
 <body>
+    <a class="skip-link" href="#sobre">Pular para o conteúdo</a>
+
+    <div class="webgl" aria-hidden="true"><canvas id="scene-canvas"></canvas></div>
+    <div class="grain" aria-hidden="true"></div>
+
     <header class="site-header" data-header>
-        <div class="nav-shell">
+        <div class="header-shell">
             <a class="brand" href="#inicio" aria-label="Ir para o início">
                 <span class="brand-mark">HF</span>
-                <span class="brand-text">Humberto Fernandes</span>
+                <span class="brand-name">Humberto Fernandes</span>
             </a>
 
-            <div class="nav-actions">
-                <nav class="site-nav" aria-label="Navegação principal">
-                    <a href="#inicio">Início</a>
-                    <a href="#sobre">Sobre</a>
-                    <a href="#projetos">Projetos</a>
-                    <a href="#trajetoria">Trajetória</a>
-                    <a href="#contato">Contato</a>
-                </nav>
-                <button
-                    type="button"
-                    class="theme-toggle"
-                    id="theme-toggle"
-                    aria-label="Ativar tema escuro"
-                    aria-pressed="false"
-                    title="Alternar tema claro ou escuro"
-                >
-                    <svg class="theme-toggle-svg theme-toggle-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            <nav class="site-nav" aria-label="Navegação principal">
+                <a href="#sobre" data-nav>Sobre</a>
+                <a href="#projetos" data-nav>Projetos</a>
+                <a href="#trajetoria" data-nav>Trajetória</a>
+                <a href="#contato" data-nav>Contato</a>
+            </nav>
+
+            <div class="header-tools">
+                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Ativar tema claro" aria-pressed="true" title="Alternar tema">
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <svg class="theme-toggle-svg theme-toggle-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.75"/>
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                     </svg>
                 </button>
+                <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-overlay">Menu</button>
             </div>
         </div>
     </header>
 
-    <main>
-        <section id="inicio" class="hero" data-section aria-labelledby="hero-title">
-            <div class="hero-backdrop" aria-hidden="true">
-                <span class="hero-orb hero-orb-one"></span>
-                <span class="hero-orb hero-orb-two"></span>
-                <span class="hero-grid"></span>
+    <div class="menu-overlay" id="menu-overlay" aria-hidden="true">
+        <nav class="menu-nav" aria-label="Menu">
+            <a href="#inicio"><span>00</span>Início</a>
+            <a href="#sobre"><span>01</span>Sobre</a>
+            <a href="#projetos"><span>02</span>Projetos</a>
+            <a href="#trajetoria"><span>03</span>Trajetória</a>
+            <a href="#contato"><span>04</span>Contato</a>
+        </nav>
+        <div class="menu-meta">
+            <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
+            <span>São Paulo, Brasil</span>
+        </div>
+    </div>
+
+    <main id="conteudo">
+        <section id="inicio" class="hero" data-section data-scene="0" aria-labelledby="hero-title">
+            <div class="hero-inner">
+                <p class="eyebrow" data-load style="--d:0ms">Humberto Fernandes · São Paulo, Brasil</p>
+                <h1 id="hero-title" data-load style="--d:90ms">
+                    Desenvolvedor Back-end <em>Java &amp; Spring.</em>
+                </h1>
+                <p class="hero-sub" data-load style="--d:180ms">
+                    3+ anos de experiência em APIs REST, microsserviços e integrações.
+                    Atualmente na EVIG, desenvolvo o back-end e o projeto de IA de um assistente
+                    financeiro — Open Finance, mensageria e modelos de linguagem em produção.
+                </p>
+
+                <div class="hero-actions" data-load style="--d:270ms">
+                    <a class="button button-solid" href="#projetos">Ver projetos<span aria-hidden="true">↓</span></a>
+                    <a class="button button-line" href="#contato">Falar comigo<span aria-hidden="true">→</span></a>
+                    <div class="hero-links">
+                        <a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true">↗</span></a>
+                        <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn<span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
             </div>
 
-            <div class="hero-layout">
-                <div class="hero-copy" data-reveal data-delay="0">
-                    <p class="eyebrow">Portfólio 2026 • Back-end Java</p>
-                    <h1 id="hero-title">Arquitetura sólida, APIs elegantes e foco real em produto.</h1>
-                    <p class="hero-description">
-                        Desenvolvedor de Software com cerca de 3 anos de experiência em Java e Spring Boot, atuando em produtos, integrações e serviços orientados a negócio. Hoje concentro minha energia em criar back-ends robustos, legíveis e prontos para evoluir.
+            <div class="hero-foot" data-load style="--d:380ms">
+                <dl class="hero-facts" aria-label="Resumo profissional">
+                    <div><dt>Experiência</dt><dd>3+ anos de back-end em produção</dd></div>
+                    <div><dt>Agora</dt><dd>EVIG — back-end e IA do assistente financeiro</dd></div>
+                    <div><dt>Formação</dt><dd>Pós em Arquitetura Java · FIAP 2026</dd></div>
+                </dl>
+                <a class="scroll-cue" href="#sobre">role para explorar<span aria-hidden="true">↓</span></a>
+            </div>
+        </section>
+
+        <section id="sobre" class="section" data-section data-scene="1" aria-labelledby="sobre-title">
+            <header class="section-head" data-reveal>
+                <p class="kicker"><span>01</span>Sobre</p>
+                <h2 id="sobre-title">Perfil <em>técnico.</em></h2>
+                <p class="lead">
+                    Foco em Java e Spring Boot, com experiência em produtos financeiros,
+                    integrações e sistemas em produção.
+                </p>
+            </header>
+
+            <div class="about-grid">
+                <div class="about-copy" data-reveal data-delay="80">
+                    <p>
+                        Na EVIG, atuo no back-end e no projeto de IA de um assistente financeiro:
+                        integrações Open Finance, normalização de dados bancários, comunicação
+                        entre microsserviços e regras de negócio.
+                    </p>
+                    <p>
+                        Stack principal: Java com Spring Boot, JPA/Hibernate e JUnit. Trabalho com
+                        PostgreSQL e MySQL, mensageria com RabbitMQ, Docker, AWS e versionamento de
+                        banco com Flyway. Sigo Clean Architecture, SOLID e Clean Code.
+                    </p>
+                    <p>
+                        No projeto de IA, trabalho com Python e integração de modelos de linguagem
+                        (LLMs): prompts, fluxos de dados e a camada que conecta o assistente às
+                        informações financeiras do usuário.
+                    </p>
+                    <p>
+                        Formação: pós-graduação em Arquitetura e Desenvolvimento Java pela FIAP (2026)
+                        e graduação em Análise e Desenvolvimento de Sistemas pela UNINOVE (2024).
                     </p>
 
-                    <div class="hero-actions">
-                        <a class="button button-primary" href="#projetos">Ver projetos</a>
-                        <a class="button button-secondary" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                        <a class="button button-tertiary" href="#contato">Entrar em contato</a>
-                    </div>
-
-                    <ul class="hero-metrics" aria-label="Indicadores profissionais">
-                        <li>
-                            <strong>3+ anos</strong>
-                            <span>desenvolvendo APIs REST, integrações e regras de negócio</span>
-                        </li>
-                        <li>
-                            <strong>Java + Spring</strong>
-                            <span>especialidade principal com foco em arquitetura limpa e qualidade</span>
-                        </li>
-                        <li>
-                            <strong>FIAP 2026</strong>
-                            <span>especialização em Arquitetura e Desenvolvimento Java</span>
-                        </li>
+                    <ul class="about-notes">
+                        <li><strong>Idiomas</strong>Português nativo · Inglês técnico</li>
+                        <li><strong>Certificações</strong>Java, Spring Boot e Angular — <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/certifications/" target="_blank" rel="noopener noreferrer">ver no LinkedIn<span aria-hidden="true">↗</span></a></li>
                     </ul>
                 </div>
 
-                <div class="hero-visual" data-reveal data-delay="140">
-                    <div class="portrait-card">
-                        <div class="portrait-frame">
-                            <img src="assets/foto-perfil.jpg" alt="Foto de perfil de Humberto Fernandes" fetchpriority="high" decoding="async">
-                        </div>
-
-                        <div class="portrait-notes">
-                            <div class="note-card">
-                                <span class="note-label">Atuação atual</span>
-                                <strong>Back-end Java na EVIG</strong>
-                            </div>
-                            <div class="note-card">
-                                <span class="note-label">Foco</span>
-                                <strong>APIs, microsserviços e Open Finance</strong>
-                            </div>
-                            <div class="note-card">
-                                <span class="note-label">Base</span>
-                                <strong>São Paulo, Brasil</strong>
-                            </div>
-                        </div>
+                <figure class="about-portrait" data-reveal data-delay="160">
+                    <div class="portrait-frame">
+                        <img src="assets/foto-perfil.jpg" alt="Retrato de Humberto Fernandes" loading="lazy" decoding="async">
                     </div>
-                </div>
+                    <figcaption>Humberto Fernandes de Oliveira Pinto — São Paulo, BR</figcaption>
+                </figure>
             </div>
 
-            <a href="#sobre" class="hero-scroll" aria-label="Ir para a seção Sobre">
-                <span>Explorar perfil</span>
-                <span class="hero-scroll-icon" aria-hidden="true">↓</span>
-            </a>
-        </section>
-
-        <section id="sobre" class="section" data-section aria-labelledby="sobre-title">
-            <div class="section-heading" data-reveal data-delay="0">
-                <p class="eyebrow">Sobre</p>
-                <h2 id="sobre-title">Um perfil técnico com leitura rápida, visão de produto e execução consistente.</h2>
-                <p class="section-lead">
-                    Meu trabalho é transformar necessidades complexas em serviços confiáveis, bem estruturados e fáceis de manter. Gosto de construir software com clareza, preocupação real com performance e atenção ao que o produto precisa entregar.
-                </p>
-            </div>
-
-            <div class="about-layout">
-                <article class="intro-panel" data-reveal data-delay="80">
-                    <p>
-                        Atuo no desenvolvimento de novas features e na manutenção de back-end para um assistente financeiro com inteligência artificial, lidando com integrações Open Finance, normalização de dados, comunicação entre serviços e regras de negócio sensíveis.
-                    </p>
-                    <p>
-                        Minha base principal é Java com Spring Boot, mas também trago repertório com testes, bancos relacionais, mensageria, Docker, AWS e práticas como Clean Architecture, SOLID e Clean Code.
-                    </p>
-
-                    <div class="intro-points">
-                        <div class="info-tile">
-                            <span class="info-label">Especialidade</span>
-                            <strong>Back-end Java para produtos e plataformas</strong>
-                        </div>
-                        <div class="info-tile">
-                            <span class="info-label">Estilo de trabalho</span>
-                            <strong>Clareza técnica, ownership e evolução contínua</strong>
-                        </div>
-                    </div>
-                </article>
-
-                <div class="specialties-grid">
-                    <article class="specialty-card" data-reveal data-delay="120">
-                        <p class="card-kicker">Core stack</p>
-                        <h3>Back-end orientado a domínio</h3>
-                        <p>Construção de APIs e serviços com foco em organização, segurança, escalabilidade e manutenção saudável ao longo do tempo.</p>
-                        <ul class="tag-list" aria-label="Tecnologias principais">
+            <div class="stack" data-reveal data-delay="120">
+                <p class="stack-title">Stack &amp; práticas</p>
+                <div class="stack-cols">
+                    <div class="stack-col">
+                        <h3>Núcleo</h3>
+                        <ul>
                             <li>Java</li>
                             <li>Spring Boot</li>
                             <li>Spring Security</li>
-                            <li>JPA</li>
-                            <li>Hibernate</li>
+                            <li>JPA / Hibernate</li>
                             <li>JUnit</li>
+                            <li>Maven</li>
                         </ul>
-                    </article>
-
-                    <article class="specialty-card" data-reveal data-delay="180">
-                        <p class="card-kicker">Arquitetura</p>
-                        <h3>Integrações e sistemas confiáveis</h3>
-                        <p>Experiência com mensageria, autenticação, microsserviços e fluxos que exigem integridade de dados e boa observabilidade.</p>
-                        <ul class="tag-list" aria-label="Tecnologias de arquitetura">
-                            <li>RabbitMQ</li>
+                    </div>
+                    <div class="stack-col">
+                        <h3>Arquitetura &amp; dados</h3>
+                        <ul>
                             <li>REST APIs</li>
+                            <li>RabbitMQ</li>
                             <li>OpenFeign</li>
                             <li>Flyway</li>
-                            <li>AES</li>
-                            <li>Open Finance</li>
+                            <li>PostgreSQL · MySQL</li>
+                            <li>Open Finance · AES</li>
                         </ul>
-                    </article>
-
-                    <article class="specialty-card" data-reveal data-delay="240">
-                        <p class="card-kicker">Ecossistema</p>
-                        <h3>Ferramentas que completam a entrega</h3>
-                        <p>Base complementar para acelerar desenvolvimento, testes, deploy e colaboração em ambientes modernos.</p>
-                        <ul class="tag-list" aria-label="Tecnologias complementares">
-                            <li>PostgreSQL</li>
-                            <li>MySQL</li>
+                    </div>
+                    <div class="stack-col">
+                        <h3>Ferramentas &amp; além</h3>
+                        <ul>
                             <li>Docker</li>
                             <li>AWS</li>
-                            <li>Angular</li>
-                            <li>TypeScript</li>
+                            <li>Git</li>
+                            <li>Python · IA (LLMs)</li>
+                            <li>Angular · TypeScript</li>
+                            <li>Clean Architecture · SOLID</li>
                         </ul>
-                    </article>
+                    </div>
                 </div>
             </div>
-
-            <div class="credentials-band">
-                <article class="credential-card" data-reveal data-delay="280">
-                    <span class="credential-label">Idiomas</span>
-                    <h3>Comunicação objetiva</h3>
-                    <p>Português nativo e inglês intermediário para leitura técnica, documentação e colaboração em contexto profissional.</p>
-                </article>
-
-                <article class="credential-card" data-reveal data-delay="340">
-                    <span class="credential-label">Certificações</span>
-                    <h3>Formação contínua com foco prático</h3>
-                    <p>Trilhas relevantes em Java e Spring Boot, CRUD Angular + Spring e lógica de programação com Java.</p>
-                </article>
-
-                <article class="credential-card credential-link-card" data-reveal data-delay="400">
-                    <span class="credential-label">Perfil completo</span>
-                    <h3>Veja histórico e certificados</h3>
-                    <p>Minha trilha de aprendizado e validações profissionais também está organizada no LinkedIn.</p>
-                    <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/certifications/" target="_blank" rel="noopener noreferrer">Abrir certificações</a>
-                </article>
-            </div>
         </section>
 
-        <section id="projetos" class="section" data-section aria-labelledby="projetos-title">
-            <div class="section-heading" data-reveal data-delay="0">
-                <p class="eyebrow">Projetos selecionados</p>
-                <h2 id="projetos-title">Três entregas que representam bem meu repertório técnico.</h2>
-                <p class="section-lead">
-                    Escolhi projetos que mostram diferentes dimensões do meu trabalho: produto full stack, segurança de autenticação e modelagem de domínio para operações reais.
+        <section id="projetos" class="section" data-section data-scene="2" aria-labelledby="projetos-title">
+            <header class="section-head" data-reveal>
+                <p class="kicker"><span>02</span>Projetos</p>
+                <h2 id="projetos-title">Projetos <em>selecionados.</em></h2>
+                <p class="lead">
+                    Repositórios públicos que cobrem produto full stack, autenticação
+                    e modelagem de domínio.
                 </p>
+            </header>
+
+            <div class="project-list">
+                <article class="project-row" data-reveal data-delay="60">
+                    <span class="project-index" aria-hidden="true">01</span>
+                    <div class="project-body">
+                        <div class="project-title">
+                            <h3>Nester</h3>
+                            <p class="project-kind">Produto full stack · em deploy</p>
+                        </div>
+                        <p class="project-stack">Java · Spring Boot · Angular · PostgreSQL</p>
+                        <p class="project-summary">
+                            Rede social com API em Java e front em Angular: autenticação,
+                            persistência relacional em PostgreSQL e deploy funcional para demonstração.
+                        </p>
+                        <div class="project-links">
+                            <a href="https://nester-front-web.onrender.com/home" target="_blank" rel="noopener noreferrer">Ver deploy<span aria-hidden="true">↗</span></a>
+                            <a href="https://github.com/HumbertoFernandes7/NesterAPI" target="_blank" rel="noopener noreferrer">API<span aria-hidden="true">↗</span></a>
+                            <a href="https://github.com/HumbertoFernandes7/NesterAngular" target="_blank" rel="noopener noreferrer">Front<span aria-hidden="true">↗</span></a>
+                        </div>
+                        <p class="project-footnote">O primeiro acesso pode levar alguns segundos — plano gratuito do Render.</p>
+                    </div>
+                </article>
+
+                <article class="project-row" data-reveal data-delay="120">
+                    <span class="project-index" aria-hidden="true">02</span>
+                    <div class="project-body">
+                        <div class="project-title">
+                            <h3>AuthAPI</h3>
+                            <p class="project-kind">Segurança &amp; identidade</p>
+                        </div>
+                        <p class="project-stack">Java · Spring Security · JWT</p>
+                        <p class="project-summary">
+                            API de autenticação e autorização com Spring Security e JWT:
+                            fluxo completo de login, emissão e validação de tokens.
+                        </p>
+                        <div class="project-links">
+                            <a href="https://github.com/HumbertoFernandes7/AuthAPI" target="_blank" rel="noopener noreferrer">Ver no GitHub<span aria-hidden="true">↗</span></a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="project-row" data-reveal data-delay="180">
+                    <span class="project-index" aria-hidden="true">03</span>
+                    <div class="project-body">
+                        <div class="project-title">
+                            <h3>EstoqueAPI</h3>
+                            <p class="project-kind">Domínio &amp; operação</p>
+                        </div>
+                        <p class="project-stack">Java · Spring Boot · Banco relacional</p>
+                        <p class="project-summary">
+                            API de gestão de produtos e estoque: CRUD, regras de negócio
+                            e persistência relacional.
+                        </p>
+                        <div class="project-links">
+                            <a href="https://github.com/HumbertoFernandes7/EstoqueMercadinho" target="_blank" rel="noopener noreferrer">Ver no GitHub<span aria-hidden="true">↗</span></a>
+                        </div>
+                    </div>
+                </article>
             </div>
 
-            <div class="projects-grid">
-                <article class="project-card project-featured" data-reveal data-delay="80">
-                    <div class="project-top">
-                        <p class="project-kind">Produto full stack</p>
-                        <span class="project-status">Em deploy</span>
-                    </div>
-                    <h3>Nester</h3>
-                    <p class="project-stack">Java • Spring Boot • Angular • PostgreSQL</p>
-                    <p class="project-summary">
-                        Rede social construída com back-end em Java e front-end em Angular, pensada para reunir autenticação, persistência relacional e experiência completa de produto.
-                    </p>
-                    <p class="project-highlight">
-                        <strong>Destaque técnico:</strong> integração entre API e interface, estruturação de domínio e deploy funcional para demonstração ao vivo.
-                    </p>
-                    <div class="project-links">
-                        <a class="button button-primary" href="https://nester-front-web.onrender.com/home" target="_blank" rel="noopener noreferrer">Ver deploy</a>
-                        <a class="button button-secondary" href="https://github.com/HumbertoFernandes7/NesterAPI" target="_blank" rel="noopener noreferrer">Back-end</a>
-                        <a class="button button-secondary" href="https://github.com/HumbertoFernandes7/NesterAngular" target="_blank" rel="noopener noreferrer">Front-end</a>
-                    </div>
-                    <p class="project-footnote">O primeiro carregamento pode demorar alguns instantes devido ao plano gratuito do deploy.</p>
-                </article>
-
-                <article class="project-card" data-reveal data-delay="150">
-                    <div class="project-top">
-                        <p class="project-kind">API de autenticação</p>
-                        <span class="project-status">Back-end</span>
-                    </div>
-                    <h3>AuthAPI</h3>
-                    <p class="project-stack">Java • Spring Security • JWT</p>
-                    <p class="project-summary">
-                        API focada em autenticação e autorização, cobrindo a base de segurança para aplicações que precisam controlar acesso com clareza e boa separação de responsabilidades.
-                    </p>
-                    <p class="project-highlight">
-                        <strong>Destaque técnico:</strong> implementação de fluxo seguro com JWT e organização voltada à extensibilidade do módulo de identidade.
-                    </p>
-                    <div class="project-links">
-                        <a class="button button-secondary" href="https://github.com/HumbertoFernandes7/AuthAPI" target="_blank" rel="noopener noreferrer">Ver no GitHub</a>
-                    </div>
-                </article>
-
-                <article class="project-card" data-reveal data-delay="220">
-                    <div class="project-top">
-                        <p class="project-kind">Gestão operacional</p>
-                        <span class="project-status">Back-end</span>
-                    </div>
-                    <h3>EstoqueAPI</h3>
-                    <p class="project-stack">Java • Spring Boot • Banco relacional</p>
-                    <p class="project-summary">
-                        Projeto voltado à gestão de produtos e estoque, explorando CRUD, persistência relacional e organização de regras de negócio aplicadas a um cenário de operação.
-                    </p>
-                    <p class="project-highlight">
-                        <strong>Destaque técnico:</strong> modelagem pragmática para domínio de estoque e base sólida para integração com camada front-end.
-                    </p>
-                    <div class="project-links">
-                        <a class="button button-secondary" href="https://github.com/HumbertoFernandes7/EstoqueMercadinho" target="_blank" rel="noopener noreferrer">Ver no GitHub</a>
-                    </div>
-                </article>
-            </div>
+            <p class="section-note" data-reveal data-delay="120">
+                Além dos repositórios públicos, desenvolvo código proprietário na EVIG —
+                back-end Java, Open Finance, mensageria e o projeto de IA do assistente.
+            </p>
         </section>
 
-        <section id="trajetoria" class="section" data-section aria-labelledby="trajetoria-title">
-            <div class="section-heading" data-reveal data-delay="0">
-                <p class="eyebrow">Trajetória</p>
-                <h2 id="trajetoria-title">Experiência prática, formação atualizada e evolução constante.</h2>
-                <p class="section-lead">
-                    Minha trajetória combina desenvolvimento profissional em ambiente real, formação acadêmica concluída e aprofundamento contínuo em arquitetura Java.
+        <section id="trajetoria" class="section" data-section data-scene="3" aria-labelledby="trajetoria-title">
+            <header class="section-head" data-reveal>
+                <p class="kicker"><span>03</span>Trajetória</p>
+                <h2 id="trajetoria-title">Experiência &amp; <em>formação.</em></h2>
+                <p class="lead">
+                    Histórico profissional e acadêmico desde 2022.
                 </p>
-            </div>
+            </header>
 
-            <div class="timeline">
-                <article class="timeline-item" data-reveal data-delay="80">
-                    <div class="timeline-marker" aria-hidden="true"></div>
-                    <div class="timeline-date">fev 2026 — atual</div>
-                    <div class="timeline-card">
-                        <span class="timeline-type">Experiência</span>
-                        <h3>Desenvolvedor Back-end Java</h3>
-                        <h4>EVIG</h4>
-                        <p>Atuação em features, manutenção e regras de negócio para um assistente financeiro com IA, envolvendo Open Finance, comunicação entre microsserviços, normalização de dados e performance de APIs.</p>
+            <ol class="timeline">
+                <li class="timeline-row" data-reveal data-delay="60">
+                    <p class="timeline-date">fev 2026 — hoje</p>
+                    <div class="timeline-body">
+                        <p class="timeline-tag">Experiência</p>
+                        <h3>Desenvolvedor Back-end Java <span>· EVIG</span></h3>
+                        <p>
+                            Atuação no back-end Java e no projeto de IA de um assistente financeiro:
+                            Open Finance, microsserviços, normalização de dados e integração de
+                            modelos de linguagem em produção.
+                        </p>
                     </div>
-                </article>
+                </li>
+                <li class="timeline-row" data-reveal data-delay="120">
+                    <p class="timeline-date">mar 2026</p>
+                    <div class="timeline-body">
+                        <p class="timeline-tag">Formação</p>
+                        <h3>Pós em Arquitetura e Desenvolvimento Java <span>· FIAP</span></h3>
+                        <p>
+                            Especialização concluída em março de 2026: arquitetura, padrões de projeto,
+                            qualidade de código e construção de software escalável.
+                        </p>
+                    </div>
+                </li>
+                <li class="timeline-row" data-reveal data-delay="180">
+                    <p class="timeline-date">2024</p>
+                    <div class="timeline-body">
+                        <p class="timeline-tag">Graduação</p>
+                        <h3>Análise e Desenvolvimento de Sistemas <span>· UNINOVE</span></h3>
+                        <p>
+                            Graduação concluída em 2024. Base de lógica, engenharia de requisitos
+                            e fundamentos de sistemas aplicados ao mercado.
+                        </p>
+                    </div>
+                </li>
+                <li class="timeline-row" data-reveal data-delay="240">
+                    <p class="timeline-date">mar 2022 — jun 2023</p>
+                    <div class="timeline-body">
+                        <p class="timeline-tag">Experiência</p>
+                        <h3>Desenvolvedor Full-Stack <span>· G&amp;P Projetos e Sistemas</span></h3>
+                        <p>
+                            Projeto Acelera G&amp;P: Java, Spring Boot, Angular, TypeScript, Maven,
+                            testes unitários e entregas internas de ponta a ponta.
+                        </p>
+                    </div>
+                </li>
+            </ol>
+        </section>
 
-                <article class="timeline-item" data-reveal data-delay="150">
-                    <div class="timeline-marker" aria-hidden="true"></div>
-                    <div class="timeline-date">mar 2022 — jun 2023</div>
-                    <div class="timeline-card">
-                        <span class="timeline-type">Experiência</span>
-                        <h3>Desenvolvedor Full-Stack</h3>
-                        <h4>G&amp;P Projetos e Sistemas S.A</h4>
-                        <p>Participação no projeto Acelera G&amp;P, com vivência em Java, Spring Boot, Angular, TypeScript, Maven, testes unitários e entrega de projetos internos da empresa.</p>
-                    </div>
-                </article>
+        <section id="contato" class="section contact" data-section data-scene="4" aria-labelledby="contato-title">
+            <header class="section-head" data-reveal>
+                <p class="kicker"><span>04</span>Contato</p>
+                <h2 id="contato-title">Disponível para novas <em>oportunidades.</em></h2>
+                <p class="lead">
+                    Procuro desafios como desenvolvedor back-end Java.
+                    Retorno contatos por e-mail ou LinkedIn.
+                </p>
+            </header>
 
-                <article class="timeline-item" data-reveal data-delay="220">
-                    <div class="timeline-marker" aria-hidden="true"></div>
-                    <div class="timeline-date">conclusão em 03/2026</div>
-                    <div class="timeline-card">
-                        <span class="timeline-type">Formação</span>
-                        <h3>Pós-graduação em Arquitetura e Desenvolvimento Java</h3>
-                        <h4>FIAP</h4>
-                        <p>Especialização voltada ao amadurecimento técnico em arquitetura, padrões de projeto, qualidade de código e construção de software escalável.</p>
-                    </div>
-                </article>
+            <a class="contact-mail" href="mailto:humbertofernandes08@hotmail.com" data-reveal data-delay="80">
+                humbertofernandes08<wbr>@hotmail.com
+            </a>
 
-                <article class="timeline-item" data-reveal data-delay="290">
-                    <div class="timeline-marker" aria-hidden="true"></div>
-                    <div class="timeline-date">concluído em 2024</div>
-                    <div class="timeline-card">
-                        <span class="timeline-type">Graduação</span>
-                        <h3>Análise e Desenvolvimento de Sistemas</h3>
-                        <h4>Universidade Nove de Julho (UNINOVE)</h4>
-                        <p>Base acadêmica para desenvolvimento de software, lógica, engenharia de requisitos e fundamentos de sistemas aplicados ao mercado.</p>
-                    </div>
-                </article>
-            </div>
+            <ul class="contact-meta" data-reveal data-delay="140">
+                <li><a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn<span aria-hidden="true">↗</span></a></li>
+                <li><a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true">↗</span></a></li>
+                <li><a href="tel:+5511977728104">+55 (11) 97772-8104</a></li>
+                <li>São Paulo, Brasil</li>
+            </ul>
         </section>
     </main>
 
-    <footer id="contato" class="contact-section" data-section aria-labelledby="contato-title">
-        <div class="contact-card" data-reveal data-delay="0">
-            <p class="eyebrow">Contato</p>
-            <h2 id="contato-title">Disponível para oportunidades que valorizem qualidade técnica e produto bem construído.</h2>
-            <p class="contact-text">
-                Se você procura um desenvolvedor back-end Java com olhar cuidadoso para arquitetura, legibilidade e entrega consistente, será um prazer conversar.
-            </p>
-
-            <div class="contact-actions">
-                <a class="button button-primary" href="mailto:humbertofernandes08@hotmail.com">Enviar e-mail</a>
-                <a class="button button-secondary" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                <a class="button button-secondary" href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </div>
-
-            <div class="contact-meta">
-                <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
-                <span>São Paulo, Brasil</span>
-                <a href="tel:+5511977728104">+55 (11) 97772-8104</a>
-            </div>
-
-            <p class="footer-copy">© 2026 Humberto Fernandes de Oliveira Pinto.</p>
-        </div>
+    <footer class="site-footer">
+        <p>© 2026 Humberto Fernandes de Oliveira Pinto</p>
+        <p class="footer-made">HTML, CSS, JavaScript e Three.js — sem frameworks.</p>
+        <a href="#inicio" class="footer-top">voltar ao topo<span aria-hidden="true">↑</span></a>
     </footer>
-
-    <script src="script.js" defer></script>
 </body>
 </html>
