@@ -1,5 +1,5 @@
 const THEME_KEY = "portfolio-theme";
-const THEME_META = { dark: "#060b16", light: "#eef1f7" };
+const THEME_META = { dark: "#060b16", light: "#dde3ec" };
 
 document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;
@@ -97,10 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const revealElements = document.querySelectorAll("[data-reveal]");
 
-    revealElements.forEach((element) => {
-        element.style.setProperty("--rd", `${Number(element.dataset.delay || 0)}ms`);
-    });
-
     if (!reduceMotion && "IntersectionObserver" in window) {
         const revealObserver = new IntersectionObserver(
             (entries, observer) => {
@@ -118,6 +114,24 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         revealElements.forEach((element) => element.classList.add("is-visible"));
     }
+
+    /* Ao navegar por âncora, revela já os blocos da seção de destino
+       (a seção nunca chega vazia enquanto o scroll suave termina). */
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener("click", () => {
+            const id = link.getAttribute("href").slice(1);
+            const targetSection = id ? document.getElementById(id) : null;
+            if (!targetSection) {
+                return;
+            }
+            targetSection.querySelectorAll("[data-reveal]").forEach((element) => {
+                element.classList.add("is-visible");
+            });
+            if (targetSection.hasAttribute("data-reveal")) {
+                targetSection.classList.add("is-visible");
+            }
+        });
+    });
 
     /* ---------- Link ativo na navegação ---------- */
 

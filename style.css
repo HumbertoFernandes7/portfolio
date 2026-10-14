@@ -15,7 +15,7 @@
     --bg-elev: #0c1424;
     --text: #e8edf6;
     --text-dim: #97a2b8;
-    --text-faint: #64708a;
+    --text-faint: #8592ab;
     --accent: #5f8aff;
     --accent-strong: #8db1ff;
     --accent-ink: #06101f;
@@ -23,6 +23,9 @@
     --line-soft: rgba(232, 237, 246, 0.07);
     --glow: rgba(95, 138, 255, 0.09);
     --grain-opacity: 0.07;
+    /* fundo dos blocos de leitura (cards, timeline, stack) */
+    --panel: rgba(6, 11, 22, 0.82);
+    --panel-hover: rgba(12, 20, 36, 0.65);
 
     --shell: 1180px;
     --gutter: clamp(20px, 5vw, 60px);
@@ -33,18 +36,21 @@
 }
 
 [data-theme="light"] {
-    --bg: #eef1f7;
-    --bg-elev: #f9fbfe;
+    /* cinza-azulado médio, menos ofuscante; cards um tom acima */
+    --bg: #dde3ec;
+    --bg-elev: #e9edf3;
     --text: #131a29;
-    --text-dim: #4d596f;
-    --text-faint: #7e899d;
-    --accent: #1e4fd6;
-    --accent-strong: #143a9e;
+    --text-dim: #434e63;
+    --text-faint: #535f74;
+    --accent: #1d46c4;
+    --accent-strong: #15349a;
     --accent-ink: #f3f6fc;
-    --line: rgba(19, 26, 41, 0.16);
-    --line-soft: rgba(19, 26, 41, 0.08);
-    --glow: rgba(30, 79, 214, 0.07);
+    --line: rgba(19, 26, 41, 0.18);
+    --line-soft: rgba(19, 26, 41, 0.09);
+    --glow: rgba(29, 70, 196, 0.08);
     --grain-opacity: 0.05;
+    --panel: rgba(242, 245, 249, 0.86);
+    --panel-hover: rgba(248, 250, 252, 0.97);
     color-scheme: light;
 }
 
@@ -154,11 +160,17 @@ ol {
     height: 100%;
     display: block;
     opacity: 0;
-    transition: opacity 1.6s ease 0.2s;
+    transition: opacity 0.6s ease;
 }
 
 .webgl canvas.is-on {
     opacity: 1;
+}
+
+/* abaixo de 1100px (coluna única): as partículas só aparecem no hero
+   (classe alternada pelo scene.js) */
+.webgl canvas.is-dim {
+    opacity: 0;
 }
 
 .no-webgl .webgl canvas {
@@ -248,7 +260,7 @@ main,
 .site-nav a {
     position: relative;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.14em;
     color: var(--text-dim);
@@ -321,7 +333,7 @@ main,
 .menu-toggle {
     display: none;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.14em;
     color: var(--text-dim);
@@ -440,9 +452,9 @@ body.menu-open {
     align-items: center;
     gap: 14px;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     color: var(--text-dim);
     margin-bottom: 26px;
 }
@@ -483,9 +495,9 @@ body.menu-open {
 
 .eyebrow {
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     color: var(--accent);
 }
 
@@ -496,7 +508,7 @@ body.menu-open {
     align-items: center;
     gap: 10px;
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.16em;
@@ -588,7 +600,7 @@ body.menu-open {
 .hero-links a,
 .scroll-cue {
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     letter-spacing: 0.1em;
     color: var(--text-dim);
     transition: color 0.3s ease;
@@ -626,9 +638,9 @@ body.menu-open {
 
 .hero-facts dt {
     font-family: var(--font-mono);
-    font-size: 0.64rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     color: var(--text-faint);
     margin-bottom: 7px;
 }
@@ -668,6 +680,11 @@ body.menu-open {
     gap: clamp(40px, 6vw, 88px);
     align-items: start;
     margin-bottom: clamp(56px, 8vw, 96px);
+}
+
+.about-copy {
+    padding: 18px 20px 0;
+    background: var(--panel);
 }
 
 .about-copy p {
@@ -742,28 +759,29 @@ body.menu-open {
 .about-portrait figcaption {
     margin-top: 14px;
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     color: var(--text-faint);
 }
 
 .stack {
     border-top: 1px solid var(--line);
-    padding-top: 34px;
+    padding: 34px 12px 8px;
+    background: var(--panel);
 }
 
 .stack-title {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     color: var(--text-faint);
     margin-bottom: 30px;
 }
 
 .stack-cols {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(28px, 4vw, 56px);
 }
 
@@ -797,10 +815,11 @@ body.menu-open {
     padding: clamp(34px, 5vw, 52px) 12px;
     border-bottom: 1px solid var(--line);
     transition: background-color 0.35s ease;
+    background: var(--panel);
 }
 
 .project-row:hover {
-    background: color-mix(in srgb, var(--bg-elev) 65%, transparent);
+    background: var(--panel-hover);
 }
 
 .project-index {
@@ -839,7 +858,7 @@ body.menu-open {
 
 .project-kind {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.16em;
     color: var(--text-faint);
@@ -892,7 +911,7 @@ body.menu-open {
 .project-footnote {
     margin-top: 16px;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-faint);
 }
 
@@ -918,10 +937,11 @@ body.menu-open {
     padding: clamp(30px, 4.5vw, 44px) 12px;
     border-bottom: 1px solid var(--line);
     transition: background-color 0.35s ease;
+    background: var(--panel);
 }
 
 .timeline-row:hover {
-    background: color-mix(in srgb, var(--bg-elev) 65%, transparent);
+    background: var(--panel-hover);
 }
 
 .timeline-date {
@@ -933,9 +953,9 @@ body.menu-open {
 
 .timeline-tag {
     font-family: var(--font-mono);
-    font-size: 0.64rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     color: var(--accent);
     margin-bottom: 10px;
 }
@@ -952,10 +972,37 @@ body.menu-open {
     color: var(--text-dim);
 }
 
-.timeline-body p:last-child {
+/* parágrafos do corpo (a linha da Evig termina numa lista, não num <p>) */
+.timeline-body > p:not(.timeline-tag),
+.timeline-body li {
     color: var(--text-dim);
     font-size: 0.95rem;
     max-width: 62ch;
+}
+
+/* "Principais features que criei:" fica colado à lista que apresenta */
+.timeline-body > p:not(.timeline-tag):has(+ ul) {
+    margin-bottom: 8px;
+}
+
+.timeline-body ul {
+    display: grid;
+    gap: 5px;
+}
+
+.timeline-body li {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-body li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.82em;
+    width: 9px;
+    height: 1px;
+    background: var(--accent);
 }
 
 /* ---------- Contato ---------- */
@@ -1020,7 +1067,7 @@ body.menu-open {
     justify-content: space-between;
     gap: 12px 32px;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-faint);
 }
 
@@ -1063,13 +1110,135 @@ html.js [data-load] {
 /* Seções: reveladas no scroll (só esconde depois que o script assume) */
 body.js-ready [data-reveal] {
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.85s ease var(--rd, 0ms), transform 0.85s var(--ease-out) var(--rd, 0ms);
+    transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s var(--ease-out);
 }
 
 body.js-ready [data-reveal].is-visible {
     opacity: 1;
     transform: none;
+}
+
+/* ---------- Layout dividido (desktop largo) ----------
+   Conteúdo numa coluna de ~59% do container e a formação 3D no lado
+   livre, intercalando: cenas 0, 2 e 4 com texto à esquerda; 1 e 3 com
+   texto à direita. O scene.js usa a mesma media query (1100px) e mede
+   esta coluna para centralizar a formação na área livre. */
+
+@media (min-width: 1100px) {
+    .hero > *,
+    .section > * {
+        width: 59%;
+    }
+
+    #sobre > *,
+    #trajetoria > * {
+        margin-left: auto;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.6rem, 4.3vw, 4rem);
+    }
+
+    .hero-foot {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 22px;
+    }
+
+    .hero-facts {
+        width: 100%;
+        gap: 28px;
+    }
+
+    /* Sobre: retrato menor acima do texto, legenda ao lado */
+    .about-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 34px;
+    }
+
+    /* a formação fica no outro lado: o texto não precisa mais de fundo próprio */
+    .about-copy {
+        padding: 0;
+        background: none;
+    }
+
+    .about-portrait {
+        order: -1;
+        position: static;
+        display: flex;
+        align-items: flex-end;
+        gap: 22px;
+    }
+
+    .portrait-frame {
+        flex: 0 0 220px;
+        padding: 8px;
+    }
+
+    .portrait-frame::after {
+        inset: 8px;
+    }
+
+    .about-portrait figcaption {
+        margin: 0 0 4px;
+        max-width: 26ch;
+        line-height: 1.6;
+    }
+
+    /* Stack: lista compacta — categoria à esquerda, itens corridos */
+    .stack-cols {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .stack-col {
+        display: grid;
+        grid-template-columns: 172px minmax(0, 1fr);
+        gap: 16px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--line-soft);
+    }
+
+    .stack-col h3 {
+        margin-bottom: 0;
+        padding-top: 1px;
+    }
+
+    .stack-col ul {
+        display: flex;
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+
+    .stack-col li {
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    .stack-col li:not(:last-child)::after {
+        content: "·";
+        margin: 0 9px;
+        color: var(--text-faint);
+    }
+
+    .project-row {
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .project-title h3 {
+        font-size: clamp(1.6rem, 2.3vw, 2.05rem);
+    }
+
+    .timeline-row {
+        grid-template-columns: 140px minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .contact-mail {
+        font-size: clamp(1.6rem, 2.5vw, 2.3rem);
+    }
 }
 
 /* ---------- Responsivo ---------- */
