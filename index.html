@@ -288,8 +288,9 @@
                         <p class="project-stack">Java 21 · Spring Boot · PostgreSQL · Flyway</p>
                         <p class="project-summary">
                             No monólito modular multi-tenant em Java, criei o novo tratamento dos dados de
-                            Open Finance: troquei a leitura de JSON por tabelas relacionais e reduzi em 90%
-                            as consultas ao banco em investimentos.
+                            Open Finance: troquei a leitura de JSON por tabelas relacionais e criei a carga
+                            incremental com hash por período, que grava só o que mudou em vez de reprocessar
+                            o histórico todo dia.
                         </p>
                     </div>
                 </article>
