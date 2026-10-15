@@ -1,9 +1,39 @@
 const THEME_KEY = "portfolio-theme";
-const THEME_META = { dark: "#060b16", light: "#f3f2ed" };
+const THEME_META = { dark: "#060b16", light: "#edf2f8" };
+
+/* ---------- Transição entre páginas ----------
+   Voltar ao portfólio (certificados → index) marca a transição como
+   "back": o CSS inverte o movimento (afunda em vez de subir). Precisa
+   estar no topo e antes da primeira pintura (o <script> é blocking="render"). */
+if ("onpagereveal" in window) {
+    window.addEventListener("pagereveal", (event) => {
+        const transition = event.viewTransition;
+        if (!transition || !transition.types) {
+            return;
+        }
+        const activation = window.navigation && window.navigation.activation;
+        const fromUrl = activation && activation.from ? activation.from.url : document.referrer;
+        const isCertPage = (url) => /\/certificados\.html(?:[?#]|$)/.test(url || "");
+        if (isCertPage(fromUrl) && !isCertPage(window.location.href)) {
+            transition.types.add("back");
+        }
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;
     const body = document.body;
+
+    /* Reveal: mede o que já está na tela ANTES do js-ready. Medir depois
+       forçaria um estilo com opacity 0 e a transição dispararia (piscada).
+       Esses blocos ganham is-visible junto com o js-ready, sem transição. */
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealElements = document.querySelectorAll("[data-reveal]");
+    const fold = window.innerHeight * 0.94;
+    const revealedOnLoad = new Set(
+        Array.from(revealElements).filter((element) => element.getBoundingClientRect().top < fold)
+    );
+    revealedOnLoad.forEach((element) => element.classList.add("is-visible"));
 
     body.classList.add("js-ready");
 
@@ -94,9 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ---------- Reveal no scroll ---------- */
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const revealElements = document.querySelectorAll("[data-reveal]");
-
     if (!reduceMotion && "IntersectionObserver" in window) {
         const revealObserver = new IntersectionObserver(
             (entries, observer) => {
@@ -110,7 +137,12 @@ document.addEventListener("DOMContentLoaded", () => {
             { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
         );
 
-        revealElements.forEach((element) => revealObserver.observe(element));
+        /* o que já estava na tela ao carregar não passa pelo observer */
+        revealElements.forEach((element) => {
+            if (!revealedOnLoad.has(element)) {
+                revealObserver.observe(element);
+            }
+        });
     } else {
         revealElements.forEach((element) => element.classList.add("is-visible"));
     }

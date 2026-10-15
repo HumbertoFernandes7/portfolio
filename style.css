@@ -40,24 +40,25 @@
 }
 
 [data-theme="light"] {
-    /* papel quente (off-white) com tinta azul-escura; cards brancos */
-    --bg: #f3f2ed;
-    --bg-elev: #e9e7e0;
-    --text: #1a1a1f;
-    --text-dim: #4a4e5a;
-    --text-faint: #5e6376;
-    --accent: #1f4fd1;
-    --accent-strong: #163b9f;
+    /* "Glacier": gelo azulado com tinta azul-marinho; cards brancos
+       sólidos com sombra de verdade */
+    --bg: #edf2f8;
+    --bg-elev: #dfe7f1;
+    --text: #0d1830;
+    --text-dim: #3e4c66;
+    --text-faint: #55637f;
+    --accent: #1b55d6;
+    --accent-strong: #123f9f;
     --accent-ink: #ffffff;
-    --line: rgba(26, 26, 31, 0.16);
-    --line-soft: rgba(26, 26, 31, 0.08);
-    --line-strong: rgba(26, 26, 31, 0.28);
-    --glow: rgba(31, 79, 209, 0.07);
-    --grain-opacity: 0.04;
-    --panel: rgba(255, 255, 255, 0.5);
-    --panel-hover: rgba(255, 255, 255, 0.92);
+    --line: rgba(13, 24, 48, 0.14);
+    --line-soft: rgba(13, 24, 48, 0.08);
+    --line-strong: rgba(13, 24, 48, 0.24);
+    --glow: rgba(27, 85, 214, 0.10);
+    --grain-opacity: 0.035;
+    --panel: #ffffff;
+    --panel-hover: #ffffff;
     --panel-solid: #ffffff;
-    --shadow-card: 0 1px 1px rgba(26, 26, 31, 0.03), 0 12px 32px -20px rgba(26, 26, 31, 0.22);
+    --shadow-card: 0 1px 2px rgba(13, 24, 48, 0.05), 0 16px 36px -20px rgba(13, 24, 48, 0.28);
     color-scheme: light;
 }
 
@@ -1135,6 +1136,74 @@ body.js-ready [data-reveal].is-visible {
     transform: none;
 }
 
+/* ---------- Transição entre páginas (View Transitions, same-origin) ----------
+   Index ↔ certificados: o conteúdo sobe e funde (ou afunda, ao voltar ao
+   portfólio — tipo "back", definido no pagereveal do script.js); header e
+   fundo 3D têm grupos próprios e só fazem crossfade. Navegadores sem
+   suporte seguem com a navegação normal. O main não ganha nome próprio:
+   é mais alto que a janela. */
+
+@view-transition {
+    navigation: auto;
+}
+
+.site-header {
+    view-transition-name: site-header;
+}
+
+.webgl {
+    view-transition-name: backdrop;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(root) {
+    animation: 0.18s ease both vt-fade-out, 0.30s var(--ease-out) both vt-rise-out;
+}
+
+::view-transition-new(root) {
+    animation: 0.30s ease 0.06s both vt-fade-in, 0.42s var(--ease-out) both vt-rise-in;
+}
+
+/* voltando ao portfólio: o movimento inverte (afunda) */
+html:active-view-transition-type(back)::view-transition-old(root) {
+    animation: 0.18s ease both vt-fade-out, 0.30s var(--ease-out) both vt-sink-out;
+}
+
+html:active-view-transition-type(back)::view-transition-new(root) {
+    animation: 0.30s ease 0.06s both vt-fade-in, 0.42s var(--ease-out) both vt-sink-in;
+}
+
+::view-transition-group(site-header) {
+    animation-duration: 0.22s;
+}
+
+/* grupos nomeados são pintados acima do root: o fundo (opaco) desce para
+   baixo dele, senão cobriria o conteúdo durante a transição */
+::view-transition-group(backdrop) {
+    z-index: -1;
+    animation-duration: 0.45s;
+}
+
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in  { from { opacity: 0; } }
+@keyframes vt-rise-out { to { transform: translateY(-14px); } }
+@keyframes vt-rise-in  { from { transform: translateY(18px); } }
+@keyframes vt-sink-out { to { transform: translateY(14px); } }
+@keyframes vt-sink-in  { from { transform: translateY(-18px); } }
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
 /* ---------- Layout dividido (desktop largo) ----------
    Conteúdo numa coluna de ~59% do container e a formação 3D no lado
    livre, intercalando: cenas 0, 2 e 4 com texto à esquerda; 1 e 3 com
@@ -1376,10 +1445,19 @@ body.js-ready [data-reveal].is-visible {
     mix-blend-mode: multiply;
 }
 
+/* topo mais claro (luz de gelo) sobre os brilhos azuis; a cor de fundo
+   continua vindo do background-color do .webgl */
+[data-theme="light"] .webgl {
+    background-image:
+        linear-gradient(180deg, #f7f9fc 0%, rgba(247, 249, 252, 0) 38%),
+        radial-gradient(1100px 700px at 12% -4%, var(--glow), transparent 62%),
+        radial-gradient(900px 600px at 96% 108%, var(--glow), transparent 65%);
+}
+
 [data-theme="light"] .site-header.is-scrolled {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(237, 242, 248, 0.80);
     border-bottom-color: var(--line);
-    box-shadow: 0 1px 0 rgba(26, 26, 31, 0.04), 0 8px 24px -16px rgba(26, 26, 31, 0.18);
+    box-shadow: 0 1px 0 rgba(13, 24, 48, 0.04), 0 8px 24px -16px rgba(13, 24, 48, 0.18);
 }
 
 [data-theme="light"] .button-line,
@@ -1390,7 +1468,7 @@ body.js-ready [data-reveal].is-visible {
 }
 
 [data-theme="light"] .button-line {
-    background: rgba(255, 255, 255, 0.55);
+    background: #ffffff;
 }
 
 /* o seletor acima tem mais especificidade que o :hover base: refaz o hover */
@@ -1401,7 +1479,7 @@ body.js-ready [data-reveal].is-visible {
 }
 
 [data-theme="light"] .button-solid {
-    box-shadow: 0 1px 2px rgba(22, 59, 159, 0.25);
+    box-shadow: 0 1px 2px rgba(18, 63, 159, 0.30);
 }
 
 /* rótulos mono um pouco mais firmes no fundo claro */
@@ -1418,14 +1496,31 @@ body.js-ready [data-reveal].is-visible {
     font-weight: 500;
 }
 
+/* projetos e trajetória viram cards brancos empilhados (sem a linha de
+   lista no topo); o padding lateral vale também no mobile */
+[data-theme="light"] .project-list,
+[data-theme="light"] .timeline {
+    border-top: 0;
+}
+
 [data-theme="light"] .project-row,
 [data-theme="light"] .timeline-row {
-    border-bottom-color: var(--line);
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: var(--shadow-card);
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+[data-theme="light"] .project-row + .project-row,
+[data-theme="light"] .timeline-row + .timeline-row {
+    margin-top: 14px;
 }
 
 [data-theme="light"] .project-row:hover,
 [data-theme="light"] .timeline-row:hover {
-    box-shadow: var(--shadow-card);
+    border-color: var(--line-strong);
 }
 
 [data-theme="light"] .stack {

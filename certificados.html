@@ -23,7 +23,7 @@
             } catch (e) {}
             var meta = document.querySelector('meta[name="theme-color"]');
             if (meta) {
-                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#f3f2ed" : "#060b16");
+                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
             }
         })();
     </script>
@@ -35,14 +35,24 @@
     <link rel="stylesheet" href="certificados.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
 
-    <script src="script.js" defer></script>
+    <!-- dados dos cards já em voo durante o parse; a primeira pintura espera
+         o grid existir (transição entre páginas chega com a estrutura pronta) -->
+    <link rel="preload" href="data/certificados.json" as="fetch" crossorigin>
+    <link rel="preload" href="data/diplomas.json" as="fetch" crossorigin>
+    <link rel="expect" href="#cert-grid" blocking="render">
+
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.min.js" } }
+    </script>
+    <script type="module" src="scene.js"></script>
+    <script src="script.js" defer blocking="render"></script>
     <script src="certificados.js" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-    <!-- só o brilho de fundo (sem canvas 3D nesta página) -->
-    <div class="webgl" aria-hidden="true"></div>
+    <!-- mesma cena 3D do portfólio, com uma formação só: o capelo ao lado da introdução -->
+    <div class="webgl" aria-hidden="true"><canvas id="scene-canvas" data-formation="cap"></canvas></div>
     <div class="grain" aria-hidden="true"></div>
 
     <header class="site-header" data-header>
@@ -92,7 +102,7 @@
 
     <main id="conteudo" class="cert-main">
         <div class="cert-shell">
-            <header class="section-head cert-head" data-reveal>
+            <header class="section-head cert-head" data-reveal data-scene-anchor>
                 <p class="kicker">Certificados</p>
                 <h1 id="cert-title">Formação &amp; <em>certificados.</em></h1>
                 <p class="lead">
@@ -101,9 +111,27 @@
                 <p class="cert-stats" id="cert-stats"></p>
             </header>
 
-            <section class="cert-block" id="diplomas" aria-labelledby="diplomas-title" hidden>
+            <section class="cert-block" id="diplomas" aria-labelledby="diplomas-title">
                 <h2 class="cert-subtitle" id="diplomas-title">Diplomas</h2>
-                <div class="diploma-list" id="diploma-list"></div>
+                <!-- molduras reservadas: o certificados.js troca pelos diplomas reais -->
+                <div class="diploma-list" id="diploma-list">
+                    <article class="diploma-card is-skeleton" aria-hidden="true">
+                        <div class="diploma-media"></div>
+                        <div class="diploma-body">
+                            <p class="diploma-level">&nbsp;</p>
+                            <p class="diploma-title">&nbsp;</p>
+                            <p class="diploma-meta">&nbsp;</p>
+                        </div>
+                    </article>
+                    <article class="diploma-card is-skeleton" aria-hidden="true">
+                        <div class="diploma-media"></div>
+                        <div class="diploma-body">
+                            <p class="diploma-level">&nbsp;</p>
+                            <p class="diploma-title">&nbsp;</p>
+                            <p class="diploma-meta">&nbsp;</p>
+                        </div>
+                    </article>
+                </div>
             </section>
 
             <section class="cert-block" id="cursos" aria-labelledby="cursos-title">

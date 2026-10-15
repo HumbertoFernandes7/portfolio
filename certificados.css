@@ -46,6 +46,34 @@
     color: var(--text-dim);
 }
 
+/* Conteúdo que chega depois do fetch já tem lugar reservado: nada
+   empurra a página quando os dados entram (inclusive na transição). */
+.cert-stats:empty,
+.cert-count:empty {
+    min-height: 1.65em; /* uma linha (line-height do body) */
+}
+
+.cert-chips:empty {
+    min-height: 38px; /* uma fileira de chips */
+}
+
+.cert-grid:empty {
+    min-height: 60vh;
+}
+
+/* a mensagem de vazio/erro ocupa o lugar do grid */
+.cert-message:not([hidden]) ~ .cert-grid:empty {
+    min-height: 0;
+}
+
+/* No layout dividido a introdução fica em ~59% da largura: o capelo 3D
+   (scene.js) ocupa o lado livre, à direita dela. */
+@media (min-width: 1100px) {
+    .cert-head {
+        max-width: 59%;
+    }
+}
+
 .cert-block {
     scroll-margin-top: calc(var(--header-h) + 8px);
     padding: clamp(32px, 5vw, 52px) 0 clamp(40px, 6vw, 72px);
@@ -169,6 +197,17 @@
     font-family: var(--font-mono);
     font-size: 0.76rem;
     color: var(--text-dim);
+}
+
+/* Molduras dos diplomas já no HTML (antes do fetch), com a mesma proporção
+   e altura dos cards reais: o certificados.js troca pelos cards sem
+   deslocar nada. O título reserva duas linhas, como os diplomas atuais. */
+.diploma-card.is-skeleton {
+    pointer-events: none; /* sem hover nem cursor de zoom */
+}
+
+.diploma-card.is-skeleton .diploma-title {
+    min-height: 2.5em;
 }
 
 /* ---------- Barra de filtros ---------- */
@@ -614,11 +653,11 @@ html.lb-open body {
 
 [data-theme="light"] .cert-card:hover {
     border-color: var(--line-strong);
-    box-shadow: 0 1px 1px rgba(26, 26, 31, 0.03), 0 18px 40px -20px rgba(26, 26, 31, 0.28);
+    box-shadow: 0 1px 2px rgba(13, 24, 48, 0.06), 0 20px 42px -20px rgba(13, 24, 48, 0.34);
 }
 
 [data-theme="light"] .diploma-media img {
-    filter: drop-shadow(0 6px 14px rgba(26, 26, 31, 0.16));
+    filter: drop-shadow(0 6px 14px rgba(13, 24, 48, 0.16));
 }
 
 [data-theme="light"] .chip,
@@ -650,7 +689,7 @@ html.lb-open body {
 }
 
 [data-theme="light"] .lightbox::backdrop {
-    background: rgba(26, 26, 31, 0.6);
+    background: rgba(13, 24, 48, 0.6);
 }
 
 /* ---------- Responsivo ---------- */

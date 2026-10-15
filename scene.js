@@ -6,6 +6,9 @@
    (IA). As formas planas são amostradas de um canvas 2D; a rede
    neural é gerada por coordenadas. No desktop largo a formação
    fica no lado livre da tela, alternando com o texto das seções.
+   Outras páginas declaram uma formação única no canvas
+   (data-formation) presa a um bloco âncora (data-scene-anchor):
+   em certificados.html, o capelo de formatura ao lado da introdução.
    Carrega Three.js via import map; sem WebGL, o site segue
    normalmente sobre o fundo CSS.
    ============================================================ */
@@ -334,6 +337,87 @@
         return pts;
     };
 
+    /* Certificados: capelo de formatura — tampo em losango achatado (o
+       quadrado visto de cima, em leve perspectiva) com espessura na borda
+       da frente, copa arredondada abaixo dele, botão no centro e a borla
+       pendendo pelo lado direito. Cordão, botão e frisos são recortados
+       do tampo cheio para lerem em pontos. */
+    const drawGradCap = (ctx, u) => {
+        /* copa: faixa que encaixa na cabeça, base arredondada (o topo fica sob o tampo) */
+        ctx.beginPath();
+        ctx.moveTo(28 * u, 46 * u);
+        ctx.lineTo(29.5 * u, 66 * u);
+        ctx.quadraticCurveTo(50 * u, 76 * u, 70.5 * u, 66 * u);
+        ctx.lineTo(72 * u, 46 * u);
+        ctx.closePath();
+        ctx.fill();
+
+        /* tampo + espessura: losango com as duas arestas da frente "engrossadas" */
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 40 * u);
+        ctx.lineTo(50 * u, 25 * u);
+        ctx.lineTo(90 * u, 40 * u);
+        ctx.lineTo(90 * u, 43 * u);
+        ctx.lineTo(50 * u, 58 * u);
+        ctx.lineTo(10 * u, 43 * u);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "destination-out";
+
+        /* frisos: face de cima × espessura, e espessura × copa */
+        ctx.lineWidth = 1.4 * u;
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 40 * u);
+        ctx.lineTo(50 * u, 55 * u);
+        ctx.lineTo(90 * u, 40 * u);
+        ctx.stroke();
+        ctx.lineWidth = 1.6 * u;
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 43 * u);
+        ctx.lineTo(50 * u, 58 * u);
+        ctx.lineTo(90 * u, 43 * u);
+        ctx.stroke();
+
+        /* folga em volta do cordão (sobre o tampo) e do botão */
+        ctx.lineWidth = 5 * u;
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 40 * u);
+        ctx.lineTo(78 * u, 44.5 * u);
+        ctx.lineTo(78 * u, 50 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(50 * u, 40 * u, 3.8 * u, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "source-over";
+
+        /* cordão: do botão até a aresta da frente e caindo pelo lado */
+        ctx.lineWidth = 1.8 * u;
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 40 * u);
+        ctx.lineTo(78 * u, 44.5 * u);
+        ctx.lineTo(78 * u, 63 * u);
+        ctx.stroke();
+
+        /* botão */
+        ctx.beginPath();
+        ctx.arc(50 * u, 40 * u, 2.2 * u, 0, Math.PI * 2);
+        ctx.fill();
+
+        /* borla: nó e franja que abre para baixo */
+        ctx.beginPath();
+        ctx.arc(78 * u, 63 * u, 2 * u, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(76.2 * u, 64 * u);
+        ctx.lineTo(79.8 * u, 64 * u);
+        ctx.lineTo(82.5 * u, 77 * u);
+        ctx.lineTo(73.5 * u, 77 * u);
+        ctx.closePath();
+        ctx.fill();
+    };
+
     /* A formação do Python é bicolor: primeira metade dos pontos é a
        cobra azul (cima), segunda metade a dourada (baixo). */
     const PY_SPLIT = Math.floor(COUNT / 2);
@@ -366,29 +450,49 @@
         return { hw: (maxX - minX) / 2, hh: (maxY - minY) / 2 };
     };
 
+    /* Páginas de formação única: o canvas declara qual (data-formation) e
+       a formação acompanha o bloco marcado com data-scene-anchor. Sem
+       data-formation (index), valem as 5 formações por seção. */
+    const SOLO_PAGES = {
+        cap: {
+            make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.3),
+            config: { rotX: -0.06, camZ: 44, amp: 0.18, speed: 0.45 }
+        }
+    };
+    const solo = SOLO_PAGES[canvas.dataset.formation] || null;
+    const anchorEl = solo ? document.querySelector("[data-scene-anchor]") : null;
+
     /* formações centradas na origem; o deslocamento lateral é aplicado no loop */
-    const formations = [
-        sampleShape(drawCode, 30, 3),
-        sampleShape(drawCup, 30, 3, COUNT, 0.3),
-        sampleShape(drawTerminal, 30, 2.4),
-        makePython(),
-        makeNetwork()
-    ];
+    const formations = solo
+        ? [solo.make()]
+        : [
+            sampleShape(drawCode, 30, 3),
+            sampleShape(drawCup, 30, 3, COUNT, 0.3),
+            sampleShape(drawTerminal, 30, 2.4),
+            makePython(),
+            makeNetwork()
+        ];
     const extents = formations.map(centerCloud);
 
     /* Comportamento por seção: inclinação, distância e balanço.
        Os símbolos oscilam em vez de girar para seguirem legíveis. */
-    const configs = [
-        { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
-        { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
-        { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
-        { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
-        { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
-    ];
+    const configs = solo
+        ? [solo.config]
+        : [
+            { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
+            { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
+            { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
+            { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
+            { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
+        ];
 
     /* posição (x no mundo) e escala de cada formação; recalculadas no resize */
     const layout = formations.map(() => ({ x: 0, s: 1 }));
     let split = false;
+    /* formação única: deslocamento vertical (mundo) que a mantém na altura
+       do bloco âncora enquanto ele rola; no index fica sempre 0 */
+    let anchorY = 0;
+    let anchorVisible = true;
 
     /* ---------- Geometria e material ---------- */
 
@@ -478,16 +582,16 @@
            afastada, senão a forma vira um borrão cinza. O efeito de multiplicar
            vem do mix-blend-mode do canvas (CSS): MultiplyBlending do WebGL não
            funciona com canvas alpha:true, por isso segue NormalBlending.
-           Com multiply a opacidade pode ser menor (0.75) */
+           Com multiply a opacidade pode ser menor (0.78) */
         light: {
-            primary: new THREE.Color("#1a3fb8"),
-            secondary: new THREE.Color("#0b1f52"),
+            primary: new THREE.Color("#1446c4"),
+            secondary: new THREE.Color("#0a1d4f"),
             gold: new THREE.Color("#b4720b"),
             goldSoft: new THREE.Color("#7f5006"),
-            fog: new THREE.Color("#f3f2ed"),
+            fog: new THREE.Color("#edf2f8"),
             fogNear: 60,
             fogFar: 150,
-            opacity: 0.75,
+            opacity: 0.78,
             size: isSmall ? 0.26 : 0.28,
             blending: THREE.NormalBlending
         }
@@ -532,6 +636,22 @@
 
     /* ---------- Seção ativa ---------- */
 
+    /* Formação única: converte o centro do bloco âncora (px na tela) em y
+       do mundo no plano z = 0, na distância da cena. Lido a cada quadro,
+       a formação "rola" junto com o bloco. */
+    const updateAnchor = () => {
+        if (!anchorEl) {
+            return;
+        }
+        const h = window.innerHeight;
+        if (h === 0) {
+            return;
+        }
+        const r = anchorEl.getBoundingClientRect();
+        const halfH = configs[0].camZ * Math.tan((FOV / 2) * (Math.PI / 180));
+        anchorY = (h / 2 - (r.top + r.height / 2)) / (h / 2 / halfH);
+    };
+
     /* movimento reduzido: coloca a formação ativa direto no lugar, sem morph */
     const snapToTarget = () => {
         const { x, s } = layout[activeIndex];
@@ -541,7 +661,9 @@
             positions[i + 2] = target[i + 2];
         }
         geometry.getAttribute("position").needsUpdate = true;
+        updateAnchor();
         group.position.x = x;
+        group.position.y = anchorY;
         points.position.x = -x;
         group.scale.setScalar(s);
         group.rotation.set(configs[activeIndex].rotX, 0, 0);
@@ -549,8 +671,14 @@
         renderer.render(scene, camera);
     };
 
-    /* fora do layout dividido o texto ocupa a tela toda: partículas só no hero */
+    /* fora do layout dividido o texto ocupa a tela toda: partículas só no hero.
+       Formação única: só enquanto o bloco âncora está na tela (nos dois layouts),
+       para nunca ficar atrás do conteúdo que vem depois dele. */
     const updateDim = () => {
+        if (solo) {
+            canvas.classList.toggle("is-dim", !anchorVisible);
+            return;
+        }
         canvas.classList.toggle("is-dim", !split && activeIndex !== 0);
     };
 
@@ -571,7 +699,32 @@
     };
 
     const sceneSections = document.querySelectorAll("[data-scene]");
-    if ("IntersectionObserver" in window) {
+    if (solo) {
+        if (anchorEl && "IntersectionObserver" in window) {
+            /* "na tela" = ao menos 60% do bloco abaixo do header fixo (ou 60% da
+               área útil, se o bloco for mais alto que ela); passou disso, apaga */
+            const headerH = parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue("--header-h")
+            ) || 72;
+            const anchorObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        const rootH = entry.rootBounds ? entry.rootBounds.height : window.innerHeight;
+                        anchorVisible = entry.isIntersecting && (
+                            entry.intersectionRatio >= 0.6 ||
+                            entry.intersectionRect.height >= rootH * 0.6
+                        );
+                    });
+                    updateDim();
+                },
+                {
+                    rootMargin: `-${headerH}px 0px 0px 0px`,
+                    threshold: [0, 0.2, 0.4, 0.6, 0.8, 1]
+                }
+            );
+            anchorObserver.observe(anchorEl);
+        }
+    } else if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -588,6 +741,48 @@
 
     let lastW = 0;
     let lastH = 0;
+
+    /* Formação única (certificados): no layout dividido vai para o lado livre
+       à direita do bloco âncora (a introdução ocupa ~59% da largura); fora
+       dele, segue o hero do index em telas menores (deslocada à direita no
+       tablet, centrada no celular). Nos dois casos a altura cabe na do bloco
+       (com folga), para não invadir o conteúdo logo abaixo. */
+    const SOLO_PAD = 28; /* px de folga acima/abaixo do bloco âncora */
+    const layoutSolo = (w, h, tanHalf) => {
+        const item = layout[0];
+        const { hw, hh } = extents[0];
+        const halfH = configs[0].camZ * tanHalf;
+        const ppuY = h / 2 / halfH;
+        const rect = anchorEl ? anchorEl.getBoundingClientRect() : null;
+        const halfBlock = rect ? (rect.height / 2 + SOLO_PAD) / ppuY : halfH * 0.5;
+
+        if (split) {
+            const cw = document.documentElement.clientWidth || w;
+            const ppu = ppuY * (cw / w);
+            const shellEl = anchorEl && anchorEl.parentElement;
+            const shell = shellEl ? shellEl.getBoundingClientRect() : null;
+            const fl = (rect ? rect.right : cw * 0.62) + FREE_GAP;
+            const fr = Math.min(cw - FREE_EDGE, shell ? shell.right + FREE_OVERHANG : cw);
+            const halfFree = Math.max(1, (fr - fl) / 2 / ppu);
+            item.x = ((fl + fr) / 2 - cw / 2) / ppu;
+            item.s = Math.min(
+                1,
+                (halfFree * 0.94) / hw,
+                halfBlock / hh,
+                (halfH * 0.78) / hh
+            );
+        } else {
+            let s = Math.min(1, Math.max(0.52, w / 1180));
+            const narrow = narrowQuery.matches;
+            if (!narrow) {
+                const halfW = halfH * (w / h);
+                s = Math.min(s, (halfW * 0.94) / (SIDE_X + hw));
+            }
+            s = Math.min(s, halfBlock / hh);
+            item.x = narrow ? 0 : SIDE_X * s;
+            item.s = s;
+        }
+    };
 
     /* Mede a coluna de texto de uma seção com conteúdo à esquerda (hero) e de
        uma com conteúdo à direita (sobre); o lado oposto é a área livre. */
@@ -612,7 +807,9 @@
         split = splitQuery.matches;
         const tanHalf = Math.tan((FOV / 2) * (Math.PI / 180));
 
-        if (split) {
+        if (solo) {
+            layoutSolo(w, h, tanHalf);
+        } else if (split) {
             /* o canvas (innerWidth) é exibido na largura sem a barra de rolagem */
             const cw = document.documentElement.clientWidth || w;
             const k = cw / w;
@@ -663,6 +860,17 @@
 
     handleResize();
     window.addEventListener("resize", handleResize);
+
+    if (anchorEl) {
+        /* a altura do bloco âncora muda quando as fontes chegam */
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(handleResize);
+        }
+        /* sem o loop (movimento reduzido), a rolagem redesenha a formação no lugar */
+        if (reduceMotion) {
+            window.addEventListener("scroll", snapToTarget, { passive: true });
+        }
+    }
 
     /* ---------- Loop ---------- */
 
@@ -721,7 +929,9 @@
         scaleNow += (scaleTarget - scaleNow) * easeK;
 
         phase += swaySpeed * dt;
+        updateAnchor();
         group.position.x = pivotX;
+        group.position.y = anchorY;
         points.position.x = -pivotX;
         group.rotation.y = Math.sin(phase) * swayAmp;
         group.rotation.x = rotX + Math.sin(phase * 0.63) * swayAmp * 0.22;

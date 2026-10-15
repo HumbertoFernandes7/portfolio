@@ -173,12 +173,17 @@ const lightbox = (() => {
 const renderDiplomas = (diplomas) => {
     const section = document.getElementById("diplomas");
     const container = document.getElementById("diploma-list");
-    if (!section || !container || !diplomas.length) {
+    if (!section || !container) {
+        return;
+    }
+    if (!diplomas.length) {
+        section.hidden = true;
         return;
     }
 
     /* só entram no lightbox os diplomas que já têm imagem */
     const zoomable = [];
+    const cards = [];
 
     diplomas.forEach((diploma) => {
         const card = el("article", "diploma-card");
@@ -224,10 +229,11 @@ const renderDiplomas = (diplomas) => {
         body.appendChild(el("p", "diploma-meta", metaText));
         card.appendChild(body);
 
-        container.appendChild(card);
+        cards.push(card);
     });
 
-    section.hidden = false;
+    /* troca as molduras reservadas do HTML pelos cards reais */
+    container.replaceChildren(...cards);
 };
 
 /* ---------- Certificados ---------- */
@@ -392,6 +398,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (diplomas.status === "fulfilled" && Array.isArray(diplomas.value)) {
         renderDiplomas(diplomas.value);
+    } else {
+        /* a seção nasce visível (com molduras reservadas): some só no erro */
+        const diplomaSection = document.getElementById("diplomas");
+        if (diplomaSection) {
+            diplomaSection.hidden = true;
+        }
     }
 
     if (certificates.status === "fulfilled" && Array.isArray(certificates.value)) {
