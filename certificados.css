@@ -91,15 +91,26 @@
     border-bottom: 1px solid var(--line-soft);
 }
 
+/* moldura de proporção fixa: diplomas de tamanhos diferentes ficam do mesmo
+   tamanho no card, inteiros e centralizados (a imagem não empurra a altura) */
 .diploma-media {
-    background: var(--bg-elev);
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    padding: 0;
+    background:
+        radial-gradient(420px 220px at 50% 0%, var(--glow), transparent 70%),
+        var(--bg-elev);
     cursor: zoom-in;
 }
 
 .diploma-media img {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 22px;
+    width: calc(100% - 44px);
+    height: calc(100% - 44px);
     object-fit: contain;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35));
 }
 
 /* placeholder tipográfico enquanto o diploma não tem imagem */
