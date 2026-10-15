@@ -342,63 +342,99 @@
         ctx.stroke();
     };
 
-    /* Faixa afilada ao longo de uma Bézier cúbica (pontos em %): largura
-       máxima w na fração peak do caminho, afinando até zero nas duas
-       pontas (perfil em seno). bias (−1 a 1) joga a largura para um lado
-       do traço — a faixa vira crescente, com uma borda mais reta. */
-    const fillTaper = (ctx, u, [[x0, y0], [x1, y1], [x2, y2], [x3, y3]], w, peak = 0.5, bias = 0) => {
-        const N = 64;
-        const side = [];
-        ctx.beginPath();
-        for (let k = 0; k <= N; k += 1) {
-            const t = k / N;
-            const m = 1 - t;
-            const x = m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3;
-            const y = m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3;
-            /* normal unitária a partir da derivada */
-            const dx = 3 * m * m * (x1 - x0) + 6 * m * t * (x2 - x1) + 3 * t * t * (x3 - x2);
-            const dy = 3 * m * m * (y1 - y0) + 6 * m * t * (y2 - y1) + 3 * t * t * (y3 - y2);
-            const len = Math.hypot(dx, dy) || 1;
-            const tt = t < peak ? (t / peak) * 0.5 : 0.5 + ((t - peak) / (1 - peak)) * 0.5;
-            const half = (w / 2) * Math.sin(Math.PI * tt);
-            const nx = (-dy / len) * half;
-            const ny = (dx / len) * half;
-            ctx.lineTo((x + nx * (1 + bias)) * u, (y + ny * (1 + bias)) * u);
-            side.push([x - nx * (1 - bias), y - ny * (1 - bias)]);
+    /* Faixa varrida por um traço de largura variável: at(t) dá o ponto e a
+       direção do eixo (t de 0 a 1) e widths são nós [t, w] com transição
+       suave (cosseno) entre eles — w = 0 afila a ponta. Cada trecho entre
+       duas seções é pintado à parte: onde a curva aperta mais que a
+       largura (a volta dos anéis), o lado de dentro dobra sem abrir buraco. */
+    const sweep = (ctx, u, at, widths, steps) => {
+        let prev = null;
+        let j = 0;
+        for (let k = 0; k <= steps; k += 1) {
+            const t = k / steps;
+            const [x, y, dx, dy] = at(t);
+            while (j < widths.length - 2 && t > widths[j + 1][0]) {
+                j += 1;
+            }
+            const [t0, w0] = widths[j];
+            const [t1, w1] = widths[j + 1];
+            const f = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+            const w = w0 + ((w1 - w0) * (1 - Math.cos(Math.PI * f))) / 2;
+            const half = w / 2 / (Math.hypot(dx, dy) || 1);
+            const cur = [(x - dy * half) * u, (y + dx * half) * u, (x + dy * half) * u, (y - dx * half) * u];
+            if (prev) {
+                ctx.beginPath();
+                ctx.moveTo(prev[0], prev[1]);
+                ctx.lineTo(cur[0], cur[1]);
+                ctx.lineTo(cur[2], cur[3]);
+                ctx.lineTo(prev[2], prev[3]);
+                ctx.closePath();
+                ctx.fill();
+            }
+            prev = cur;
         }
-        for (let k = N; k >= 0; k -= 1) {
-            ctx.lineTo(side[k][0] * u, side[k][1] * u);
-        }
-        ctx.closePath();
-        ctx.fill();
     };
 
-    /* 01 — Java: xícara de café fumegante, no espírito do símbolo do Java
-       (releitura desenhada à mão). A xícara é feita de faixas curvas
-       afiladas — borda, meio e fundo arredondado, cada vez mais estreitas
-       —, com a alça em crescente à direita e o pires como um arco largo e
-       achatado abraçando a base. A fumaça (drawCupFlames, à parte para a
-       formação ficar bicolor) são duas chamas entrelaçadas. */
+    /* traço ao longo de Béziers cúbicas encadeadas (pontos em %:
+       p0, c1, c2, p1, c3, c4, p2…), um trecho de t por Bézier */
+    const bezierStroke = (ctx, u, pts, widths) => {
+        const n = (pts.length - 1) / 3;
+        sweep(ctx, u, (t) => {
+            const g = Math.min(n - 1, Math.floor(t * n));
+            const s = t * n - g;
+            const m = 1 - s;
+            const [p0, p1, p2, p3] = pts.slice(g * 3, g * 3 + 4);
+            const at = (i) => m * m * m * p0[i] + 3 * m * m * s * p1[i] + 3 * m * s * s * p2[i] + s * s * s * p3[i];
+            const d = (i) => 3 * m * m * (p1[i] - p0[i]) + 6 * m * s * (p2[i] - p1[i]) + 3 * s * s * (p3[i] - p2[i]);
+            return [at(0), at(1), d(0), d(1)];
+        }, widths, 64 * n);
+    };
+
+    /* anel elíptico aberto: arco da elipse de centro (cx, cy) e raios
+       rx/ry (em %) de a0 a a1 graus — da ponta da volta de trás, pela
+       curva à esquerda, até a ponta da frente, à direita. Fino atrás
+       (back) e largo na frente (w), como uma elipse vista de lado. */
+    const ringStroke = (ctx, u, [cx, cy, rx, ry, a0, a1, back, w]) => {
+        const span = ((a1 - a0) * Math.PI) / 180;
+        sweep(ctx, u, (t) => {
+            const a = (a0 * Math.PI) / 180 + span * t;
+            return [cx + rx * Math.cos(a), cy + ry * Math.sin(a), -rx * Math.sin(a) * span, ry * Math.cos(a) * span];
+        }, [[0, 0], [0.15, back], [0.3, w], [0.85, w], [1, 0]], 96);
+    };
+
+    /* 01 — Java: releitura do símbolo do Java (xícara fumegante), refeita
+       com traços de largura variável (anéis elípticos e Béziers), com as
+       medidas ajustadas à silhueta do logo. A xícara são três anéis
+       elípticos abertos empilhados, cada vez mais estreitos (a de baixo é o
+       fundo), com a alça em ")" à direita; embaixo, o pires (um anel largo
+       e achatado) e uma linha curva fina sob ele. As chamas ficam à parte
+       (drawCupFlames), para a formação ser bicolor. */
     const drawCup = (ctx, u) => {
-        fillTaper(ctx, u, [[19, 53], [31, 59], [57, 59], [69, 53]], 4.6, 0.5, -0.2);
-        fillTaper(ctx, u, [[22.5, 61.5], [32.5, 67], [55.5, 67], [65.5, 61.5]], 4.2, 0.5, -0.2);
-        fillTaper(ctx, u, [[26, 69], [30, 82], [58, 82], [62, 69]], 5.8, 0.5, -0.3);
-        /* alça */
-        fillTaper(ctx, u, [[66, 56], [83, 53], [80, 74], [60, 75]], 4.4, 0.45);
-        /* pires */
-        fillTaper(ctx, u, [[9, 80], [24, 91], [64, 91], [79, 80]], 5, 0.5, -0.3);
+        /* faixas do corpo, de cima para baixo, e o pires:
+           [cx, cy, rx, ry, a0, a1, back, w] */
+        [
+            [48.6, 58, 20.3, 3.4, -111, -353, 1.3, 2.5],
+            [48.5, 67.4, 16.2, 2.7, -127, -355, 2.3, 3.1],
+            [48.4, 76.7, 12.3, 2.6, -119, -357, 0.8, 3.7],
+            [47.7, 82.7, 26.4, 5.3, -140, -370, 6.1, 2.6]
+        ].forEach((ring) => ringStroke(ctx, u, ring));
+        /* alça: da faixa de cima até a altura da do meio */
+        bezierStroke(ctx, u, [[74.2, 53.9], [83.5, 55.8], [81.2, 65.7], [69.2, 70.1]],
+            [[0, 1.2], [0.3, 3.7], [0.6, 3.3], [1, 0.7]]);
+        /* linha fina sob o pires */
+        bezierStroke(ctx, u, [[30.9, 92.1], [45.7, 94.4], [73, 93.9], [80.2, 85]],
+            [[0, 0], [0.25, 1.3], [0.5, 1.5], [0.75, 1.7], [1, 0]]);
     };
 
-    /* Chamas: uma grande em S, saindo do meio da xícara, e uma menor que
-       cruza a base dela; finas nas pontas e mais grossas no terço de baixo.
-       Uma folga em volta da grande recorta a menor, que passa por trás. */
-    const FLAME_BIG = [[44, 50], [61, 37], [25, 25], [47, 4]];
+    /* Chamas: duas em S, lado a lado e sem se cruzar, grossas no meio e
+       finas nas pontas. A da esquerda é a maior: desce da ponta de cima
+       curvando para a esquerda e volta para a direita embaixo; a da
+       direita, menor, acompanha a mesma ondulação começando mais baixo. */
     const drawCupFlames = (ctx, u) => {
-        fillTaper(ctx, u, [[37, 50], [25, 41], [59, 37], [54, 21]], 5.4, 0.4);
-        ctx.globalCompositeOperation = "destination-out";
-        fillTaper(ctx, u, FLAME_BIG, 9.4, 0.42);
-        ctx.globalCompositeOperation = "source-over";
-        fillTaper(ctx, u, FLAME_BIG, 7.8, 0.42);
+        bezierStroke(ctx, u, [[58.3, 5.7], [64.7, 22.8], [41, 27.2], [39.4, 39.8], [39.9, 46.5], [43.7, 50.3], [48.6, 54.2]],
+            [[0, 0], [0.15, 3.5], [0.3, 4.2], [0.45, 4.7], [0.55, 4.2], [0.7, 2.9], [0.85, 1.5], [1, 0]]);
+        bezierStroke(ctx, u, [[66.6, 24.1], [60.4, 27], [52.6, 31.4], [52.3, 39.2], [53.3, 44.9], [61.3, 50.1], [53.3, 56.8]],
+            [[0, 0], [0.15, 1.2], [0.3, 2.6], [0.45, 4.5], [0.55, 5.3], [0.7, 5.5], [0.85, 3.9], [1, 0]]);
     };
 
     /* 02 — Projetos: janela de terminal — contorno de cantos arredondados
