@@ -448,9 +448,11 @@ body.menu-open {
 /* ---------- Blocos comuns ---------- */
 
 .section {
+    /* respiro vertical; as setas entre seções se encaixam nele */
+    --section-pad: clamp(90px, 13vh, 150px);
     max-width: var(--shell);
     margin: 0 auto;
-    padding: clamp(90px, 13vh, 150px) var(--gutter);
+    padding: var(--section-pad) var(--gutter);
     border-top: 1px solid var(--line-soft);
     scroll-margin-top: calc(var(--header-h) + 8px);
 }
@@ -610,8 +612,7 @@ body.menu-open {
     margin-left: 12px;
 }
 
-.hero-links a,
-.scroll-cue {
+.hero-links a {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     letter-spacing: 0.1em;
@@ -665,24 +666,114 @@ body.menu-open {
     color: var(--text);
 }
 
-.scroll-cue {
+/* "role para explorar": a seta de próxima seção do hero (mesmo componente
+   das seções, abaixo), aqui com texto e com a seta balançando */
+.hero-foot .scroll-cue {
     white-space: nowrap;
-    padding-bottom: 2px;
 }
 
-.scroll-cue span {
-    display: inline-block;
-    margin-left: 8px;
+.hero-foot .scroll-cue .step-arrow {
     animation: cue-bob 2.2s ease-in-out infinite;
-}
-
-.scroll-cue:hover {
-    color: var(--accent);
 }
 
 @keyframes cue-bob {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
+    50% { transform: translateY(4px); }
+}
+
+/* ---------- Setas entre seções ----------
+   Cada seção tem um link discreto para a anterior (no respiro de cima) e
+   outro para a próxima (no pé): só o quadro com a seta; o destino fica no
+   aria-label e no title. São âncoras comuns: funcionam sem JS, no teclado
+   e junto com o snap. O bloco é filho direto da seção, então segue a
+   coluna de texto no layout dividido — e, na seção sobre, é o
+   firstElementChild que o scene.js mede (mesma largura e lado da coluna). */
+
+.section-step {
+    display: flex;
+}
+
+/* a de cima fica a 28px da borda da seção, dentro do respiro: a seção
+   não cresce e o título continua no mesmo lugar (24px = altura do link) */
+.step-prev {
+    margin-top: calc(28px - var(--section-pad));
+    margin-bottom: calc(var(--section-pad) - 28px - 24px);
+}
+
+/* a de baixo entra no respiro de baixo: sobram 44px até a próxima seção */
+.step-next {
+    margin-top: clamp(44px, 6vw, 72px);
+    margin-bottom: calc(44px - var(--section-pad));
+}
+
+.step-link {
+    --box: 30px;
+    position: relative;
+    display: block;
+    padding-left: calc(var(--box) + 14px);
+    line-height: calc(var(--box) + 2px);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    transition: color 0.3s ease;
+}
+
+/* nas seções o link é só o quadro (sem texto ao lado); a seta e o quadro
+   são absolutos, então a altura vem daqui */
+.section-step .step-link {
+    width: var(--box);
+    height: calc(var(--box) + 2px);
+    padding-left: 0;
+}
+
+/* o quadro fica parado; só a seta se mexe dentro dele */
+.step-link::before {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 0;
+    width: var(--box);
+    height: var(--box);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    transition: border-color 0.3s ease;
+}
+
+.step-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--box);
+    display: grid;
+    place-items: center;
+    font-size: 1.2em;
+    letter-spacing: 0;
+    color: var(--accent);
+    transition: transform 0.3s var(--ease-out);
+}
+
+.step-link:hover {
+    color: var(--text);
+}
+
+.step-link:hover::before {
+    border-color: var(--accent);
+}
+
+.step-next .step-link:hover .step-arrow {
+    transform: translateY(3px);
+}
+
+/* a de cima é menor (a seta acompanha pelo font-size) */
+.step-prev .step-link {
+    --box: 22px;
+    font-size: 0.66rem;
+}
+
+.step-prev .step-link:hover .step-arrow {
+    transform: translateY(-2px);
 }
 
 /* ---------- Sobre ---------- */
@@ -1326,6 +1417,39 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     }
 }
 
+/* ---------- Rolagem por seção (desktop com mouse) ----------
+   Scroll snap nativo, sem mexer no evento da roda: um giro leva à próxima
+   seção; numa seção mais alta que a tela (sobre, projetos, trajetória) a
+   rolagem corre livre dentro dela até o fim, e só o giro seguinte troca.
+   snap-stop segura o giro forte numa seção por vez. O recuo do header sai
+   do scroll-margin das seções e vai para o scroll-padding do html (os dois
+   juntos dobrariam o recuo): com o scroll-margin, a área da seção seguinte
+   começava 80px antes e, subindo, o fim da seção alta ficava fora da tela.
+   O footer encaixa pelo fim, senão o fim da página ficaria inalcançável.
+   Só no index (classe no <html>; o style.css é dividido com certificados)
+   e só com mouse em tela larga. Com movimento reduzido fica a rolagem
+   normal: o snap transforma um giro curto num deslocamento animado de uma
+   tela inteira, justamente o que essa preferência pede para evitar (as
+   setas continuam levando de seção em seção, sem animação). */
+
+@media (min-width: 1100px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    html.section-snap {
+        scroll-snap-type: y mandatory;
+        scroll-padding-top: calc(var(--header-h) + 8px);
+    }
+
+    .section-snap .hero,
+    .section-snap .section {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        scroll-margin-top: 0;
+    }
+
+    .section-snap .site-footer {
+        scroll-snap-align: end;
+    }
+}
+
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 960px) {
@@ -1478,6 +1602,16 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     border-color: var(--accent);
 }
 
+/* quadro das setas entre seções: papel branco com borda firme */
+[data-theme="light"] .step-link::before {
+    border-color: var(--line-strong);
+    background: #ffffff;
+}
+
+[data-theme="light"] .step-link:hover::before {
+    border-color: var(--accent);
+}
+
 [data-theme="light"] .button-solid {
     box-shadow: 0 1px 2px rgba(18, 63, 159, 0.30);
 }
@@ -1492,7 +1626,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 [data-theme="light"] .timeline-date,
 [data-theme="light"] .project-index,
 [data-theme="light"] .hero-links a,
-[data-theme="light"] .site-nav a {
+[data-theme="light"] .site-nav a,
+[data-theme="light"] .step-link {
     font-weight: 500;
 }
 
