@@ -408,16 +408,25 @@
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-    const makeSprite = () => {
+    /* tinta (tema claro): miolo mais cheio e borda curta, para a mancha
+       multiplicar sobre o papel sem virar névoa */
+    const makeSprite = (ink) => {
         const size = 64;
         const c = document.createElement("canvas");
         c.width = size;
         c.height = size;
         const ctx = c.getContext("2d");
         const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        grad.addColorStop(0, "rgba(255,255,255,1)");
-        grad.addColorStop(0.35, "rgba(255,255,255,0.55)");
-        grad.addColorStop(1, "rgba(255,255,255,0)");
+        if (ink) {
+            grad.addColorStop(0, "rgba(255,255,255,1)");
+            grad.addColorStop(0.55, "rgba(255,255,255,0.9)");
+            grad.addColorStop(0.8, "rgba(255,255,255,0.25)");
+            grad.addColorStop(1, "rgba(255,255,255,0)");
+        } else {
+            grad.addColorStop(0, "rgba(255,255,255,1)");
+            grad.addColorStop(0.35, "rgba(255,255,255,0.55)");
+            grad.addColorStop(1, "rgba(255,255,255,0)");
+        }
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
         const texture = new THREE.CanvasTexture(c);
@@ -425,9 +434,15 @@
         return texture;
     };
 
+    /* um sprite por tema, criados uma única vez (o applyTheme só troca o map) */
+    const sprites = {
+        dark: makeSprite(false),
+        light: makeSprite(true)
+    };
+
     const material = new THREE.PointsMaterial({
         size: isSmall ? 0.3 : 0.32,
-        map: makeSprite(),
+        map: sprites.dark,
         vertexColors: true,
         transparent: true,
         depthWrite: false,
@@ -456,19 +471,24 @@
             fogNear: 36,
             fogFar: 86,
             opacity: 0.4,
+            size: isSmall ? 0.3 : 0.32,
             blending: THREE.AdditiveBlending
         },
-        /* no claro os pontos são "tinta" sobre papel: cores escuras, opacidade
-           maior e névoa afastada, senão a forma vira um borrão cinza */
+        /* no claro os pontos são "tinta" sobre papel: cores escuras e névoa
+           afastada, senão a forma vira um borrão cinza. O efeito de multiplicar
+           vem do mix-blend-mode do canvas (CSS): MultiplyBlending do WebGL não
+           funciona com canvas alpha:true, por isso segue NormalBlending.
+           Com multiply a opacidade pode ser menor (0.75) */
         light: {
-            primary: new THREE.Color("#1d4ed8"),
-            secondary: new THREE.Color("#0f2a6b"),
-            gold: new THREE.Color("#c98a00"),
-            goldSoft: new THREE.Color("#8a5a00"),
-            fog: new THREE.Color("#dde3ec"),
-            fogNear: 70,
-            fogFar: 140,
-            opacity: 0.6,
+            primary: new THREE.Color("#1a3fb8"),
+            secondary: new THREE.Color("#0b1f52"),
+            gold: new THREE.Color("#b4720b"),
+            goldSoft: new THREE.Color("#7f5006"),
+            fog: new THREE.Color("#f3f2ed"),
+            fogNear: 60,
+            fogFar: 150,
+            opacity: 0.75,
+            size: isSmall ? 0.26 : 0.28,
             blending: THREE.NormalBlending
         }
     };
@@ -491,6 +511,8 @@
         colorAttr.needsUpdate = true;
         material.opacity = theme.opacity * OPACITY_SCALE;
         material.blending = theme.blending;
+        material.size = theme.size;
+        material.map = theme === THEMES.light ? sprites.light : sprites.dark;
         material.needsUpdate = true;
         scene.fog.color.copy(theme.fog);
         scene.fog.near = theme.fogNear;

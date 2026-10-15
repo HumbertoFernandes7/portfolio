@@ -26,6 +26,10 @@
     /* fundo dos blocos de leitura (cards, timeline, stack) */
     --panel: rgba(6, 11, 22, 0.82);
     --panel-hover: rgba(12, 20, 36, 0.65);
+    /* tokens que só o tema claro usa (no escuro são neutros) */
+    --line-strong: rgba(232, 237, 246, 0.22);
+    --panel-solid: var(--panel);
+    --shadow-card: none;
 
     --shell: 1180px;
     --gutter: clamp(20px, 5vw, 60px);
@@ -36,21 +40,24 @@
 }
 
 [data-theme="light"] {
-    /* cinza-azulado médio, menos ofuscante; cards um tom acima */
-    --bg: #dde3ec;
-    --bg-elev: #e9edf3;
-    --text: #131a29;
-    --text-dim: #434e63;
-    --text-faint: #535f74;
-    --accent: #1d46c4;
-    --accent-strong: #15349a;
-    --accent-ink: #f3f6fc;
-    --line: rgba(19, 26, 41, 0.18);
-    --line-soft: rgba(19, 26, 41, 0.09);
-    --glow: rgba(29, 70, 196, 0.08);
-    --grain-opacity: 0.05;
-    --panel: rgba(242, 245, 249, 0.86);
-    --panel-hover: rgba(248, 250, 252, 0.97);
+    /* papel quente (off-white) com tinta azul-escura; cards brancos */
+    --bg: #f3f2ed;
+    --bg-elev: #e9e7e0;
+    --text: #1a1a1f;
+    --text-dim: #4a4e5a;
+    --text-faint: #5e6376;
+    --accent: #1f4fd1;
+    --accent-strong: #163b9f;
+    --accent-ink: #ffffff;
+    --line: rgba(26, 26, 31, 0.16);
+    --line-soft: rgba(26, 26, 31, 0.08);
+    --line-strong: rgba(26, 26, 31, 0.28);
+    --glow: rgba(31, 79, 209, 0.07);
+    --grain-opacity: 0.04;
+    --panel: rgba(255, 255, 255, 0.5);
+    --panel-hover: rgba(255, 255, 255, 0.92);
+    --panel-solid: #ffffff;
+    --shadow-card: 0 1px 1px rgba(26, 26, 31, 0.03), 0 12px 32px -20px rgba(26, 26, 31, 0.22);
     color-scheme: light;
 }
 
@@ -153,6 +160,10 @@ ol {
     background:
         radial-gradient(1100px 700px at 12% -4%, var(--glow), transparent 62%),
         radial-gradient(900px 600px at 96% 108%, var(--glow), transparent 65%);
+    /* cor de papel na própria camada: o canvas usa mix-blend-mode (tema claro)
+       e precisa de um fundo dentro do stacking context do .webgl */
+    background-color: var(--bg);
+    transition: background-color 0.45s ease;
 }
 
 .webgl canvas {
@@ -1350,5 +1361,88 @@ body.js-ready [data-reveal].is-visible {
         animation: none;
         opacity: 1;
         transform: none;
+    }
+}
+
+/* ---------- Tema claro: ajustes finos ---------- */
+
+/* grão multiplica (escurece o papel) em vez de overlay */
+[data-theme="light"] .grain {
+    mix-blend-mode: multiply;
+}
+
+/* as partículas de tinta multiplicam sobre o papel */
+[data-theme="light"] .webgl canvas {
+    mix-blend-mode: multiply;
+}
+
+[data-theme="light"] .site-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.72);
+    border-bottom-color: var(--line);
+    box-shadow: 0 1px 0 rgba(26, 26, 31, 0.04), 0 8px 24px -16px rgba(26, 26, 31, 0.18);
+}
+
+[data-theme="light"] .button-line,
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .menu-toggle,
+[data-theme="light"] .brand-mark {
+    border-color: var(--line-strong);
+}
+
+[data-theme="light"] .button-line {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+/* o seletor acima tem mais especificidade que o :hover base: refaz o hover */
+[data-theme="light"] .button-line:hover,
+[data-theme="light"] .theme-toggle:hover,
+[data-theme="light"] .menu-toggle:hover {
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .button-solid {
+    box-shadow: 0 1px 2px rgba(22, 59, 159, 0.25);
+}
+
+/* rótulos mono um pouco mais firmes no fundo claro */
+[data-theme="light"] .kicker,
+[data-theme="light"] .eyebrow,
+[data-theme="light"] .hero-facts dt,
+[data-theme="light"] .project-kind,
+[data-theme="light"] .stack-title,
+[data-theme="light"] .timeline-tag,
+[data-theme="light"] .timeline-date,
+[data-theme="light"] .project-index,
+[data-theme="light"] .hero-links a,
+[data-theme="light"] .site-nav a {
+    font-weight: 500;
+}
+
+[data-theme="light"] .project-row,
+[data-theme="light"] .timeline-row {
+    border-bottom-color: var(--line);
+}
+
+[data-theme="light"] .project-row:hover,
+[data-theme="light"] .timeline-row:hover {
+    box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .stack {
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 30px 22px 10px;
+    box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .portrait-frame {
+    background: var(--panel-solid);
+    box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 900px) {
+    [data-theme="light"] ::-webkit-scrollbar-thumb {
+        background: var(--line-strong);
     }
 }

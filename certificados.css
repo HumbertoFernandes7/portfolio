@@ -598,6 +598,61 @@ html.lb-open body {
     transform: translateX(-3px);
 }
 
+/* ---------- Tema claro: ajustes finos ---------- */
+
+[data-theme="light"] .diploma-card,
+[data-theme="light"] .cert-card {
+    background: var(--panel-solid);
+    border-color: var(--line);
+    box-shadow: var(--shadow-card);
+}
+
+/* o border-color acima tem a mesma especificidade do :hover base: refaz o hover */
+[data-theme="light"] .diploma-card:hover {
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .cert-card:hover {
+    border-color: var(--line-strong);
+    box-shadow: 0 1px 1px rgba(26, 26, 31, 0.03), 0 18px 40px -20px rgba(26, 26, 31, 0.28);
+}
+
+[data-theme="light"] .diploma-media img {
+    filter: drop-shadow(0 6px 14px rgba(26, 26, 31, 0.16));
+}
+
+[data-theme="light"] .chip,
+[data-theme="light"] .cert-field input,
+[data-theme="light"] .cert-field select {
+    border-color: var(--line-strong);
+    background-color: var(--panel-solid);
+}
+
+/* hover e estado ativo dos chips/campos não podem perder o azul */
+[data-theme="light"] .chip:hover,
+[data-theme="light"] .cert-field input:hover,
+[data-theme="light"] .cert-field select:hover {
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .chip[aria-pressed="true"] {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .cert-tags li {
+    border-color: var(--line);
+    background: var(--bg);
+}
+
+[data-theme="light"] .lightbox {
+    background: var(--panel-solid);
+}
+
+[data-theme="light"] .lightbox::backdrop {
+    background: rgba(26, 26, 31, 0.6);
+}
+
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 720px) {
