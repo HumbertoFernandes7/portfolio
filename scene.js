@@ -1,10 +1,13 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
    Cada seção tem uma formação que remete a programação:
-   00 </> (código) → 01 xícara de café (Java) → 02 janela de
-   terminal (projetos) → 03 logo do Python → 04 rede neural
-   (IA). As formas planas são amostradas de um canvas 2D; a rede
-   neural é gerada por coordenadas. No desktop largo a formação
+   00 </> (código) → 01 xícara de café fumegante (símbolo do
+   Java) → 02 janela de terminal (projetos) → 03 logo do Python
+   → 04 rede neural (IA). As formas planas são amostradas de um
+   canvas 2D; a rede neural é gerada por coordenadas. A xícara
+   (azul com chamas laranja) e o Python (azul e dourado) são
+   bicolores: cada parte é amostrada à parte e pintada com o seu
+   par de cores do tema. No desktop largo a formação
    fica no lado livre da tela, alternando com o texto das seções.
    Outras páginas declaram uma formação única no canvas
    (data-formation) presa a um bloco âncora (data-scene-anchor):
@@ -339,57 +342,99 @@
         ctx.stroke();
     };
 
-    /* 01 — Java: xícara de café — corpo afunilado com fundo arredondado,
-       alça em anel, pires achatado e três fios de vapor em S */
+    /* Faixa varrida por um traço de largura variável: at(t) dá o ponto e a
+       direção do eixo (t de 0 a 1) e widths são nós [t, w] com transição
+       suave (cosseno) entre eles — w = 0 afila a ponta. Cada trecho entre
+       duas seções é pintado à parte: onde a curva aperta mais que a
+       largura (a volta dos anéis), o lado de dentro dobra sem abrir buraco. */
+    const sweep = (ctx, u, at, widths, steps) => {
+        let prev = null;
+        let j = 0;
+        for (let k = 0; k <= steps; k += 1) {
+            const t = k / steps;
+            const [x, y, dx, dy] = at(t);
+            while (j < widths.length - 2 && t > widths[j + 1][0]) {
+                j += 1;
+            }
+            const [t0, w0] = widths[j];
+            const [t1, w1] = widths[j + 1];
+            const f = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+            const w = w0 + ((w1 - w0) * (1 - Math.cos(Math.PI * f))) / 2;
+            const half = w / 2 / (Math.hypot(dx, dy) || 1);
+            const cur = [(x - dy * half) * u, (y + dx * half) * u, (x + dy * half) * u, (y - dx * half) * u];
+            if (prev) {
+                ctx.beginPath();
+                ctx.moveTo(prev[0], prev[1]);
+                ctx.lineTo(cur[0], cur[1]);
+                ctx.lineTo(cur[2], cur[3]);
+                ctx.lineTo(prev[2], prev[3]);
+                ctx.closePath();
+                ctx.fill();
+            }
+            prev = cur;
+        }
+    };
+
+    /* traço ao longo de Béziers cúbicas encadeadas (pontos em %:
+       p0, c1, c2, p1, c3, c4, p2…), um trecho de t por Bézier */
+    const bezierStroke = (ctx, u, pts, widths) => {
+        const n = (pts.length - 1) / 3;
+        sweep(ctx, u, (t) => {
+            const g = Math.min(n - 1, Math.floor(t * n));
+            const s = t * n - g;
+            const m = 1 - s;
+            const [p0, p1, p2, p3] = pts.slice(g * 3, g * 3 + 4);
+            const at = (i) => m * m * m * p0[i] + 3 * m * m * s * p1[i] + 3 * m * s * s * p2[i] + s * s * s * p3[i];
+            const d = (i) => 3 * m * m * (p1[i] - p0[i]) + 6 * m * s * (p2[i] - p1[i]) + 3 * s * s * (p3[i] - p2[i]);
+            return [at(0), at(1), d(0), d(1)];
+        }, widths, 64 * n);
+    };
+
+    /* anel elíptico aberto: arco da elipse de centro (cx, cy) e raios
+       rx/ry (em %) de a0 a a1 graus — da ponta da volta de trás, pela
+       curva à esquerda, até a ponta da frente, à direita. Fino atrás
+       (back) e largo na frente (w), como uma elipse vista de lado. */
+    const ringStroke = (ctx, u, [cx, cy, rx, ry, a0, a1, back, w]) => {
+        const span = ((a1 - a0) * Math.PI) / 180;
+        sweep(ctx, u, (t) => {
+            const a = (a0 * Math.PI) / 180 + span * t;
+            return [cx + rx * Math.cos(a), cy + ry * Math.sin(a), -rx * Math.sin(a) * span, ry * Math.cos(a) * span];
+        }, [[0, 0], [0.15, back], [0.3, w], [0.85, w], [1, 0]], 96);
+    };
+
+    /* 01 — Java: releitura do símbolo do Java (xícara fumegante), refeita
+       com traços de largura variável (anéis elípticos e Béziers), com as
+       medidas ajustadas à silhueta do logo. A xícara são três anéis
+       elípticos abertos empilhados, cada vez mais estreitos (a de baixo é o
+       fundo), com a alça em ")" à direita; embaixo, o pires (um anel largo
+       e achatado) e uma linha curva fina sob ele. As chamas ficam à parte
+       (drawCupFlames), para a formação ser bicolor. */
     const drawCup = (ctx, u) => {
-        /* pires */
-        ctx.beginPath();
-        ctx.ellipse(46 * u, 82 * u, 31 * u, 4.6 * u, 0, 0, Math.PI * 2);
-        ctx.fill();
+        /* faixas do corpo, de cima para baixo, e o pires:
+           [cx, cy, rx, ry, a0, a1, back, w] */
+        [
+            [48.6, 58, 20.3, 3.4, -111, -353, 1.3, 2.5],
+            [48.5, 67.4, 16.2, 2.7, -127, -355, 2.3, 3.1],
+            [48.4, 76.7, 12.3, 2.6, -119, -357, 0.8, 3.7],
+            [47.7, 82.7, 26.4, 5.3, -140, -370, 6.1, 2.6]
+        ].forEach((ring) => ringStroke(ctx, u, ring));
+        /* alça: da faixa de cima até a altura da do meio */
+        bezierStroke(ctx, u, [[74.2, 53.9], [83.5, 55.8], [81.2, 65.7], [69.2, 70.1]],
+            [[0, 1.2], [0.3, 3.7], [0.6, 3.3], [1, 0.7]]);
+        /* linha fina sob o pires */
+        bezierStroke(ctx, u, [[30.9, 92.1], [45.7, 94.4], [73, 93.9], [80.2, 85]],
+            [[0, 0], [0.25, 1.3], [0.5, 1.5], [0.75, 1.7], [1, 0]]);
+    };
 
-        /* corpo: mais largo em cima, base arredondada */
-        ctx.beginPath();
-        ctx.moveTo(22 * u, 42 * u);
-        ctx.lineTo(70 * u, 42 * u);
-        ctx.lineTo(65 * u, 64 * u);
-        ctx.quadraticCurveTo(62 * u, 77 * u, 50 * u, 77 * u);
-        ctx.lineTo(42 * u, 77 * u);
-        ctx.quadraticCurveTo(30 * u, 77 * u, 27 * u, 64 * u);
-        ctx.closePath();
-        ctx.fill();
-
-        /* alça: anel com vão, encostado na lateral direita */
-        ctx.lineWidth = 4.6 * u;
-        ctx.beginPath();
-        ctx.arc(68 * u, 56 * u, 8.5 * u, -Math.PI / 2.1, Math.PI / 2.1);
-        ctx.stroke();
-
-        /* frisos que separam a borda e o pires do corpo */
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.lineWidth = 1.6 * u;
-        ctx.beginPath();
-        ctx.moveTo(18 * u, 47 * u);
-        ctx.lineTo(74 * u, 47 * u);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(14 * u, 78.6 * u);
-        ctx.lineTo(78 * u, 78.6 * u);
-        ctx.stroke();
-        ctx.globalCompositeOperation = "source-over";
-
-        /* vapor: três S finos, o do meio mais alto */
-        ctx.lineWidth = 2.6 * u;
-        [[34, 21], [46, 28], [58, 21]].forEach(([sx, hgt]) => {
-            const y0 = 37;
-            ctx.beginPath();
-            ctx.moveTo(sx * u, y0 * u);
-            ctx.bezierCurveTo(
-                (sx - 7) * u, (y0 - hgt * 0.35) * u,
-                (sx + 7) * u, (y0 - hgt * 0.62) * u,
-                sx * u, (y0 - hgt) * u
-            );
-            ctx.stroke();
-        });
+    /* Chamas: duas em S, lado a lado e sem se cruzar, grossas no meio e
+       finas nas pontas. A da esquerda é a maior: desce da ponta de cima
+       curvando para a esquerda e volta para a direita embaixo; a da
+       direita, menor, acompanha a mesma ondulação começando mais baixo. */
+    const drawCupFlames = (ctx, u) => {
+        bezierStroke(ctx, u, [[58.3, 5.7], [64.7, 22.8], [41, 27.2], [39.4, 39.8], [39.9, 46.5], [43.7, 50.3], [48.6, 54.2]],
+            [[0, 0], [0.15, 3.5], [0.3, 4.2], [0.45, 4.7], [0.55, 4.2], [0.7, 2.9], [0.85, 1.5], [1, 0]]);
+        bezierStroke(ctx, u, [[66.6, 24.1], [60.4, 27], [52.6, 31.4], [52.3, 39.2], [53.3, 44.9], [61.3, 50.1], [53.3, 56.8]],
+            [[0, 0], [0.15, 1.2], [0.3, 2.6], [0.45, 4.5], [0.55, 5.3], [0.7, 5.5], [0.85, 3.9], [1, 0]]);
     };
 
     /* 02 — Projetos: janela de terminal — contorno de cantos arredondados
@@ -647,17 +692,53 @@
         ctx.fill();
     };
 
-    /* A formação do Python é bicolor: primeira metade dos pontos é a
-       cobra azul (cima), segunda metade a dourada (baixo).
+    /* Formações bicolores: cada parte é amostrada à parte e os pontos de
+       tone.at em diante (a 2ª parte) pintam com o par de cores tone.base /
+       tone.soft do tema, no lugar de primary/secondary (ver applyTheme).
+       tone.gain (opcional) nomeia um ganho do tema que multiplica o alfa
+       só desses pontos; sem ele no tema, vale 1. */
+
+    /* Python: primeira metade dos pontos é a cobra azul (cima), segunda
+       metade a dourada (baixo).
        O contorno fino já recorta a silhueta com menos pontos; o resto vai
        para o miolo */
     const PY_SPLIT = Math.floor(COUNT / 2);
     const PY_EDGE = 0.3;
+    const PY_TONE = { at: PY_SPLIT, base: "gold", soft: "goldSoft" };
     const makePython = async () => {
         const pts = new Float32Array(COUNT * 3);
         pts.set(sampleShape(drawPyTop, 28, 2, PY_SPLIT, PY_EDGE), 0);
         await yieldToPage();
         pts.set(sampleShape(drawPyBottom, 28, 2, COUNT - PY_SPLIT, PY_EDGE), PY_SPLIT * 3);
+        return pts;
+    };
+
+    /* Pixels pintados de um desenho, num raster pequeno: a área de cada parte */
+    const inkArea = (draw) => {
+        const data = rasterize(draw, 200);
+        let n = 0;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 40) {
+                n += 1;
+            }
+        }
+        return n;
+    };
+
+    /* Xícara: xícara e pires azuis, chamas laranja. Os pontos se dividem
+       na proporção da área de cada parte (mesma densidade nas duas); o
+       ponto de divisão só é conhecido depois de medir, então CUP_TONE.at
+       nasce no fim (tudo azul) e é acertado aqui */
+    const CUP_EDGE = 0.22;
+    const CUP_TONE = { at: COUNT, base: "flame", soft: "flameSoft", gain: "flameGain" };
+    const makeCup = async () => {
+        const cup = inkArea(drawCup);
+        const at = Math.round((COUNT * cup) / (cup + inkArea(drawCupFlames)));
+        const pts = new Float32Array(COUNT * 3);
+        pts.set(sampleShape(drawCup, 30, 3, at, CUP_EDGE), 0);
+        await yieldToPage();
+        pts.set(sampleShape(drawCupFlames, 30, 3, COUNT - at, CUP_EDGE), at * 3);
+        CUP_TONE.at = at;
         return pts;
     };
 
@@ -703,11 +784,13 @@
         ? [solo.make]
         : [
             () => sampleShape(drawCode, 30, 3, COUNT, 0.15),
-            () => sampleShape(drawCup, 30, 3, COUNT, 0.22),
+            makeCup,
             () => sampleShape(drawTerminal, 30, 2.4, COUNT, 0.15),
             makePython,
             makeNetwork
         ];
+    /* índice da formação → par de cores da 2ª parte (só as bicolores) */
+    const TONES = solo ? {} : { 1: CUP_TONE, 3: PY_TONE };
     const formations = [];
     for (let k = 0; k < builders.length; k += 1) {
         await yieldToPage();
@@ -741,7 +824,10 @@
 
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(COUNT * 3);
-    const colors = new Float32Array(COUNT * 3);
+    /* cor RGBA por ponto: com 4 canais o three.js multiplica o alfa do
+       ponto pela opacidade do material (1 = normal; > 1 é o ganho de
+       tone.gain, ver applyTheme) */
+    const colors = new Float32Array(COUNT * 4);
     const mixes = new Float32Array(COUNT);
 
     /* com a distribuição uniforme não há aglomerados acendendo por acaso;
@@ -757,7 +843,7 @@
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 4));
 
     /* Pontos pequenos e juntos pedem sprites duros. No escuro: miolo sólido
        com queda curta (cada ponto lê como ponto, não névoa). Tinta (tema
@@ -820,6 +906,15 @@
             secondary: new THREE.Color("#dfe8ff"),
             gold: new THREE.Color("#f6c454"),
             goldSoft: new THREE.Color("#fff0c4"),
+            /* chamas da xícara: laranja em baixa intensidade vira marrom no
+               aditivo (o vermelho já está no máximo, só o alfa clareia), então
+               os pontos da chama ganham alfa extra (flameGain): 0.44 × 2.1 ≈
+               0.92, ainda abaixo de 1 — a chama acende como o azul sem
+               estourar em branco (o azul/branco fraco ainda lê como cor; o
+               laranja, não) */
+            flame: new THREE.Color("#ff7029"),
+            flameSoft: new THREE.Color("#ffad55"),
+            flameGain: 2.1,
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
@@ -840,6 +935,9 @@
             secondary: new THREE.Color("#0a1d4f"),
             gold: new THREE.Color("#b4720b"),
             goldSoft: new THREE.Color("#7f5006"),
+            /* terracota: escuro o bastante para contrastar com o papel */
+            flame: new THREE.Color("#c2410c"),
+            flameSoft: new THREE.Color("#8a2c0b"),
             fog: new THREE.Color("#edf2f8"),
             fogNear: 60,
             fogFar: 150,
@@ -857,14 +955,17 @@
         const theme = THEMES[name] || THEMES.dark;
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
-        /* na formação do Python, a segunda metade dos pontos fica dourada */
-        const bicolor = activeIndex === 3;
+        /* formação bicolor: a 2ª parte dos pontos pinta com o par dela
+           (Python: cobra dourada; xícara: chamas) e leva o ganho de alfa do
+           tema, se houver (só a chama no escuro); o resto fica com alfa 1 */
+        const tone = TONES[activeIndex];
+        const gain = (tone && theme[tone.gain]) || 1;
         for (let i = 0; i < COUNT; i += 1) {
-            const gold = bicolor && i >= PY_SPLIT;
+            const second = tone && i >= tone.at;
             mixed
-                .copy(gold ? theme.gold : theme.primary)
-                .lerp(gold ? theme.goldSoft : theme.secondary, mixes[i]);
-            colorAttr.setXYZ(i, mixed.r, mixed.g, mixed.b);
+                .copy(second ? theme[tone.base] : theme.primary)
+                .lerp(second ? theme[tone.soft] : theme.secondary, mixes[i]);
+            colorAttr.setXYZW(i, mixed.r, mixed.g, mixed.b, second ? gain : 1);
         }
         colorAttr.needsUpdate = true;
         material.opacity = theme.opacity * OPACITY_SCALE;
@@ -940,7 +1041,7 @@
         if (index === activeIndex || !formations[index]) {
             return;
         }
-        const repaint = (index === 3) !== (activeIndex === 3);
+        const repaint = TONES[index] !== TONES[activeIndex];
         activeIndex = index;
         target = formations[index];
         if (repaint) {
