@@ -658,7 +658,9 @@
 
     /* Formações bicolores: cada parte é amostrada à parte e os pontos de
        tone.at em diante (a 2ª parte) pintam com o par de cores tone.base /
-       tone.soft do tema, no lugar de primary/secondary (ver applyTheme). */
+       tone.soft do tema, no lugar de primary/secondary (ver applyTheme).
+       tone.gain (opcional) nomeia um ganho do tema que multiplica o alfa
+       só desses pontos; sem ele no tema, vale 1. */
 
     /* Python: primeira metade dos pontos é a cobra azul (cima), segunda
        metade a dourada (baixo).
@@ -692,7 +694,7 @@
        ponto de divisão só é conhecido depois de medir, então CUP_TONE.at
        nasce no fim (tudo azul) e é acertado aqui */
     const CUP_EDGE = 0.22;
-    const CUP_TONE = { at: COUNT, base: "flame", soft: "flameSoft" };
+    const CUP_TONE = { at: COUNT, base: "flame", soft: "flameSoft", gain: "flameGain" };
     const makeCup = async () => {
         const cup = inkArea(drawCup);
         const at = Math.round((COUNT * cup) / (cup + inkArea(drawCupFlames)));
@@ -786,7 +788,10 @@
 
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(COUNT * 3);
-    const colors = new Float32Array(COUNT * 3);
+    /* cor RGBA por ponto: com 4 canais o three.js multiplica o alfa do
+       ponto pela opacidade do material (1 = normal; > 1 é o ganho de
+       tone.gain, ver applyTheme) */
+    const colors = new Float32Array(COUNT * 4);
     const mixes = new Float32Array(COUNT);
 
     /* com a distribuição uniforme não há aglomerados acendendo por acaso;
@@ -802,7 +807,7 @@
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 4));
 
     /* Pontos pequenos e juntos pedem sprites duros. No escuro: miolo sólido
        com queda curta (cada ponto lê como ponto, não névoa). Tinta (tema
@@ -865,10 +870,15 @@
             secondary: new THREE.Color("#dfe8ff"),
             gold: new THREE.Color("#f6c454"),
             goldSoft: new THREE.Color("#fff0c4"),
-            /* chamas da xícara: laranja vivo; no aditivo os miolos densos
-               puxam para o amarelo (brasa), sem estourar em branco */
-            flame: new THREE.Color("#ff7a33"),
-            flameSoft: new THREE.Color("#ffc878"),
+            /* chamas da xícara: laranja em baixa intensidade vira marrom no
+               aditivo (o vermelho já está no máximo, só o alfa clareia), então
+               os pontos da chama ganham alfa extra (flameGain): 0.44 × 2.1 ≈
+               0.92, ainda abaixo de 1 — a chama acende como o azul sem
+               estourar em branco (o azul/branco fraco ainda lê como cor; o
+               laranja, não) */
+            flame: new THREE.Color("#ff7029"),
+            flameSoft: new THREE.Color("#ffad55"),
+            flameGain: 2.1,
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
@@ -910,14 +920,16 @@
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
         /* formação bicolor: a 2ª parte dos pontos pinta com o par dela
-           (Python: cobra dourada; xícara: chamas) */
+           (Python: cobra dourada; xícara: chamas) e leva o ganho de alfa do
+           tema, se houver (só a chama no escuro); o resto fica com alfa 1 */
         const tone = TONES[activeIndex];
+        const gain = (tone && theme[tone.gain]) || 1;
         for (let i = 0; i < COUNT; i += 1) {
             const second = tone && i >= tone.at;
             mixed
                 .copy(second ? theme[tone.base] : theme.primary)
                 .lerp(second ? theme[tone.soft] : theme.secondary, mixes[i]);
-            colorAttr.setXYZ(i, mixed.r, mixed.g, mixed.b);
+            colorAttr.setXYZW(i, mixed.r, mixed.g, mixed.b, second ? gain : 1);
         }
         colorAttr.needsUpdate = true;
         material.opacity = theme.opacity * OPACITY_SCALE;
