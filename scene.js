@@ -1,10 +1,13 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
    Cada seção tem uma formação que remete a programação:
-   00 </> (código) → 01 xícara de café (Java) → 02 janela de
-   terminal (projetos) → 03 logo do Python → 04 rede neural
-   (IA). As formas planas são amostradas de um canvas 2D; a rede
-   neural é gerada por coordenadas. No desktop largo a formação
+   00 </> (código) → 01 xícara de café fumegante (símbolo do
+   Java) → 02 janela de terminal (projetos) → 03 logo do Python
+   → 04 rede neural (IA). As formas planas são amostradas de um
+   canvas 2D; a rede neural é gerada por coordenadas. A xícara
+   (azul com chamas laranja) e o Python (azul e dourado) são
+   bicolores: cada parte é amostrada à parte e pintada com o seu
+   par de cores do tema. No desktop largo a formação
    fica no lado livre da tela, alternando com o texto das seções.
    Outras páginas declaram uma formação única no canvas
    (data-formation) presa a um bloco âncora (data-scene-anchor):
@@ -339,57 +342,63 @@
         ctx.stroke();
     };
 
-    /* 01 — Java: xícara de café — corpo afunilado com fundo arredondado,
-       alça em anel, pires achatado e três fios de vapor em S */
-    const drawCup = (ctx, u) => {
-        /* pires */
+    /* Faixa afilada ao longo de uma Bézier cúbica (pontos em %): largura
+       máxima w na fração peak do caminho, afinando até zero nas duas
+       pontas (perfil em seno). bias (−1 a 1) joga a largura para um lado
+       do traço — a faixa vira crescente, com uma borda mais reta. */
+    const fillTaper = (ctx, u, [[x0, y0], [x1, y1], [x2, y2], [x3, y3]], w, peak = 0.5, bias = 0) => {
+        const N = 64;
+        const side = [];
         ctx.beginPath();
-        ctx.ellipse(46 * u, 82 * u, 31 * u, 4.6 * u, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        /* corpo: mais largo em cima, base arredondada */
-        ctx.beginPath();
-        ctx.moveTo(22 * u, 42 * u);
-        ctx.lineTo(70 * u, 42 * u);
-        ctx.lineTo(65 * u, 64 * u);
-        ctx.quadraticCurveTo(62 * u, 77 * u, 50 * u, 77 * u);
-        ctx.lineTo(42 * u, 77 * u);
-        ctx.quadraticCurveTo(30 * u, 77 * u, 27 * u, 64 * u);
+        for (let k = 0; k <= N; k += 1) {
+            const t = k / N;
+            const m = 1 - t;
+            const x = m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3;
+            const y = m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3;
+            /* normal unitária a partir da derivada */
+            const dx = 3 * m * m * (x1 - x0) + 6 * m * t * (x2 - x1) + 3 * t * t * (x3 - x2);
+            const dy = 3 * m * m * (y1 - y0) + 6 * m * t * (y2 - y1) + 3 * t * t * (y3 - y2);
+            const len = Math.hypot(dx, dy) || 1;
+            const tt = t < peak ? (t / peak) * 0.5 : 0.5 + ((t - peak) / (1 - peak)) * 0.5;
+            const half = (w / 2) * Math.sin(Math.PI * tt);
+            const nx = (-dy / len) * half;
+            const ny = (dx / len) * half;
+            ctx.lineTo((x + nx * (1 + bias)) * u, (y + ny * (1 + bias)) * u);
+            side.push([x - nx * (1 - bias), y - ny * (1 - bias)]);
+        }
+        for (let k = N; k >= 0; k -= 1) {
+            ctx.lineTo(side[k][0] * u, side[k][1] * u);
+        }
         ctx.closePath();
         ctx.fill();
+    };
 
-        /* alça: anel com vão, encostado na lateral direita */
-        ctx.lineWidth = 4.6 * u;
-        ctx.beginPath();
-        ctx.arc(68 * u, 56 * u, 8.5 * u, -Math.PI / 2.1, Math.PI / 2.1);
-        ctx.stroke();
+    /* 01 — Java: xícara de café fumegante, no espírito do símbolo do Java
+       (releitura desenhada à mão). A xícara é feita de faixas curvas
+       afiladas — borda, meio e fundo arredondado, cada vez mais estreitas
+       —, com a alça em crescente à direita e o pires como um arco largo e
+       achatado abraçando a base. A fumaça (drawCupFlames, à parte para a
+       formação ficar bicolor) são duas chamas entrelaçadas. */
+    const drawCup = (ctx, u) => {
+        fillTaper(ctx, u, [[19, 53], [31, 59], [57, 59], [69, 53]], 4.6, 0.5, -0.2);
+        fillTaper(ctx, u, [[22.5, 61.5], [32.5, 67], [55.5, 67], [65.5, 61.5]], 4.2, 0.5, -0.2);
+        fillTaper(ctx, u, [[26, 69], [30, 82], [58, 82], [62, 69]], 5.8, 0.5, -0.3);
+        /* alça */
+        fillTaper(ctx, u, [[66, 56], [83, 53], [80, 74], [60, 75]], 4.4, 0.45);
+        /* pires */
+        fillTaper(ctx, u, [[9, 80], [24, 91], [64, 91], [79, 80]], 5, 0.5, -0.3);
+    };
 
-        /* frisos que separam a borda e o pires do corpo */
+    /* Chamas: uma grande em S, saindo do meio da xícara, e uma menor que
+       cruza a base dela; finas nas pontas e mais grossas no terço de baixo.
+       Uma folga em volta da grande recorta a menor, que passa por trás. */
+    const FLAME_BIG = [[44, 50], [61, 37], [25, 25], [47, 4]];
+    const drawCupFlames = (ctx, u) => {
+        fillTaper(ctx, u, [[37, 50], [25, 41], [59, 37], [54, 21]], 5.4, 0.4);
         ctx.globalCompositeOperation = "destination-out";
-        ctx.lineWidth = 1.6 * u;
-        ctx.beginPath();
-        ctx.moveTo(18 * u, 47 * u);
-        ctx.lineTo(74 * u, 47 * u);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(14 * u, 78.6 * u);
-        ctx.lineTo(78 * u, 78.6 * u);
-        ctx.stroke();
+        fillTaper(ctx, u, FLAME_BIG, 9.4, 0.42);
         ctx.globalCompositeOperation = "source-over";
-
-        /* vapor: três S finos, o do meio mais alto */
-        ctx.lineWidth = 2.6 * u;
-        [[34, 21], [46, 28], [58, 21]].forEach(([sx, hgt]) => {
-            const y0 = 37;
-            ctx.beginPath();
-            ctx.moveTo(sx * u, y0 * u);
-            ctx.bezierCurveTo(
-                (sx - 7) * u, (y0 - hgt * 0.35) * u,
-                (sx + 7) * u, (y0 - hgt * 0.62) * u,
-                sx * u, (y0 - hgt) * u
-            );
-            ctx.stroke();
-        });
+        fillTaper(ctx, u, FLAME_BIG, 7.8, 0.42);
     };
 
     /* 02 — Projetos: janela de terminal — contorno de cantos arredondados
@@ -647,17 +656,51 @@
         ctx.fill();
     };
 
-    /* A formação do Python é bicolor: primeira metade dos pontos é a
-       cobra azul (cima), segunda metade a dourada (baixo).
+    /* Formações bicolores: cada parte é amostrada à parte e os pontos de
+       tone.at em diante (a 2ª parte) pintam com o par de cores tone.base /
+       tone.soft do tema, no lugar de primary/secondary (ver applyTheme). */
+
+    /* Python: primeira metade dos pontos é a cobra azul (cima), segunda
+       metade a dourada (baixo).
        O contorno fino já recorta a silhueta com menos pontos; o resto vai
        para o miolo */
     const PY_SPLIT = Math.floor(COUNT / 2);
     const PY_EDGE = 0.3;
+    const PY_TONE = { at: PY_SPLIT, base: "gold", soft: "goldSoft" };
     const makePython = async () => {
         const pts = new Float32Array(COUNT * 3);
         pts.set(sampleShape(drawPyTop, 28, 2, PY_SPLIT, PY_EDGE), 0);
         await yieldToPage();
         pts.set(sampleShape(drawPyBottom, 28, 2, COUNT - PY_SPLIT, PY_EDGE), PY_SPLIT * 3);
+        return pts;
+    };
+
+    /* Pixels pintados de um desenho, num raster pequeno: a área de cada parte */
+    const inkArea = (draw) => {
+        const data = rasterize(draw, 200);
+        let n = 0;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 40) {
+                n += 1;
+            }
+        }
+        return n;
+    };
+
+    /* Xícara: xícara e pires azuis, chamas laranja. Os pontos se dividem
+       na proporção da área de cada parte (mesma densidade nas duas); o
+       ponto de divisão só é conhecido depois de medir, então CUP_TONE.at
+       nasce no fim (tudo azul) e é acertado aqui */
+    const CUP_EDGE = 0.22;
+    const CUP_TONE = { at: COUNT, base: "flame", soft: "flameSoft" };
+    const makeCup = async () => {
+        const cup = inkArea(drawCup);
+        const at = Math.round((COUNT * cup) / (cup + inkArea(drawCupFlames)));
+        const pts = new Float32Array(COUNT * 3);
+        pts.set(sampleShape(drawCup, 30, 3, at, CUP_EDGE), 0);
+        await yieldToPage();
+        pts.set(sampleShape(drawCupFlames, 30, 3, COUNT - at, CUP_EDGE), at * 3);
+        CUP_TONE.at = at;
         return pts;
     };
 
@@ -703,11 +746,13 @@
         ? [solo.make]
         : [
             () => sampleShape(drawCode, 30, 3, COUNT, 0.15),
-            () => sampleShape(drawCup, 30, 3, COUNT, 0.22),
+            makeCup,
             () => sampleShape(drawTerminal, 30, 2.4, COUNT, 0.15),
             makePython,
             makeNetwork
         ];
+    /* índice da formação → par de cores da 2ª parte (só as bicolores) */
+    const TONES = solo ? {} : { 1: CUP_TONE, 3: PY_TONE };
     const formations = [];
     for (let k = 0; k < builders.length; k += 1) {
         await yieldToPage();
@@ -820,6 +865,10 @@
             secondary: new THREE.Color("#dfe8ff"),
             gold: new THREE.Color("#f6c454"),
             goldSoft: new THREE.Color("#fff0c4"),
+            /* chamas da xícara: laranja vivo; no aditivo os miolos densos
+               puxam para o amarelo (brasa), sem estourar em branco */
+            flame: new THREE.Color("#ff7a33"),
+            flameSoft: new THREE.Color("#ffc878"),
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
@@ -840,6 +889,9 @@
             secondary: new THREE.Color("#0a1d4f"),
             gold: new THREE.Color("#b4720b"),
             goldSoft: new THREE.Color("#7f5006"),
+            /* terracota: escuro o bastante para contrastar com o papel */
+            flame: new THREE.Color("#c2410c"),
+            flameSoft: new THREE.Color("#8a2c0b"),
             fog: new THREE.Color("#edf2f8"),
             fogNear: 60,
             fogFar: 150,
@@ -857,13 +909,14 @@
         const theme = THEMES[name] || THEMES.dark;
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
-        /* na formação do Python, a segunda metade dos pontos fica dourada */
-        const bicolor = activeIndex === 3;
+        /* formação bicolor: a 2ª parte dos pontos pinta com o par dela
+           (Python: cobra dourada; xícara: chamas) */
+        const tone = TONES[activeIndex];
         for (let i = 0; i < COUNT; i += 1) {
-            const gold = bicolor && i >= PY_SPLIT;
+            const second = tone && i >= tone.at;
             mixed
-                .copy(gold ? theme.gold : theme.primary)
-                .lerp(gold ? theme.goldSoft : theme.secondary, mixes[i]);
+                .copy(second ? theme[tone.base] : theme.primary)
+                .lerp(second ? theme[tone.soft] : theme.secondary, mixes[i]);
             colorAttr.setXYZ(i, mixed.r, mixed.g, mixed.b);
         }
         colorAttr.needsUpdate = true;
@@ -940,7 +993,7 @@
         if (index === activeIndex || !formations[index]) {
             return;
         }
-        const repaint = (index === 3) !== (activeIndex === 3);
+        const repaint = TONES[index] !== TONES[activeIndex];
         activeIndex = index;
         target = formations[index];
         if (repaint) {
