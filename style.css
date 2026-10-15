@@ -26,6 +26,10 @@
     /* fundo dos blocos de leitura (cards, timeline, stack) */
     --panel: rgba(6, 11, 22, 0.82);
     --panel-hover: rgba(12, 20, 36, 0.65);
+    /* tokens que só o tema claro usa (no escuro são neutros) */
+    --line-strong: rgba(232, 237, 246, 0.22);
+    --panel-solid: var(--panel);
+    --shadow-card: none;
 
     --shell: 1180px;
     --gutter: clamp(20px, 5vw, 60px);
@@ -36,21 +40,25 @@
 }
 
 [data-theme="light"] {
-    /* cinza-azulado médio, menos ofuscante; cards um tom acima */
-    --bg: #dde3ec;
-    --bg-elev: #e9edf3;
-    --text: #131a29;
-    --text-dim: #434e63;
-    --text-faint: #535f74;
-    --accent: #1d46c4;
-    --accent-strong: #15349a;
-    --accent-ink: #f3f6fc;
-    --line: rgba(19, 26, 41, 0.18);
-    --line-soft: rgba(19, 26, 41, 0.09);
-    --glow: rgba(29, 70, 196, 0.08);
-    --grain-opacity: 0.05;
-    --panel: rgba(242, 245, 249, 0.86);
-    --panel-hover: rgba(248, 250, 252, 0.97);
+    /* "Glacier": gelo azulado com tinta azul-marinho; cards brancos
+       sólidos com sombra de verdade */
+    --bg: #edf2f8;
+    --bg-elev: #dfe7f1;
+    --text: #0d1830;
+    --text-dim: #3e4c66;
+    --text-faint: #55637f;
+    --accent: #1b55d6;
+    --accent-strong: #123f9f;
+    --accent-ink: #ffffff;
+    --line: rgba(13, 24, 48, 0.14);
+    --line-soft: rgba(13, 24, 48, 0.08);
+    --line-strong: rgba(13, 24, 48, 0.24);
+    --glow: rgba(27, 85, 214, 0.10);
+    --grain-opacity: 0.035;
+    --panel: #ffffff;
+    --panel-hover: #ffffff;
+    --panel-solid: #ffffff;
+    --shadow-card: 0 1px 2px rgba(13, 24, 48, 0.05), 0 16px 36px -20px rgba(13, 24, 48, 0.28);
     color-scheme: light;
 }
 
@@ -153,6 +161,10 @@ ol {
     background:
         radial-gradient(1100px 700px at 12% -4%, var(--glow), transparent 62%),
         radial-gradient(900px 600px at 96% 108%, var(--glow), transparent 65%);
+    /* cor de papel na própria camada: o canvas usa mix-blend-mode (tema claro)
+       e precisa de um fundo dentro do stacking context do .webgl */
+    background-color: var(--bg);
+    transition: background-color 0.45s ease;
 }
 
 .webgl canvas {
@@ -402,6 +414,7 @@ main,
 .menu-nav a:nth-child(3) { transition-delay: 0.16s; }
 .menu-nav a:nth-child(4) { transition-delay: 0.21s; }
 .menu-nav a:nth-child(5) { transition-delay: 0.26s; }
+.menu-nav a:nth-child(6) { transition-delay: 0.31s; }
 
 .menu-nav a span {
     font-family: var(--font-mono);
@@ -1054,6 +1067,10 @@ body.menu-open {
     margin-left: 4px;
 }
 
+.contact-cv {
+    margin-top: 36px;
+}
+
 /* ---------- Footer ---------- */
 
 .site-footer {
@@ -1117,6 +1134,74 @@ body.js-ready [data-reveal] {
 body.js-ready [data-reveal].is-visible {
     opacity: 1;
     transform: none;
+}
+
+/* ---------- Transição entre páginas (View Transitions, same-origin) ----------
+   Index ↔ certificados: o conteúdo sobe e funde (ou afunda, ao voltar ao
+   portfólio — tipo "back", definido no pagereveal do script.js); header e
+   fundo 3D têm grupos próprios e só fazem crossfade. Navegadores sem
+   suporte seguem com a navegação normal. O main não ganha nome próprio:
+   é mais alto que a janela. */
+
+@view-transition {
+    navigation: auto;
+}
+
+.site-header {
+    view-transition-name: site-header;
+}
+
+.webgl {
+    view-transition-name: backdrop;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(root) {
+    animation: 0.18s ease both vt-fade-out, 0.30s var(--ease-out) both vt-rise-out;
+}
+
+::view-transition-new(root) {
+    animation: 0.30s ease 0.06s both vt-fade-in, 0.42s var(--ease-out) both vt-rise-in;
+}
+
+/* voltando ao portfólio: o movimento inverte (afunda) */
+html:active-view-transition-type(back)::view-transition-old(root) {
+    animation: 0.18s ease both vt-fade-out, 0.30s var(--ease-out) both vt-sink-out;
+}
+
+html:active-view-transition-type(back)::view-transition-new(root) {
+    animation: 0.30s ease 0.06s both vt-fade-in, 0.42s var(--ease-out) both vt-sink-in;
+}
+
+::view-transition-group(site-header) {
+    animation-duration: 0.22s;
+}
+
+/* grupos nomeados são pintados acima do root: o fundo (opaco) desce para
+   baixo dele, senão cobriria o conteúdo durante a transição */
+::view-transition-group(backdrop) {
+    z-index: -1;
+    animation-duration: 0.45s;
+}
+
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in  { from { opacity: 0; } }
+@keyframes vt-rise-out { to { transform: translateY(-14px); } }
+@keyframes vt-rise-in  { from { transform: translateY(18px); } }
+@keyframes vt-sink-out { to { transform: translateY(14px); } }
+@keyframes vt-sink-in  { from { transform: translateY(-18px); } }
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
 }
 
 /* ---------- Layout dividido (desktop largo) ----------
@@ -1345,5 +1430,114 @@ body.js-ready [data-reveal].is-visible {
         animation: none;
         opacity: 1;
         transform: none;
+    }
+}
+
+/* ---------- Tema claro: ajustes finos ---------- */
+
+/* grão multiplica (escurece o papel) em vez de overlay */
+[data-theme="light"] .grain {
+    mix-blend-mode: multiply;
+}
+
+/* as partículas de tinta multiplicam sobre o papel */
+[data-theme="light"] .webgl canvas {
+    mix-blend-mode: multiply;
+}
+
+/* topo mais claro (luz de gelo) sobre os brilhos azuis; a cor de fundo
+   continua vindo do background-color do .webgl */
+[data-theme="light"] .webgl {
+    background-image:
+        linear-gradient(180deg, #f7f9fc 0%, rgba(247, 249, 252, 0) 38%),
+        radial-gradient(1100px 700px at 12% -4%, var(--glow), transparent 62%),
+        radial-gradient(900px 600px at 96% 108%, var(--glow), transparent 65%);
+}
+
+[data-theme="light"] .site-header.is-scrolled {
+    background: rgba(237, 242, 248, 0.80);
+    border-bottom-color: var(--line);
+    box-shadow: 0 1px 0 rgba(13, 24, 48, 0.04), 0 8px 24px -16px rgba(13, 24, 48, 0.18);
+}
+
+[data-theme="light"] .button-line,
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .menu-toggle,
+[data-theme="light"] .brand-mark {
+    border-color: var(--line-strong);
+}
+
+[data-theme="light"] .button-line {
+    background: #ffffff;
+}
+
+/* o seletor acima tem mais especificidade que o :hover base: refaz o hover */
+[data-theme="light"] .button-line:hover,
+[data-theme="light"] .theme-toggle:hover,
+[data-theme="light"] .menu-toggle:hover {
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .button-solid {
+    box-shadow: 0 1px 2px rgba(18, 63, 159, 0.30);
+}
+
+/* rótulos mono um pouco mais firmes no fundo claro */
+[data-theme="light"] .kicker,
+[data-theme="light"] .eyebrow,
+[data-theme="light"] .hero-facts dt,
+[data-theme="light"] .project-kind,
+[data-theme="light"] .stack-title,
+[data-theme="light"] .timeline-tag,
+[data-theme="light"] .timeline-date,
+[data-theme="light"] .project-index,
+[data-theme="light"] .hero-links a,
+[data-theme="light"] .site-nav a {
+    font-weight: 500;
+}
+
+/* projetos e trajetória viram cards brancos empilhados (sem a linha de
+   lista no topo); o padding lateral vale também no mobile */
+[data-theme="light"] .project-list,
+[data-theme="light"] .timeline {
+    border-top: 0;
+}
+
+[data-theme="light"] .project-row,
+[data-theme="light"] .timeline-row {
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: var(--shadow-card);
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+[data-theme="light"] .project-row + .project-row,
+[data-theme="light"] .timeline-row + .timeline-row {
+    margin-top: 14px;
+}
+
+[data-theme="light"] .project-row:hover,
+[data-theme="light"] .timeline-row:hover {
+    border-color: var(--line-strong);
+}
+
+[data-theme="light"] .stack {
+    background: var(--panel-solid);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 30px 22px 10px;
+    box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .portrait-frame {
+    background: var(--panel-solid);
+    box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 900px) {
+    [data-theme="light"] ::-webkit-scrollbar-thumb {
+        background: var(--line-strong);
     }
 }

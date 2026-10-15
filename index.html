@@ -23,7 +23,7 @@
             } catch (e) {}
             var meta = document.querySelector('meta[name="theme-color"]');
             if (meta) {
-                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#dde3ec" : "#060b16");
+                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
             }
         })();
     </script>
@@ -34,11 +34,17 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
 
+    <!-- a página de certificados já fica no cache: a transição entre as duas é imediata -->
+    <link rel="prefetch" href="certificados.html">
+    <link rel="prefetch" href="certificados.css">
+    <link rel="prefetch" href="certificados.js">
+    <link rel="prefetch" href="data/certificados.json">
+
     <script type="importmap">
         { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.min.js" } }
     </script>
     <script type="module" src="scene.js"></script>
-    <script src="script.js" defer></script>
+    <script src="script.js" defer blocking="render"></script>
 
     <script type="application/ld+json">
     {
@@ -73,6 +79,7 @@
                 <a href="#sobre" data-nav>Sobre</a>
                 <a href="#projetos" data-nav>Projetos</a>
                 <a href="#trajetoria" data-nav>Trajetória</a>
+                <a href="certificados.html">Certificados</a>
                 <a href="#contato" data-nav>Contato</a>
             </nav>
 
@@ -97,7 +104,8 @@
             <a href="#sobre"><span>01</span>Sobre</a>
             <a href="#projetos"><span>02</span>Projetos</a>
             <a href="#trajetoria"><span>03</span>Trajetória</a>
-            <a href="#contato"><span>04</span>Contato</a>
+            <a href="certificados.html"><span>04</span>Certificados</a>
+            <a href="#contato"><span>05</span>Contato</a>
         </nav>
         <div class="menu-meta">
             <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
@@ -120,6 +128,7 @@
                 <div class="hero-actions" data-load style="--d:270ms">
                     <a class="button button-solid" href="#projetos">Ver projetos<span aria-hidden="true">↓</span></a>
                     <a class="button button-line" href="#contato">Falar comigo<span aria-hidden="true">→</span></a>
+                    <a class="button button-line" href="assets/curriculo-humberto-fernandes.pdf" download>Baixar currículo (PDF)<span aria-hidden="true">↓</span></a>
                     <div class="hero-links">
                         <a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true">↗</span></a>
                         <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn<span aria-hidden="true">↗</span></a>
@@ -142,7 +151,7 @@
                 <p class="kicker"><span>01</span>Sobre</p>
                 <h2 id="sobre-title">Perfil <em>técnico.</em></h2>
                 <p class="lead">
-                    Engenheiro de software com base em Java e Spring Boot,
+                    Engenheiro de software com mais de 4 anos de Java e Spring Boot,
                     aplicando IA em produtos financeiros.
                 </p>
             </header>
@@ -150,29 +159,27 @@
             <div class="about-grid">
                 <div class="about-copy" data-reveal data-delay="80">
                     <p>
-                        Na Evig, atuei em vários projetos ao mesmo tempo: back-end Java com
-                        Spring Boot, serviços de IA em Python com FastAPI, um gateway em Go
-                        e o front-end em Angular.
+                        Tenho mais de 4 anos de experiência com Java e Spring Boot, somando trabalho
+                        profissional e projetos pessoais, e atuo também com Python, Go e Angular.
                     </p>
                     <p>
-                        Propus uma nova arquitetura para o assistente financeiro e recriei o sistema
-                        do zero. Os cálculos passaram a ser feitos por código, não pelo LLM, e agentes
-                        especialistas com OpenAI, Gemini e Claude cuidam da conversa.
+                        Na Evig, atuei em vários projetos ao mesmo tempo: desenhei a nova arquitetura
+                        e recriei do zero o assistente financeiro com IA, criei o sistema de vendas
+                        com IA e mantive o back-end Java e a plataforma web.
                     </p>
                     <p>
-                        Cobertura de testes do back-end Java de 85% para 100%, CI 66% mais rápido
-                        e deploy na AWS via GitHub Actions.
+                        Tenho experiência com Open Finance, agentes de IA (OpenAI, Gemini, Claude) e
+                        CI/CD na AWS. Uso agentes de IA no desenvolvimento, como Claude Code e Codex,
+                        sempre com revisão de código e testes automatizados.
                     </p>
                     <p>
-                        Uso agentes de IA no desenvolvimento, como Claude Code e Codex, sempre com
-                        revisão de código e testes automatizados. Formação: pós-graduação em
-                        Arquitetura e Desenvolvimento Java pela FIAP (2026) e graduação em Análise
-                        e Desenvolvimento de Sistemas pela UNINOVE (2024).
+                        Pós-graduado em Arquitetura e Desenvolvimento Java pela FIAP (2026) e graduado
+                        em Análise e Desenvolvimento de Sistemas pela UNINOVE (2024).
                     </p>
 
                     <ul class="about-notes">
-                        <li><strong>Idiomas</strong>Português nativo · Inglês técnico</li>
-                        <li><strong>Certificações</strong>Java, Spring Boot e Angular — <a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/certifications/" target="_blank" rel="noopener noreferrer">ver no LinkedIn<span aria-hidden="true">↗</span></a></li>
+                        <li><strong>Idiomas</strong>Português nativo · Inglês intermediário</li>
+                        <li><strong>Certificações</strong>84 certificados em Java, Spring, cloud e front-end — <a href="certificados.html">ver galeria<span aria-hidden="true">→</span></a></li>
                     </ul>
                 </div>
 
@@ -439,6 +446,10 @@
                 <li><a href="tel:+5511977728104">+55 (11) 97772-8104</a></li>
                 <li>São Paulo, Brasil</li>
             </ul>
+
+            <p class="contact-cv" data-reveal data-delay="200">
+                <a class="button button-solid" href="assets/curriculo-humberto-fernandes.pdf" download>Baixar currículo (PDF)<span aria-hidden="true">↓</span></a>
+            </p>
         </section>
     </main>
 

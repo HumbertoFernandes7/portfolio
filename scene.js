@@ -6,6 +6,9 @@
    (IA). As formas planas são amostradas de um canvas 2D; a rede
    neural é gerada por coordenadas. No desktop largo a formação
    fica no lado livre da tela, alternando com o texto das seções.
+   Outras páginas declaram uma formação única no canvas
+   (data-formation) presa a um bloco âncora (data-scene-anchor):
+   em certificados.html, o capelo de formatura ao lado da introdução.
    Carrega Three.js via import map; sem WebGL, o site segue
    normalmente sobre o fundo CSS.
    ============================================================ */
@@ -42,7 +45,7 @@
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isSmall = window.matchMedia("(max-width: 768px)").matches;
     /* em telas estreitas as formações ficam atrás do texto: menos pontos e mais discretos */
-    const COUNT = isSmall ? 2200 : 6500;
+    const COUNT = isSmall ? 3600 : 14000;
     const OPACITY_SCALE = isSmall ? 0.35 : 1;
 
     /* Layout dividido (mesma media query do style.css): o texto ocupa uma
@@ -75,12 +78,20 @@
 
     const rand = (min, max) => min + Math.random() * (max - min);
 
-    /* Desenha um símbolo num canvas 2D e vira nuvem de pontos (x/y do
-       pixel, z com pequena profundidade). Coordenadas em % do canvas.
-       edge: fração dos pontos reservada ao contorno — formas cheias
-       (xícara, Python) ganham silhueta, vãos e olhos nítidos. */
-    const sampleShape = (draw, extent, depth = 3, count = COUNT, edge = 0) => {
-        const s = 360;
+    /* Cede a vez à página entre as etapas pesadas: a amostragem de cada
+       forma vira uma tarefa curta, em vez de um bloco longo que trava a
+       rolagem e a primeira pintura. */
+    const yieldToPage = () => {
+        if (window.scheduler && typeof window.scheduler.yield === "function") {
+            return window.scheduler.yield();
+        }
+        return new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+    };
+
+    /* Desenha o símbolo num canvas 2D s×s e devolve os pixels (RGBA) */
+    const rasterize = (draw, s) => {
         const cv = document.createElement("canvas");
         cv.width = s;
         cv.height = s;
@@ -90,43 +101,225 @@
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         draw(ctx, s / 100);
-        const data = ctx.getImageData(0, 0, s, s).data;
+        return ctx.getImageData(0, 0, s, s).data;
+    };
 
-        const filled = (x, y) => x >= 0 && y >= 0 && x < s && y < s && data[(y * s + x) * 4 + 3] > 40;
-        const candidates = [];
-        const borders = [];
-        const R = 3; /* espessura do contorno, em px do canvas */
+    /* Embaralha (Fisher-Yates) n candidatos guardados em três arrays */
+    const shuffle3 = (xs, ys, zs, n) => {
+        for (let i = n - 1; i > 0; i -= 1) {
+            const j = (Math.random() * (i + 1)) | 0;
+            let t = xs[i];
+            xs[i] = xs[j];
+            xs[j] = t;
+            t = ys[i];
+            ys[i] = ys[j];
+            ys[j] = t;
+            t = zs[i];
+            zs[i] = zs[j];
+            zs[j] = t;
+        }
+    };
+
+    /* Grade de hash 3D para o dart throwing: célula ≥ r, então basta olhar
+       as 27 células vizinhas (célula maior que r continua correta; o piso
+       limita o tamanho da grade). head[célula] → último aceito nela. */
+    const makeGrid = (r, s, zMin, zRange) => {
+        const cell = Math.max(r, Math.cbrt((s * s * Math.max(zRange, 1)) / 4e6));
+        const gw = Math.ceil(s / cell) + 2;
+        const gz = zRange > 0 ? Math.ceil(zRange / cell) + 2 : 1;
+        return { cell, gw, gz, zMin, head: new Int32Array(gw * gw * gz).fill(-1) };
+    };
+
+    /* Dart throwing (Poisson-disk): percorre os candidatos já embaralhados e
+       aceita um só se nenhum aceito estiver a menos de r (distância em x/y/z,
+       em px do canvas). Continua a partir de got aceitos (out/next/grade
+       compartilhados entre passadas) e para ao chegar em limit. */
+    const dartThrow = (xs, ys, zs, n, r, grid, out, next, got, limit) => {
+        const { cell, gw, gz, zMin, head } = grid;
+        const r2 = r * r;
+        for (let c = 0; c < n && got < limit; c += 1) {
+            const x = xs[c];
+            const y = ys[c];
+            const z = zs[c];
+            const gx = (x / cell) | 0;
+            const gy = (y / cell) | 0;
+            const gzc = ((z - zMin) / cell) | 0;
+            let free = true;
+            for (let cy = Math.max(0, gy - 1); free && cy <= gy + 1 && cy < gw; cy += 1) {
+                for (let cx = Math.max(0, gx - 1); free && cx <= gx + 1 && cx < gw; cx += 1) {
+                    for (let cz = Math.max(0, gzc - 1); free && cz <= gzc + 1 && cz < gz; cz += 1) {
+                        for (let p = head[(cy * gw + cx) * gz + cz]; p !== -1; p = next[p]) {
+                            const a = out[p];
+                            const dx = xs[a] - x;
+                            const dy = ys[a] - y;
+                            const dz = zs[a] - z;
+                            if (dx * dx + dy * dy + dz * dz < r2) {
+                                free = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (!free) {
+                continue;
+            }
+            const h = (gy * gw + gx) * gz + gzc;
+            out[got] = c;
+            next[got] = head[h];
+            head[h] = got;
+            got += 1;
+        }
+        return got;
+    };
+
+    /* Escolhe exatamente want candidatos bem espaçados (blue noise). O raio
+       parte da estimativa pela área (com ~8 candidatos por ponto, o dart
+       throwing fecha em ~1,6–1,8·r² por ponto), folgada para a 1ª passada
+       ficar logo abaixo de want; a falta é completada numa passada com raio
+       menor (pontos ∝ 1/r²) na mesma grade, que só acha lugar nos vãos
+       maiores e para ao chegar em want. Se a 1ª passada estourar o teto, o
+       raio cresce e recomeça; o excedente (até 3%) é aparado ao acaso. */
+    const blueNoise = (xs, ys, zs, n, want, area, s, zMin, zRange) => {
+        const out = new Int32Array(Math.max(n, want));
+        if (want <= 0 || n === 0) {
+            return out;
+        }
+        const next = new Int32Array(n);
+        const cap = Math.floor(want * 1.03) + 1;
+        let r = Math.sqrt(area / (1.65 * want));
+        let grid = null;
+        let got = 0;
+        for (let tries = 0; tries < 5; tries += 1) {
+            grid = makeGrid(r, s, zMin, zRange);
+            got = dartThrow(xs, ys, zs, n, r, grid, out, next, 0, cap);
+            if (got < cap) {
+                break;
+            }
+            r *= 1.06;
+        }
+        for (let k = 0; got < want && k < 8; k += 1) {
+            r *= k === 0 ? Math.sqrt(got / want) * 0.96 : 0.93;
+            got = dartThrow(xs, ys, zs, n, r, grid, out, next, got, want);
+        }
+        if (got > want) {
+            /* apara: sorteia want dos aceitos (Fisher-Yates parcial) */
+            for (let i = 0; i < want; i += 1) {
+                const j = i + ((Math.random() * (got - i)) | 0);
+                const t = out[i];
+                out[i] = out[j];
+                out[j] = t;
+            }
+        }
+        for (let i = got; i < want; i += 1) {
+            out[i] = (Math.random() * n) | 0;
+        }
+        return out;
+    };
+
+    const SHAPE_CORE = 0.3; /* espessura do miolo, em unidades do mundo */
+    /* fração da profundidade ocupada pelas paredes: fina o bastante para o
+       balanço mostrar a borda acesa (volume) sem franja de pontos ao lado */
+    const SHAPE_WALL = 0.3;
+
+    /* Desenha um símbolo num canvas 2D (720 px; 480 no celular, que tem
+       menos pontos e CPU mais lenta) e vira nuvem de pontos uniformes.
+       Coordenadas em % do canvas. O miolo fica numa camada fina perto de
+       z = 0 e o contorno (faixa fina na borda) vira as paredes laterais de
+       um sólido extrudado fino — o balanço mostra volume sem borrão nem
+       imagem dupla.
+       edge: fração dos pontos reservada ao contorno — formas cheias
+       (xícara, Python) ganham silhueta, vãos e olhos nítidos; as de traço
+       (código, terminal), espessura. */
+    const sampleShape = (draw, extent, depth = 3, count = COUNT, edge = 0) => {
+        const s = isSmall ? 480 : 720;
+        const data = rasterize(draw, s);
+        const R = 2; /* espessura do contorno, em px do canvas */
+        /* máscara com margem R: vizinhos fora do canvas contam como vazios */
+        const W = s + 2 * R;
+        const mask = new Uint8Array(W * W);
+        let n = 0;
         for (let y = 0; y < s; y += 1) {
             for (let x = 0; x < s; x += 1) {
-                if (!filled(x, y)) {
-                    continue;
-                }
-                candidates.push(x, y);
-                if (edge > 0 && (!filled(x - R, y) || !filled(x + R, y) || !filled(x, y - R) || !filled(x, y + R))) {
-                    borders.push(x, y);
+                if (data[(y * s + x) * 4 + 3] > 40) {
+                    mask[(y + R) * W + x + R] = 1;
+                    n += 1;
                 }
             }
         }
-
-        const pts = new Float32Array(count * 3);
-        const n = candidates.length / 2;
-        const nb = borders.length / 2;
-        for (let k = 0; k < count; k += 1) {
-            if (n === 0) {
-                /* fallback improvável (ex.: canvas indisponível): esfera */
+        if (n === 0) {
+            /* fallback improvável (ex.: canvas indisponível): esfera */
+            const sphere = new Float32Array(count * 3);
+            for (let k = 0; k < count; k += 1) {
                 const a = Math.random() * Math.PI * 2;
                 const b = Math.acos(rand(-1, 1));
-                pts[k * 3] = 12 * Math.sin(b) * Math.cos(a);
-                pts[k * 3 + 1] = 12 * Math.cos(b);
-                pts[k * 3 + 2] = 12 * Math.sin(b) * Math.sin(a);
-                continue;
+                sphere[k * 3] = 12 * Math.sin(b) * Math.cos(a);
+                sphere[k * 3 + 1] = 12 * Math.cos(b);
+                sphere[k * 3 + 2] = 12 * Math.sin(b) * Math.sin(a);
             }
-            const fromBorder = nb > 0 && Math.random() < edge;
-            const src = fromBorder ? borders : candidates;
-            const j = (Math.random() * (fromBorder ? nb : n)) | 0;
-            pts[k * 3] = ((src[j * 2] + Math.random()) / s - 0.5) * extent;
-            pts[k * 3 + 1] = (0.5 - (src[j * 2 + 1] + Math.random()) / s) * extent;
-            pts[k * 3 + 2] = (Math.random() - 0.5) * depth;
+            return sphere;
+        }
+        const xs = new Float32Array(n);
+        const ys = new Float32Array(n);
+        const zs = new Float32Array(n);
+        const borders = new Int32Array(n);
+        let nb = 0;
+        let i = 0;
+        for (let y = 0; y < s; y += 1) {
+            for (let x = 0; x < s; x += 1) {
+                const m = (y + R) * W + x + R;
+                if (!mask[m]) {
+                    continue;
+                }
+                xs[i] = x + Math.random();
+                ys[i] = y + Math.random();
+                i += 1;
+                if (edge > 0 && (!mask[m - R] || !mask[m + R] || !mask[m - R * W] || !mask[m + R * W])) {
+                    borders[nb] = y * s + x;
+                    nb += 1;
+                }
+            }
+        }
+        const ne = nb > 0 ? Math.round(count * edge) : 0;
+        const ni = count - ne;
+        const pts = new Float32Array(count * 3);
+        const toWorld = (px, py, pz, pick, want, offset, zOf) => {
+            for (let q = 0; q < want; q += 1) {
+                const c = pick[q];
+                const o = (offset + q) * 3;
+                pts[o] = (px[c] / s - 0.5) * extent;
+                pts[o + 1] = (0.5 - py[c] / s) * extent;
+                pts[o + 2] = zOf(pz[c]);
+            }
+        };
+
+        /* miolo: escolha em 2D (z = 0), depois espalhado na camada fina.
+           Embaralhados, os primeiros 8 candidatos por ponto já são uma
+           amostra uniforme — basta para o dart throwing quase saturar */
+        shuffle3(xs, ys, zs, n);
+        const core = Math.min(SHAPE_CORE, depth);
+        toWorld(xs, ys, zs, blueNoise(xs, ys, zs, Math.min(n, ni * 8), ni, n, s, 0, 0), ni, 0, () => (Math.random() - 0.5) * core);
+
+        /* contorno: candidatos em várias alturas z por pixel da borda, e o
+           blue noise em 3D distribui por igual na "parede" (borda × espessura) */
+        if (ne > 0) {
+            const dpx = ((depth * SHAPE_WALL) / extent) * s;
+            const perPx = Math.min(24, Math.max(4, Math.ceil((8 * ne) / nb)));
+            const m = nb * perPx;
+            const bx = new Float32Array(m);
+            const by = new Float32Array(m);
+            const bz = new Float32Array(m);
+            for (let k = 0; k < m; k += 1) {
+                const b = borders[(k / perPx) | 0];
+                bx[k] = (b % s) + Math.random();
+                by[k] = ((b / s) | 0) + Math.random();
+                bz[k] = (Math.random() - 0.5) * dpx;
+            }
+            shuffle3(bx, by, bz, m);
+            /* a faixa da borda tem espessura (R px + jitter), então a parede
+               comporta ~25% mais pontos que uma superfície de mesma área */
+            const pick = blueNoise(bx, by, bz, m, ne, (nb / R) * dpx * 1.25, s, -dpx / 2, dpx);
+            toWorld(bx, by, bz, pick, ne, ni, (z) => (z / s) * extent);
         }
         return pts;
     };
@@ -309,38 +502,162 @@
 
         /* nós densos (esferas) e conexões finas: lê bem mesmo com opacidade baixa */
         const perNode = Math.floor((COUNT * 0.45) / nodes.length);
+        /* cada nó é uma bola em cascas concêntricas (pontos por casca
+           ∝ volume dela), cada casca uma esfera de Fibonacci com eixo e
+           giro sorteados; as conexões recebem pontos em passos regulares,
+           em número proporcional ao comprimento visível (fora dos nós) */
+        const NODE_R = 1.05;
+        const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+        const shells = Math.max(2, Math.round(Math.cbrt(perNode) / 1.6));
         nodes.forEach((node) => {
-            for (let k = 0; k < perNode; k += 1) {
-                const r = 1.05 * Math.cbrt(Math.random());
-                const a = Math.random() * Math.PI * 2;
-                const b = Math.acos(rand(-1, 1));
-                put(
-                    node.x + r * Math.sin(b) * Math.cos(a),
-                    node.y + r * Math.cos(b),
-                    node.z + r * Math.sin(b) * Math.sin(a)
-                );
+            let done = 0;
+            for (let j = 0; j < shells; j += 1) {
+                const share = ((j + 1) ** 3 - j ** 3) / shells ** 3;
+                const c = j === shells - 1 ? perNode - done : Math.round(perNode * share);
+                const spin = Math.random() * Math.PI * 2;
+                const axis = (Math.random() * 3) | 0;
+                for (let k = 0; k < c; k += 1) {
+                    const v = 1 - (2 * (k + 0.5)) / c;
+                    const ring = Math.sqrt(1 - v * v);
+                    const a = spin + k * GOLDEN;
+                    /* raio uniforme no volume da casca */
+                    const r = (NODE_R / shells) * Math.cbrt(j ** 3 + Math.random() * ((j + 1) ** 3 - j ** 3));
+                    const d = [ring * Math.cos(a), v, ring * Math.sin(a)];
+                    put(
+                        node.x + r * d[axis],
+                        node.y + r * d[(axis + 1) % 3],
+                        node.z + r * d[(axis + 2) % 3]
+                    );
+                }
+                done += c;
             }
         });
 
-        while (i < COUNT) {
-            const [a, b] = edges[(Math.random() * edges.length) | 0];
-            const t = Math.random();
-            put(
-                a.x + (b.x - a.x) * t + rand(-0.1, 0.1),
-                a.y + (b.y - a.y) * t + rand(-0.1, 0.1),
-                a.z + (b.z - a.z) * t + rand(-0.1, 0.1)
-            );
-        }
+        const spans = edges.map(([a, b]) => Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z));
+        const visible = spans.map((len) => Math.max(0.01, len - 2 * NODE_R));
+        const total = visible.reduce((sum, v) => sum + v, 0);
+        const left = COUNT - i;
+        /* cotas por comprimento; a sobra do arredondamento vai para as
+           conexões com a maior parte fracionária */
+        const quotas = visible.map((v) => (left * v) / total);
+        const counts = quotas.map(Math.floor);
+        let rest = left - counts.reduce((sum, v) => sum + v, 0);
+        quotas
+            .map((q, e) => [q - Math.floor(q), e])
+            .sort((p, q) => q[0] - p[0])
+            .forEach(([, e]) => {
+                if (rest > 0) {
+                    counts[e] += 1;
+                    rest -= 1;
+                }
+            });
+        edges.forEach(([a, b], e) => {
+            const n = counts[e];
+            const t0 = Math.min(0.5, NODE_R / spans[e]);
+            for (let k = 0; k < n; k += 1) {
+                const t = t0 + (1 - 2 * t0) * ((k + 0.5 + rand(-0.15, 0.15)) / n);
+                put(
+                    a.x + (b.x - a.x) * t + rand(-0.03, 0.03),
+                    a.y + (b.y - a.y) * t + rand(-0.03, 0.03),
+                    a.z + (b.z - a.z) * t + rand(-0.03, 0.03)
+                );
+            }
+        });
         return pts;
     };
 
+    /* Certificados: capelo de formatura — tampo em losango achatado (o
+       quadrado visto de cima, em leve perspectiva) com espessura na borda
+       da frente, copa arredondada abaixo dele, botão no centro e a borla
+       pendendo pelo lado direito. Cordão, botão e frisos são recortados
+       do tampo cheio para lerem em pontos. */
+    const drawGradCap = (ctx, u) => {
+        /* copa: faixa que encaixa na cabeça, base arredondada (o topo fica sob o tampo) */
+        ctx.beginPath();
+        ctx.moveTo(28 * u, 46 * u);
+        ctx.lineTo(29.5 * u, 66 * u);
+        ctx.quadraticCurveTo(50 * u, 76 * u, 70.5 * u, 66 * u);
+        ctx.lineTo(72 * u, 46 * u);
+        ctx.closePath();
+        ctx.fill();
+
+        /* tampo + espessura: losango com as duas arestas da frente "engrossadas" */
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 40 * u);
+        ctx.lineTo(50 * u, 25 * u);
+        ctx.lineTo(90 * u, 40 * u);
+        ctx.lineTo(90 * u, 43 * u);
+        ctx.lineTo(50 * u, 58 * u);
+        ctx.lineTo(10 * u, 43 * u);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "destination-out";
+
+        /* frisos: face de cima × espessura, e espessura × copa */
+        ctx.lineWidth = 1.4 * u;
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 40 * u);
+        ctx.lineTo(50 * u, 55 * u);
+        ctx.lineTo(90 * u, 40 * u);
+        ctx.stroke();
+        ctx.lineWidth = 1.6 * u;
+        ctx.beginPath();
+        ctx.moveTo(10 * u, 43 * u);
+        ctx.lineTo(50 * u, 58 * u);
+        ctx.lineTo(90 * u, 43 * u);
+        ctx.stroke();
+
+        /* folga em volta do cordão (sobre o tampo) e do botão */
+        ctx.lineWidth = 5 * u;
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 40 * u);
+        ctx.lineTo(78 * u, 44.5 * u);
+        ctx.lineTo(78 * u, 50 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(50 * u, 40 * u, 3.8 * u, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "source-over";
+
+        /* cordão: do botão até a aresta da frente e caindo pelo lado */
+        ctx.lineWidth = 1.8 * u;
+        ctx.beginPath();
+        ctx.moveTo(50 * u, 40 * u);
+        ctx.lineTo(78 * u, 44.5 * u);
+        ctx.lineTo(78 * u, 63 * u);
+        ctx.stroke();
+
+        /* botão */
+        ctx.beginPath();
+        ctx.arc(50 * u, 40 * u, 2.2 * u, 0, Math.PI * 2);
+        ctx.fill();
+
+        /* borla: nó e franja que abre para baixo */
+        ctx.beginPath();
+        ctx.arc(78 * u, 63 * u, 2 * u, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(76.2 * u, 64 * u);
+        ctx.lineTo(79.8 * u, 64 * u);
+        ctx.lineTo(82.5 * u, 77 * u);
+        ctx.lineTo(73.5 * u, 77 * u);
+        ctx.closePath();
+        ctx.fill();
+    };
+
     /* A formação do Python é bicolor: primeira metade dos pontos é a
-       cobra azul (cima), segunda metade a dourada (baixo). */
+       cobra azul (cima), segunda metade a dourada (baixo).
+       O contorno fino já recorta a silhueta com menos pontos; o resto vai
+       para o miolo */
     const PY_SPLIT = Math.floor(COUNT / 2);
-    const makePython = () => {
+    const PY_EDGE = 0.3;
+    const makePython = async () => {
         const pts = new Float32Array(COUNT * 3);
-        pts.set(sampleShape(drawPyTop, 28, 2, PY_SPLIT, 0.45), 0);
-        pts.set(sampleShape(drawPyBottom, 28, 2, COUNT - PY_SPLIT, 0.45), PY_SPLIT * 3);
+        pts.set(sampleShape(drawPyTop, 28, 2, PY_SPLIT, PY_EDGE), 0);
+        await yieldToPage();
+        pts.set(sampleShape(drawPyBottom, 28, 2, COUNT - PY_SPLIT, PY_EDGE), PY_SPLIT * 3);
         return pts;
     };
 
@@ -366,29 +683,59 @@
         return { hw: (maxX - minX) / 2, hh: (maxY - minY) / 2 };
     };
 
-    /* formações centradas na origem; o deslocamento lateral é aplicado no loop */
-    const formations = [
-        sampleShape(drawCode, 30, 3),
-        sampleShape(drawCup, 30, 3, COUNT, 0.3),
-        sampleShape(drawTerminal, 30, 2.4),
-        makePython(),
-        makeNetwork()
-    ];
+    /* Páginas de formação única: o canvas declara qual (data-formation) e
+       a formação acompanha o bloco marcado com data-scene-anchor. Sem
+       data-formation (index), valem as 5 formações por seção. */
+    const SOLO_PAGES = {
+        cap: {
+            make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.22),
+            config: { rotX: -0.06, camZ: 44, amp: 0.18, speed: 0.45 }
+        }
+    };
+    const solo = SOLO_PAGES[canvas.dataset.formation] || null;
+    const anchorEl = solo ? document.querySelector("[data-scene-anchor]") : null;
+
+    /* formações centradas na origem; o deslocamento lateral é aplicado no loop.
+       As formas de traço (código, terminal) também ganham contorno, para o
+       balanço mostrar a espessura delas; nas cheias o contorno fino pede uma
+       fração menor. Geradas uma a uma, cedendo a vez à página entre elas */
+    const builders = solo
+        ? [solo.make]
+        : [
+            () => sampleShape(drawCode, 30, 3, COUNT, 0.15),
+            () => sampleShape(drawCup, 30, 3, COUNT, 0.22),
+            () => sampleShape(drawTerminal, 30, 2.4, COUNT, 0.15),
+            makePython,
+            makeNetwork
+        ];
+    const formations = [];
+    for (let k = 0; k < builders.length; k += 1) {
+        await yieldToPage();
+        formations.push(await builders[k]());
+    }
+    /* e mais uma vez antes da montagem da cena e do primeiro quadro */
+    await yieldToPage();
     const extents = formations.map(centerCloud);
 
     /* Comportamento por seção: inclinação, distância e balanço.
        Os símbolos oscilam em vez de girar para seguirem legíveis. */
-    const configs = [
-        { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
-        { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
-        { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
-        { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
-        { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
-    ];
+    const configs = solo
+        ? [solo.config]
+        : [
+            { rotX: -0.05, camZ: 42, amp: 0.2, speed: 0.5 },
+            { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
+            { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
+            { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
+            { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
+        ];
 
     /* posição (x no mundo) e escala de cada formação; recalculadas no resize */
     const layout = formations.map(() => ({ x: 0, s: 1 }));
     let split = false;
+    /* formação única: deslocamento vertical (mundo) que a mantém na altura
+       do bloco âncora enquanto ele rola; no index fica sempre 0 */
+    let anchorY = 0;
+    let anchorVisible = true;
 
     /* ---------- Geometria e material ---------- */
 
@@ -397,8 +744,12 @@
     const colors = new Float32Array(COUNT * 3);
     const mixes = new Float32Array(COUNT);
 
+    /* com a distribuição uniforme não há aglomerados acendendo por acaso;
+       5% dos pontos puxam para a cor clara (faíscas esparsas) para a forma
+       não ficar chapada */
+    const SPARK = 0.05;
     for (let i = 0; i < COUNT; i += 1) {
-        mixes[i] = Math.pow(Math.random(), 1.6);
+        mixes[i] = Math.random() < SPARK ? rand(0.7, 1) : Math.pow(Math.random(), 1.6);
         /* nasce como nuvem dispersa e converge para a primeira formação */
         positions[i * 3] = rand(-60, 60);
         positions[i * 3 + 1] = rand(-45, 45);
@@ -408,16 +759,27 @@
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-    const makeSprite = () => {
+    /* Pontos pequenos e juntos pedem sprites duros. No escuro: miolo sólido
+       com queda curta (cada ponto lê como ponto, não névoa). Tinta (tema
+       claro): miolo cheio e borda curta, para a mancha multiplicar sobre o
+       papel sem virar névoa. */
+    const makeSprite = (ink) => {
         const size = 64;
         const c = document.createElement("canvas");
         c.width = size;
         c.height = size;
         const ctx = c.getContext("2d");
         const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        grad.addColorStop(0, "rgba(255,255,255,1)");
-        grad.addColorStop(0.35, "rgba(255,255,255,0.55)");
-        grad.addColorStop(1, "rgba(255,255,255,0)");
+        if (ink) {
+            grad.addColorStop(0, "rgba(255,255,255,1)");
+            grad.addColorStop(0.5, "rgba(255,255,255,0.9)");
+            grad.addColorStop(0.68, "rgba(255,255,255,0.25)");
+            grad.addColorStop(1, "rgba(255,255,255,0)");
+        } else {
+            grad.addColorStop(0, "rgba(255,255,255,1)");
+            grad.addColorStop(0.28, "rgba(255,255,255,1)");
+            grad.addColorStop(0.58, "rgba(255,255,255,0)");
+        }
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
         const texture = new THREE.CanvasTexture(c);
@@ -425,9 +787,15 @@
         return texture;
     };
 
+    /* um sprite por tema, criados uma única vez (o applyTheme só troca o map) */
+    const sprites = {
+        dark: makeSprite(false),
+        light: makeSprite(true)
+    };
+
     const material = new THREE.PointsMaterial({
         size: isSmall ? 0.3 : 0.32,
-        map: makeSprite(),
+        map: sprites.dark,
         vertexColors: true,
         transparent: true,
         depthWrite: false,
@@ -455,20 +823,30 @@
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
-            opacity: 0.4,
+            /* o sprite duro concentra a luz no miolo do ponto: a opacidade deixa
+               cada ponto vivo e os nós e cruzamentos da rede não estouram em
+               branco */
+            opacity: 0.44,
+            size: isSmall ? 0.29 : 0.3,
             blending: THREE.AdditiveBlending
         },
-        /* no claro os pontos são "tinta" sobre papel: cores escuras, opacidade
-           maior e névoa afastada, senão a forma vira um borrão cinza */
+        /* no claro os pontos são "tinta" sobre papel: cores escuras e névoa
+           afastada, senão a forma vira um borrão cinza. O efeito de multiplicar
+           vem do mix-blend-mode do canvas (CSS): MultiplyBlending do WebGL não
+           funciona com canvas alpha:true, por isso segue NormalBlending.
+           Com multiply a opacidade pode ser menor (0.78) */
         light: {
-            primary: new THREE.Color("#1d4ed8"),
-            secondary: new THREE.Color("#0f2a6b"),
-            gold: new THREE.Color("#c98a00"),
-            goldSoft: new THREE.Color("#8a5a00"),
-            fog: new THREE.Color("#dde3ec"),
-            fogNear: 70,
-            fogFar: 140,
-            opacity: 0.6,
+            primary: new THREE.Color("#1446c4"),
+            secondary: new THREE.Color("#0a1d4f"),
+            gold: new THREE.Color("#b4720b"),
+            goldSoft: new THREE.Color("#7f5006"),
+            fog: new THREE.Color("#edf2f8"),
+            fogNear: 60,
+            fogFar: 150,
+            /* pontos pequenos (não empastam onde a forma é densa) e opacidade
+               mais baixa: são muitos pontos somando tinta */
+            opacity: 0.7,
+            size: 0.23,
             blending: THREE.NormalBlending
         }
     };
@@ -491,6 +869,8 @@
         colorAttr.needsUpdate = true;
         material.opacity = theme.opacity * OPACITY_SCALE;
         material.blending = theme.blending;
+        material.size = theme.size;
+        material.map = theme === THEMES.light ? sprites.light : sprites.dark;
         material.needsUpdate = true;
         scene.fog.color.copy(theme.fog);
         scene.fog.near = theme.fogNear;
@@ -510,6 +890,22 @@
 
     /* ---------- Seção ativa ---------- */
 
+    /* Formação única: converte o centro do bloco âncora (px na tela) em y
+       do mundo no plano z = 0, na distância da cena. Lido a cada quadro,
+       a formação "rola" junto com o bloco. */
+    const updateAnchor = () => {
+        if (!anchorEl) {
+            return;
+        }
+        const h = window.innerHeight;
+        if (h === 0) {
+            return;
+        }
+        const r = anchorEl.getBoundingClientRect();
+        const halfH = configs[0].camZ * Math.tan((FOV / 2) * (Math.PI / 180));
+        anchorY = (h / 2 - (r.top + r.height / 2)) / (h / 2 / halfH);
+    };
+
     /* movimento reduzido: coloca a formação ativa direto no lugar, sem morph */
     const snapToTarget = () => {
         const { x, s } = layout[activeIndex];
@@ -519,7 +915,9 @@
             positions[i + 2] = target[i + 2];
         }
         geometry.getAttribute("position").needsUpdate = true;
+        updateAnchor();
         group.position.x = x;
+        group.position.y = anchorY;
         points.position.x = -x;
         group.scale.setScalar(s);
         group.rotation.set(configs[activeIndex].rotX, 0, 0);
@@ -527,8 +925,14 @@
         renderer.render(scene, camera);
     };
 
-    /* fora do layout dividido o texto ocupa a tela toda: partículas só no hero */
+    /* fora do layout dividido o texto ocupa a tela toda: partículas só no hero.
+       Formação única: só enquanto o bloco âncora está na tela (nos dois layouts),
+       para nunca ficar atrás do conteúdo que vem depois dele. */
     const updateDim = () => {
+        if (solo) {
+            canvas.classList.toggle("is-dim", !anchorVisible);
+            return;
+        }
         canvas.classList.toggle("is-dim", !split && activeIndex !== 0);
     };
 
@@ -549,7 +953,32 @@
     };
 
     const sceneSections = document.querySelectorAll("[data-scene]");
-    if ("IntersectionObserver" in window) {
+    if (solo) {
+        if (anchorEl && "IntersectionObserver" in window) {
+            /* "na tela" = ao menos 60% do bloco abaixo do header fixo (ou 60% da
+               área útil, se o bloco for mais alto que ela); passou disso, apaga */
+            const headerH = parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue("--header-h")
+            ) || 72;
+            const anchorObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        const rootH = entry.rootBounds ? entry.rootBounds.height : window.innerHeight;
+                        anchorVisible = entry.isIntersecting && (
+                            entry.intersectionRatio >= 0.6 ||
+                            entry.intersectionRect.height >= rootH * 0.6
+                        );
+                    });
+                    updateDim();
+                },
+                {
+                    rootMargin: `-${headerH}px 0px 0px 0px`,
+                    threshold: [0, 0.2, 0.4, 0.6, 0.8, 1]
+                }
+            );
+            anchorObserver.observe(anchorEl);
+        }
+    } else if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -566,6 +995,48 @@
 
     let lastW = 0;
     let lastH = 0;
+
+    /* Formação única (certificados): no layout dividido vai para o lado livre
+       à direita do bloco âncora (a introdução ocupa ~59% da largura); fora
+       dele, segue o hero do index em telas menores (deslocada à direita no
+       tablet, centrada no celular). Nos dois casos a altura cabe na do bloco
+       (com folga), para não invadir o conteúdo logo abaixo. */
+    const SOLO_PAD = 28; /* px de folga acima/abaixo do bloco âncora */
+    const layoutSolo = (w, h, tanHalf) => {
+        const item = layout[0];
+        const { hw, hh } = extents[0];
+        const halfH = configs[0].camZ * tanHalf;
+        const ppuY = h / 2 / halfH;
+        const rect = anchorEl ? anchorEl.getBoundingClientRect() : null;
+        const halfBlock = rect ? (rect.height / 2 + SOLO_PAD) / ppuY : halfH * 0.5;
+
+        if (split) {
+            const cw = document.documentElement.clientWidth || w;
+            const ppu = ppuY * (cw / w);
+            const shellEl = anchorEl && anchorEl.parentElement;
+            const shell = shellEl ? shellEl.getBoundingClientRect() : null;
+            const fl = (rect ? rect.right : cw * 0.62) + FREE_GAP;
+            const fr = Math.min(cw - FREE_EDGE, shell ? shell.right + FREE_OVERHANG : cw);
+            const halfFree = Math.max(1, (fr - fl) / 2 / ppu);
+            item.x = ((fl + fr) / 2 - cw / 2) / ppu;
+            item.s = Math.min(
+                1,
+                (halfFree * 0.94) / hw,
+                halfBlock / hh,
+                (halfH * 0.78) / hh
+            );
+        } else {
+            let s = Math.min(1, Math.max(0.52, w / 1180));
+            const narrow = narrowQuery.matches;
+            if (!narrow) {
+                const halfW = halfH * (w / h);
+                s = Math.min(s, (halfW * 0.94) / (SIDE_X + hw));
+            }
+            s = Math.min(s, halfBlock / hh);
+            item.x = narrow ? 0 : SIDE_X * s;
+            item.s = s;
+        }
+    };
 
     /* Mede a coluna de texto de uma seção com conteúdo à esquerda (hero) e de
        uma com conteúdo à direita (sobre); o lado oposto é a área livre. */
@@ -590,7 +1061,9 @@
         split = splitQuery.matches;
         const tanHalf = Math.tan((FOV / 2) * (Math.PI / 180));
 
-        if (split) {
+        if (solo) {
+            layoutSolo(w, h, tanHalf);
+        } else if (split) {
             /* o canvas (innerWidth) é exibido na largura sem a barra de rolagem */
             const cw = document.documentElement.clientWidth || w;
             const k = cw / w;
@@ -641,6 +1114,17 @@
 
     handleResize();
     window.addEventListener("resize", handleResize);
+
+    if (anchorEl) {
+        /* a altura do bloco âncora muda quando as fontes chegam */
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(handleResize);
+        }
+        /* sem o loop (movimento reduzido), a rolagem redesenha a formação no lugar */
+        if (reduceMotion) {
+            window.addEventListener("scroll", snapToTarget, { passive: true });
+        }
+    }
 
     /* ---------- Loop ---------- */
 
@@ -699,7 +1183,9 @@
         scaleNow += (scaleTarget - scaleNow) * easeK;
 
         phase += swaySpeed * dt;
+        updateAnchor();
         group.position.x = pivotX;
+        group.position.y = anchorY;
         points.position.x = -pivotX;
         group.rotation.y = Math.sin(phase) * swayAmp;
         group.rotation.x = rotX + Math.sin(phase * 0.63) * swayAmp * 0.22;
