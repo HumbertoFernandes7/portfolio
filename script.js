@@ -183,17 +183,25 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if ("IntersectionObserver" in window) {
+        /* ativa = a seção que cruza uma linha fina a 40% da altura da tela.
+           A fração visível não serve: numa seção alta (projetos) ela nunca
+           passa do limite e o link ficava preso na seção anterior */
+        const crossing = new Set();
         const sectionObserver = new IntersectionObserver(
             (entries) => {
-                const visible = entries
-                    .filter((entry) => entry.isIntersecting)
-                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-                if (visible) {
-                    setActiveLink(visible.target.id);
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        crossing.add(entry.target);
+                    } else {
+                        crossing.delete(entry.target);
+                    }
+                });
+                const current = Array.from(sections).find((section) => crossing.has(section));
+                if (current) {
+                    setActiveLink(current.id);
                 }
             },
-            { threshold: [0.15, 0.35, 0.6], rootMargin: "-25% 0px -45% 0px" }
+            { threshold: 0, rootMargin: "-40% 0px -59% 0px" }
         );
 
         sections.forEach((section) => sectionObserver.observe(section));
