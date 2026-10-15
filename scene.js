@@ -44,12 +44,8 @@
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isSmall = window.matchMedia("(max-width: 768px)").matches;
-    /* HD (experimento): amostragem uniforme, mais pontos e profundidade de
-       sólido extrudado. Com ?antigo na URL tudo volta ao comportamento
-       anterior, para comparar ao vivo. */
-    const HD = !new URLSearchParams(location.search).has("antigo");
     /* em telas estreitas as formações ficam atrás do texto: menos pontos e mais discretos */
-    const COUNT = HD ? (isSmall ? 3600 : 14000) : (isSmall ? 2200 : 6500);
+    const COUNT = isSmall ? 3600 : 14000;
     const OPACITY_SCALE = isSmall ? 0.35 : 1;
 
     /* Layout dividido (mesma media query do style.css): o texto ocupa uma
@@ -82,13 +78,10 @@
 
     const rand = (min, max) => min + Math.random() * (max - min);
 
-    /* Cede a vez à página entre as etapas pesadas (HD): a amostragem de
-       cada forma vira uma tarefa curta, em vez de um bloco longo que trava
-       a rolagem e a primeira pintura. Sem HD não divide nada. */
+    /* Cede a vez à página entre as etapas pesadas: a amostragem de cada
+       forma vira uma tarefa curta, em vez de um bloco longo que trava a
+       rolagem e a primeira pintura. */
     const yieldToPage = () => {
-        if (!HD) {
-            return null;
-        }
         if (window.scheduler && typeof window.scheduler.yield === "function") {
             return window.scheduler.yield();
         }
@@ -224,19 +217,24 @@
         return out;
     };
 
-    /* Versão HD do sampleShape: canvas de 720 (480 no celular, que tem
-       menos pontos e CPU mais lenta) e pontos uniformes. O miolo
-       fica numa camada fina perto de z = 0 e o contorno (faixa fina na
-       borda) vira as paredes laterais de um sólido extrudado fino — o
-       balanço mostra volume sem borrão nem imagem dupla. */
-    const HD_CORE = 0.3; /* espessura do miolo, em unidades do mundo */
+    const SHAPE_CORE = 0.3; /* espessura do miolo, em unidades do mundo */
     /* fração da profundidade ocupada pelas paredes: fina o bastante para o
        balanço mostrar a borda acesa (volume) sem franja de pontos ao lado */
-    const HD_WALL = 0.3;
-    const sampleShapeHD = (draw, extent, depth, count, edge) => {
+    const SHAPE_WALL = 0.3;
+
+    /* Desenha um símbolo num canvas 2D (720 px; 480 no celular, que tem
+       menos pontos e CPU mais lenta) e vira nuvem de pontos uniformes.
+       Coordenadas em % do canvas. O miolo fica numa camada fina perto de
+       z = 0 e o contorno (faixa fina na borda) vira as paredes laterais de
+       um sólido extrudado fino — o balanço mostra volume sem borrão nem
+       imagem dupla.
+       edge: fração dos pontos reservada ao contorno — formas cheias
+       (xícara, Python) ganham silhueta, vãos e olhos nítidos; as de traço
+       (código, terminal), espessura. */
+    const sampleShape = (draw, extent, depth = 3, count = COUNT, edge = 0) => {
         const s = isSmall ? 480 : 720;
         const data = rasterize(draw, s);
-        const R = 2; /* espessura do contorno, em px do canvas (bem mais fina que os 3 px do de 360) */
+        const R = 2; /* espessura do contorno, em px do canvas */
         /* máscara com margem R: vizinhos fora do canvas contam como vazios */
         const W = s + 2 * R;
         const mask = new Uint8Array(W * W);
@@ -250,7 +248,16 @@
             }
         }
         if (n === 0) {
-            return null;
+            /* fallback improvável (ex.: canvas indisponível): esfera */
+            const sphere = new Float32Array(count * 3);
+            for (let k = 0; k < count; k += 1) {
+                const a = Math.random() * Math.PI * 2;
+                const b = Math.acos(rand(-1, 1));
+                sphere[k * 3] = 12 * Math.sin(b) * Math.cos(a);
+                sphere[k * 3 + 1] = 12 * Math.cos(b);
+                sphere[k * 3 + 2] = 12 * Math.sin(b) * Math.sin(a);
+            }
+            return sphere;
         }
         const xs = new Float32Array(n);
         const ys = new Float32Array(n);
@@ -290,13 +297,13 @@
            Embaralhados, os primeiros 8 candidatos por ponto já são uma
            amostra uniforme — basta para o dart throwing quase saturar */
         shuffle3(xs, ys, zs, n);
-        const core = Math.min(HD_CORE, depth);
+        const core = Math.min(SHAPE_CORE, depth);
         toWorld(xs, ys, zs, blueNoise(xs, ys, zs, Math.min(n, ni * 8), ni, n, s, 0, 0), ni, 0, () => (Math.random() - 0.5) * core);
 
         /* contorno: candidatos em várias alturas z por pixel da borda, e o
            blue noise em 3D distribui por igual na "parede" (borda × espessura) */
         if (ne > 0) {
-            const dpx = ((depth * HD_WALL) / extent) * s;
+            const dpx = ((depth * SHAPE_WALL) / extent) * s;
             const perPx = Math.min(24, Math.max(4, Math.ceil((8 * ne) / nb)));
             const m = nb * perPx;
             const bx = new Float32Array(m);
@@ -313,59 +320,6 @@
                comporta ~25% mais pontos que uma superfície de mesma área */
             const pick = blueNoise(bx, by, bz, m, ne, (nb / R) * dpx * 1.25, s, -dpx / 2, dpx);
             toWorld(bx, by, bz, pick, ne, ni, (z) => (z / s) * extent);
-        }
-        return pts;
-    };
-
-    /* Desenha um símbolo num canvas 2D e vira nuvem de pontos (x/y do
-       pixel, z com pequena profundidade). Coordenadas em % do canvas.
-       edge: fração dos pontos reservada ao contorno — formas cheias
-       (xícara, Python) ganham silhueta, vãos e olhos nítidos. */
-    const sampleShape = (draw, extent, depth = 3, count = COUNT, edge = 0) => {
-        if (HD) {
-            const hd = sampleShapeHD(draw, extent, depth, count, edge);
-            if (hd) {
-                return hd;
-            }
-        }
-        const s = 360;
-        const data = rasterize(draw, s);
-
-        const filled = (x, y) => x >= 0 && y >= 0 && x < s && y < s && data[(y * s + x) * 4 + 3] > 40;
-        const candidates = [];
-        const borders = [];
-        const R = 3; /* espessura do contorno, em px do canvas */
-        for (let y = 0; y < s; y += 1) {
-            for (let x = 0; x < s; x += 1) {
-                if (!filled(x, y)) {
-                    continue;
-                }
-                candidates.push(x, y);
-                if (edge > 0 && (!filled(x - R, y) || !filled(x + R, y) || !filled(x, y - R) || !filled(x, y + R))) {
-                    borders.push(x, y);
-                }
-            }
-        }
-
-        const pts = new Float32Array(count * 3);
-        const n = candidates.length / 2;
-        const nb = borders.length / 2;
-        for (let k = 0; k < count; k += 1) {
-            if (n === 0) {
-                /* fallback improvável (ex.: canvas indisponível): esfera */
-                const a = Math.random() * Math.PI * 2;
-                const b = Math.acos(rand(-1, 1));
-                pts[k * 3] = 12 * Math.sin(b) * Math.cos(a);
-                pts[k * 3 + 1] = 12 * Math.cos(b);
-                pts[k * 3 + 2] = 12 * Math.sin(b) * Math.sin(a);
-                continue;
-            }
-            const fromBorder = nb > 0 && Math.random() < edge;
-            const src = fromBorder ? borders : candidates;
-            const j = (Math.random() * (fromBorder ? nb : n)) | 0;
-            pts[k * 3] = ((src[j * 2] + Math.random()) / s - 0.5) * extent;
-            pts[k * 3 + 1] = (0.5 - (src[j * 2 + 1] + Math.random()) / s) * extent;
-            pts[k * 3 + 2] = (Math.random() - 0.5) * depth;
         }
         return pts;
     };
@@ -548,92 +502,67 @@
 
         /* nós densos (esferas) e conexões finas: lê bem mesmo com opacidade baixa */
         const perNode = Math.floor((COUNT * 0.45) / nodes.length);
-        if (HD) {
-            /* HD: cada nó é uma bola em cascas concêntricas (pontos por casca
-               ∝ volume dela), cada casca uma esfera de Fibonacci com eixo e
-               giro sorteados; as conexões recebem pontos em passos regulares,
-               em número proporcional ao comprimento visível (fora dos nós) */
-            const NODE_R = 1.05;
-            const GOLDEN = Math.PI * (3 - Math.sqrt(5));
-            const shells = Math.max(2, Math.round(Math.cbrt(perNode) / 1.6));
-            nodes.forEach((node) => {
-                let done = 0;
-                for (let j = 0; j < shells; j += 1) {
-                    const share = ((j + 1) ** 3 - j ** 3) / shells ** 3;
-                    const c = j === shells - 1 ? perNode - done : Math.round(perNode * share);
-                    const spin = Math.random() * Math.PI * 2;
-                    const axis = (Math.random() * 3) | 0;
-                    for (let k = 0; k < c; k += 1) {
-                        const v = 1 - (2 * (k + 0.5)) / c;
-                        const ring = Math.sqrt(1 - v * v);
-                        const a = spin + k * GOLDEN;
-                        /* raio uniforme no volume da casca */
-                        const r = (NODE_R / shells) * Math.cbrt(j ** 3 + Math.random() * ((j + 1) ** 3 - j ** 3));
-                        const d = [ring * Math.cos(a), v, ring * Math.sin(a)];
-                        put(
-                            node.x + r * d[axis],
-                            node.y + r * d[(axis + 1) % 3],
-                            node.z + r * d[(axis + 2) % 3]
-                        );
-                    }
-                    done += c;
-                }
-            });
-
-            const spans = edges.map(([a, b]) => Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z));
-            const visible = spans.map((len) => Math.max(0.01, len - 2 * NODE_R));
-            const total = visible.reduce((sum, v) => sum + v, 0);
-            const left = COUNT - i;
-            /* cotas por comprimento; a sobra do arredondamento vai para as
-               conexões com a maior parte fracionária */
-            const quotas = visible.map((v) => (left * v) / total);
-            const counts = quotas.map(Math.floor);
-            let rest = left - counts.reduce((sum, v) => sum + v, 0);
-            quotas
-                .map((q, e) => [q - Math.floor(q), e])
-                .sort((p, q) => q[0] - p[0])
-                .forEach(([, e]) => {
-                    if (rest > 0) {
-                        counts[e] += 1;
-                        rest -= 1;
-                    }
-                });
-            edges.forEach(([a, b], e) => {
-                const n = counts[e];
-                const t0 = Math.min(0.5, NODE_R / spans[e]);
-                for (let k = 0; k < n; k += 1) {
-                    const t = t0 + (1 - 2 * t0) * ((k + 0.5 + rand(-0.15, 0.15)) / n);
+        /* cada nó é uma bola em cascas concêntricas (pontos por casca
+           ∝ volume dela), cada casca uma esfera de Fibonacci com eixo e
+           giro sorteados; as conexões recebem pontos em passos regulares,
+           em número proporcional ao comprimento visível (fora dos nós) */
+        const NODE_R = 1.05;
+        const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+        const shells = Math.max(2, Math.round(Math.cbrt(perNode) / 1.6));
+        nodes.forEach((node) => {
+            let done = 0;
+            for (let j = 0; j < shells; j += 1) {
+                const share = ((j + 1) ** 3 - j ** 3) / shells ** 3;
+                const c = j === shells - 1 ? perNode - done : Math.round(perNode * share);
+                const spin = Math.random() * Math.PI * 2;
+                const axis = (Math.random() * 3) | 0;
+                for (let k = 0; k < c; k += 1) {
+                    const v = 1 - (2 * (k + 0.5)) / c;
+                    const ring = Math.sqrt(1 - v * v);
+                    const a = spin + k * GOLDEN;
+                    /* raio uniforme no volume da casca */
+                    const r = (NODE_R / shells) * Math.cbrt(j ** 3 + Math.random() * ((j + 1) ** 3 - j ** 3));
+                    const d = [ring * Math.cos(a), v, ring * Math.sin(a)];
                     put(
-                        a.x + (b.x - a.x) * t + rand(-0.03, 0.03),
-                        a.y + (b.y - a.y) * t + rand(-0.03, 0.03),
-                        a.z + (b.z - a.z) * t + rand(-0.03, 0.03)
+                        node.x + r * d[axis],
+                        node.y + r * d[(axis + 1) % 3],
+                        node.z + r * d[(axis + 2) % 3]
                     );
                 }
-            });
-            return pts;
-        }
-        nodes.forEach((node) => {
-            for (let k = 0; k < perNode; k += 1) {
-                const r = 1.05 * Math.cbrt(Math.random());
-                const a = Math.random() * Math.PI * 2;
-                const b = Math.acos(rand(-1, 1));
-                put(
-                    node.x + r * Math.sin(b) * Math.cos(a),
-                    node.y + r * Math.cos(b),
-                    node.z + r * Math.sin(b) * Math.sin(a)
-                );
+                done += c;
             }
         });
 
-        while (i < COUNT) {
-            const [a, b] = edges[(Math.random() * edges.length) | 0];
-            const t = Math.random();
-            put(
-                a.x + (b.x - a.x) * t + rand(-0.1, 0.1),
-                a.y + (b.y - a.y) * t + rand(-0.1, 0.1),
-                a.z + (b.z - a.z) * t + rand(-0.1, 0.1)
-            );
-        }
+        const spans = edges.map(([a, b]) => Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z));
+        const visible = spans.map((len) => Math.max(0.01, len - 2 * NODE_R));
+        const total = visible.reduce((sum, v) => sum + v, 0);
+        const left = COUNT - i;
+        /* cotas por comprimento; a sobra do arredondamento vai para as
+           conexões com a maior parte fracionária */
+        const quotas = visible.map((v) => (left * v) / total);
+        const counts = quotas.map(Math.floor);
+        let rest = left - counts.reduce((sum, v) => sum + v, 0);
+        quotas
+            .map((q, e) => [q - Math.floor(q), e])
+            .sort((p, q) => q[0] - p[0])
+            .forEach(([, e]) => {
+                if (rest > 0) {
+                    counts[e] += 1;
+                    rest -= 1;
+                }
+            });
+        edges.forEach(([a, b], e) => {
+            const n = counts[e];
+            const t0 = Math.min(0.5, NODE_R / spans[e]);
+            for (let k = 0; k < n; k += 1) {
+                const t = t0 + (1 - 2 * t0) * ((k + 0.5 + rand(-0.15, 0.15)) / n);
+                put(
+                    a.x + (b.x - a.x) * t + rand(-0.03, 0.03),
+                    a.y + (b.y - a.y) * t + rand(-0.03, 0.03),
+                    a.z + (b.z - a.z) * t + rand(-0.03, 0.03)
+                );
+            }
+        });
         return pts;
     };
 
@@ -720,10 +649,10 @@
 
     /* A formação do Python é bicolor: primeira metade dos pontos é a
        cobra azul (cima), segunda metade a dourada (baixo).
-       HD: o contorno fino já recorta a silhueta com menos pontos; o resto
-       vai para o miolo (fração de contorno menor que a de antes) */
+       O contorno fino já recorta a silhueta com menos pontos; o resto vai
+       para o miolo */
     const PY_SPLIT = Math.floor(COUNT / 2);
-    const PY_EDGE = HD ? 0.3 : 0.45;
+    const PY_EDGE = 0.3;
     const makePython = async () => {
         const pts = new Float32Array(COUNT * 3);
         pts.set(sampleShape(drawPyTop, 28, 2, PY_SPLIT, PY_EDGE), 0);
@@ -759,7 +688,7 @@
        data-formation (index), valem as 5 formações por seção. */
     const SOLO_PAGES = {
         cap: {
-            make: () => sampleShape(drawGradCap, 30, 3, COUNT, HD ? 0.22 : 0.3),
+            make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.22),
             config: { rotX: -0.06, camZ: 44, amp: 0.18, speed: 0.45 }
         }
     };
@@ -767,16 +696,15 @@
     const anchorEl = solo ? document.querySelector("[data-scene-anchor]") : null;
 
     /* formações centradas na origem; o deslocamento lateral é aplicado no loop.
-       HD: as formas de traço (código, terminal) também ganham contorno, para
-       o balanço mostrar a espessura delas; nas cheias o contorno fino pede
-       uma fração menor que a de antes. Geradas uma a uma, cedendo a vez à
-       página entre elas (mesma ordem de antes) */
+       As formas de traço (código, terminal) também ganham contorno, para o
+       balanço mostrar a espessura delas; nas cheias o contorno fino pede uma
+       fração menor. Geradas uma a uma, cedendo a vez à página entre elas */
     const builders = solo
         ? [solo.make]
         : [
-            () => sampleShape(drawCode, 30, 3, COUNT, HD ? 0.15 : 0),
-            () => sampleShape(drawCup, 30, 3, COUNT, HD ? 0.22 : 0.3),
-            () => sampleShape(drawTerminal, 30, 2.4, COUNT, HD ? 0.15 : 0),
+            () => sampleShape(drawCode, 30, 3, COUNT, 0.15),
+            () => sampleShape(drawCup, 30, 3, COUNT, 0.22),
+            () => sampleShape(drawTerminal, 30, 2.4, COUNT, 0.15),
             makePython,
             makeNetwork
         ];
@@ -816,12 +744,12 @@
     const colors = new Float32Array(COUNT * 3);
     const mixes = new Float32Array(COUNT);
 
-    /* HD: com a distribuição uniforme não há mais aglomerados acendendo
-       por acaso; 5% dos pontos puxam para a cor clara (faíscas esparsas)
-       para a forma não ficar chapada */
-    const SPARK = HD ? 0.05 : 0;
+    /* com a distribuição uniforme não há aglomerados acendendo por acaso;
+       5% dos pontos puxam para a cor clara (faíscas esparsas) para a forma
+       não ficar chapada */
+    const SPARK = 0.05;
     for (let i = 0; i < COUNT; i += 1) {
-        mixes[i] = SPARK > 0 && Math.random() < SPARK ? rand(0.7, 1) : Math.pow(Math.random(), 1.6);
+        mixes[i] = Math.random() < SPARK ? rand(0.7, 1) : Math.pow(Math.random(), 1.6);
         /* nasce como nuvem dispersa e converge para a primeira formação */
         positions[i * 3] = rand(-60, 60);
         positions[i * 3 + 1] = rand(-45, 45);
@@ -831,11 +759,10 @@
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-    /* tinta (tema claro): miolo mais cheio e borda curta, para a mancha
-       multiplicar sobre o papel sem virar névoa.
-       HD: pontos menores e mais juntos pedem sprites mais duros — no escuro,
-       miolo sólido com queda curta (cada ponto lê como ponto, não névoa); no
-       claro, a tinta encurta a borda */
+    /* Pontos pequenos e juntos pedem sprites duros. No escuro: miolo sólido
+       com queda curta (cada ponto lê como ponto, não névoa). Tinta (tema
+       claro): miolo cheio e borda curta, para a mancha multiplicar sobre o
+       papel sem virar névoa. */
     const makeSprite = (ink) => {
         const size = 64;
         const c = document.createElement("canvas");
@@ -843,24 +770,15 @@
         c.height = size;
         const ctx = c.getContext("2d");
         const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        if (HD && ink) {
+        if (ink) {
             grad.addColorStop(0, "rgba(255,255,255,1)");
             grad.addColorStop(0.5, "rgba(255,255,255,0.9)");
             grad.addColorStop(0.68, "rgba(255,255,255,0.25)");
             grad.addColorStop(1, "rgba(255,255,255,0)");
-        } else if (HD) {
+        } else {
             grad.addColorStop(0, "rgba(255,255,255,1)");
             grad.addColorStop(0.28, "rgba(255,255,255,1)");
             grad.addColorStop(0.58, "rgba(255,255,255,0)");
-        } else if (ink) {
-            grad.addColorStop(0, "rgba(255,255,255,1)");
-            grad.addColorStop(0.55, "rgba(255,255,255,0.9)");
-            grad.addColorStop(0.8, "rgba(255,255,255,0.25)");
-            grad.addColorStop(1, "rgba(255,255,255,0)");
-        } else {
-            grad.addColorStop(0, "rgba(255,255,255,1)");
-            grad.addColorStop(0.35, "rgba(255,255,255,0.55)");
-            grad.addColorStop(1, "rgba(255,255,255,0)");
         }
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
@@ -905,11 +823,11 @@
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
-            /* HD: o sprite duro concentra a luz no miolo do ponto — opacidade
-               um pouco maior que a de antes deixa cada ponto mais vivo, e os
-               nós e cruzamentos da rede ainda não estouram em branco */
-            opacity: HD ? 0.44 : 0.4,
-            size: HD ? (isSmall ? 0.29 : 0.3) : (isSmall ? 0.3 : 0.32),
+            /* o sprite duro concentra a luz no miolo do ponto: a opacidade deixa
+               cada ponto vivo e os nós e cruzamentos da rede não estouram em
+               branco */
+            opacity: 0.44,
+            size: isSmall ? 0.29 : 0.3,
             blending: THREE.AdditiveBlending
         },
         /* no claro os pontos são "tinta" sobre papel: cores escuras e névoa
@@ -925,10 +843,10 @@
             fog: new THREE.Color("#edf2f8"),
             fogNear: 60,
             fogFar: 150,
-            /* HD: pontos menores (não empastam onde a forma é densa) e
-               opacidade abaixo da de antes, com mais pontos somando tinta */
-            opacity: HD ? 0.7 : 0.78,
-            size: HD ? 0.23 : (isSmall ? 0.26 : 0.28),
+            /* pontos pequenos (não empastam onde a forma é densa) e opacidade
+               mais baixa: são muitos pontos somando tinta */
+            opacity: 0.7,
+            size: 0.23,
             blending: THREE.NormalBlending
         }
     };
