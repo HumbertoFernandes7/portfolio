@@ -5,8 +5,11 @@
   "level": "Pós-graduação",
   "period": "mai 2025 — mar 2026",
   "date": "2026-04-14",
-  "image": null,
-  "thumb": null
+  "image": "assets/certificados/diplomas/fiap.webp",
+  "thumb": "assets/certificados/diplomas/fiap-thumb.webp",
+  "width": 1200,
+  "height": 900,
+  "hours": 360
  },
  {
   "title": "Tecnólogo em Análise e Desenvolvimento de Sistemas",
@@ -14,7 +17,9 @@
   "level": "Graduação",
   "period": "fev 2022 — jun 2024",
   "date": "2024-06-30",
-  "image": null,
-  "thumb": null
+  "image": "assets/certificados/diplomas/uninove.webp",
+  "thumb": "assets/certificados/diplomas/uninove-thumb.webp",
+  "width": 1200,
+  "height": 830
  }
 ]
