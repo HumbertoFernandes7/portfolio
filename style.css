@@ -667,11 +667,9 @@ body.menu-open {
 }
 
 /* "role para explorar": a seta de próxima seção do hero (mesmo componente
-   das seções, abaixo), em minúsculas e com a seta balançando */
+   das seções, abaixo), aqui com texto e com a seta balançando */
 .hero-foot .scroll-cue {
     white-space: nowrap;
-    text-transform: none;
-    letter-spacing: 0.1em;
 }
 
 .hero-foot .scroll-cue .step-arrow {
@@ -685,9 +683,10 @@ body.menu-open {
 
 /* ---------- Setas entre seções ----------
    Cada seção tem um link discreto para a anterior (no respiro de cima) e
-   outro para a próxima (no pé). São âncoras comuns: funcionam sem JS, no
-   teclado e junto com o snap. O bloco é filho direto da seção, então segue
-   a coluna de texto no layout dividido — e, na seção sobre, é o
+   outro para a próxima (no pé): só o quadro com a seta; o destino fica no
+   aria-label e no title. São âncoras comuns: funcionam sem JS, no teclado
+   e junto com o snap. O bloco é filho direto da seção, então segue a
+   coluna de texto no layout dividido — e, na seção sobre, é o
    firstElementChild que o scene.js mede (mesma largura e lado da coluna). */
 
 .section-step {
@@ -715,10 +714,17 @@ body.menu-open {
     line-height: calc(var(--box) + 2px);
     font-family: var(--font-mono);
     font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.1em;
     color: var(--text-dim);
     transition: color 0.3s ease;
+}
+
+/* nas seções o link é só o quadro (sem texto ao lado); a seta e o quadro
+   são absolutos, então a altura vem daqui */
+.section-step .step-link {
+    width: var(--box);
+    height: calc(var(--box) + 2px);
+    padding-left: 0;
 }
 
 /* o quadro fica parado; só a seta se mexe dentro dele */
@@ -748,10 +754,6 @@ body.menu-open {
     transition: transform 0.3s var(--ease-out);
 }
 
-.step-num {
-    color: var(--accent);
-}
-
 .step-link:hover {
     color: var(--text);
 }
@@ -764,16 +766,10 @@ body.menu-open {
     transform: translateY(3px);
 }
 
-/* a de cima é menor e mais apagada */
+/* a de cima é menor (a seta acompanha pelo font-size) */
 .step-prev .step-link {
     --box: 22px;
-    padding-left: calc(var(--box) + 10px);
     font-size: 0.66rem;
-    color: var(--text-faint);
-}
-
-.step-prev .step-link:hover {
-    color: var(--text);
 }
 
 .step-prev .step-link:hover .step-arrow {
