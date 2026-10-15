@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Certificados e diplomas de Humberto Fernandes: pós-graduação, graduação e mais de 80 cursos em Java, Spring, cloud e front-end, com link para validar cada credencial.">
+    <meta name="theme-color" content="#060b16">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Certificados — Humberto Fernandes">
+    <meta property="og:description" content="Diplomas e cursos desde 2022, com link para validar cada credencial.">
+    <meta property="og:url" content="https://humbertofernandes7.github.io/portfolio/certificados.html">
+    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/foto-perfil.jpg?v=2026-10">
+    <meta property="og:locale" content="pt_BR">
+    <title>Certificados — Humberto Fernandes</title>
+
+    <script>
+        (function () {
+            var root = document.documentElement;
+            root.classList.add("js");
+            try {
+                var stored = localStorage.getItem("portfolio-theme");
+                root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
+            } catch (e) {}
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#dde3ec" : "#060b16");
+            }
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..650;1,9..144,300..650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="certificados.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+
+    <script src="script.js" defer></script>
+    <script src="certificados.js" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+    <!-- só o brilho de fundo (sem canvas 3D nesta página) -->
+    <div class="webgl" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header" data-header>
+        <div class="header-shell">
+            <a class="brand" href="index.html" aria-label="Ir para o início">
+                <span class="brand-mark">HF</span>
+                <span class="brand-name">Humberto Fernandes</span>
+            </a>
+
+            <nav class="site-nav" aria-label="Navegação principal">
+                <a href="index.html#sobre">Sobre</a>
+                <a href="index.html#projetos">Projetos</a>
+                <a href="index.html#trajetoria">Trajetória</a>
+                <a href="certificados.html" class="active" aria-current="page">Certificados</a>
+                <a href="index.html#contato">Contato</a>
+            </nav>
+
+            <div class="header-tools">
+                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Ativar tema claro" aria-pressed="true" title="Alternar tema">
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-overlay">Menu</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menu-overlay" aria-hidden="true">
+        <nav class="menu-nav" aria-label="Menu">
+            <a href="index.html"><span>00</span>Início</a>
+            <a href="index.html#sobre"><span>01</span>Sobre</a>
+            <a href="index.html#projetos"><span>02</span>Projetos</a>
+            <a href="index.html#trajetoria"><span>03</span>Trajetória</a>
+            <a href="certificados.html" aria-current="page"><span>04</span>Certificados</a>
+            <a href="index.html#contato"><span>05</span>Contato</a>
+        </nav>
+        <div class="menu-meta">
+            <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
+            <span>São Paulo, Brasil</span>
+        </div>
+    </div>
+
+    <main id="conteudo" class="cert-main">
+        <div class="cert-shell">
+            <header class="section-head cert-head" data-reveal>
+                <p class="kicker">Certificados</p>
+                <h1 id="cert-title">Formação &amp; <em>certificados.</em></h1>
+                <p class="lead">
+                    Diplomas e os cursos que fiz desde 2022, com links para validar cada credencial.
+                </p>
+                <p class="cert-stats" id="cert-stats"></p>
+            </header>
+
+            <section class="cert-block" id="diplomas" aria-labelledby="diplomas-title" hidden>
+                <h2 class="cert-subtitle" id="diplomas-title">Diplomas</h2>
+                <div class="diploma-list" id="diploma-list"></div>
+            </section>
+
+            <section class="cert-block" id="cursos" aria-labelledby="cursos-title">
+                <h2 class="cert-subtitle" id="cursos-title">Cursos e trilhas</h2>
+
+                <div class="cert-toolbar">
+                    <div class="cert-chips" id="cert-chips" role="group" aria-label="Filtrar por área"></div>
+
+                    <div class="cert-controls">
+                        <div class="cert-field cert-field-search">
+                            <label for="cert-search">Buscar</label>
+                            <input type="search" id="cert-search" placeholder="Buscar pelo título" autocomplete="off" spellcheck="false">
+                        </div>
+                        <div class="cert-field">
+                            <label for="cert-sort">Ordenar</label>
+                            <select id="cert-sort">
+                                <option value="desc" selected>Mais recentes</option>
+                                <option value="asc">Mais antigos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="cert-count" id="cert-count" aria-live="polite"></p>
+                </div>
+
+                <p class="cert-message" id="cert-empty" hidden>Nenhum certificado encontrado para esse filtro.</p>
+                <p class="cert-message cert-error" id="cert-error" role="alert" hidden>Não consegui carregar os certificados agora. Tente recarregar a página.</p>
+                <ul class="cert-grid" id="cert-grid"></ul>
+            </section>
+        </div>
+    </main>
+
+    <dialog class="lightbox" id="lightbox" aria-labelledby="lb-title">
+        <div class="lb-panel">
+            <div class="lb-head">
+                <div class="lb-heading">
+                    <h2 class="lb-title" id="lb-title"></h2>
+                    <p class="lb-meta" id="lb-meta"></p>
+                </div>
+                <button type="button" class="lb-close" id="lb-close" aria-label="Fechar">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="lb-stage" id="lb-stage">
+                <img id="lb-img" alt="">
+            </div>
+            <div class="lb-foot">
+                <div class="lb-nav">
+                    <button type="button" class="lb-step" id="lb-prev" aria-label="Certificado anterior">←</button>
+                    <span class="lb-count" id="lb-count"></span>
+                    <button type="button" class="lb-step" id="lb-next" aria-label="Próximo certificado">→</button>
+                </div>
+                <a class="lb-link" id="lb-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver credencial<span aria-hidden="true">↗</span></a>
+            </div>
+        </div>
+    </dialog>
+
+    <footer class="site-footer">
+        <p>© 2026 Humberto Fernandes de Oliveira Pinto</p>
+        <p class="footer-made">HTML, CSS e JavaScript — sem frameworks.</p>
+        <a href="index.html" class="footer-top footer-back"><span aria-hidden="true">←</span>voltar ao portfólio</a>
+    </footer>
+</body>
+</html>

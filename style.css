@@ -402,6 +402,7 @@ main,
 .menu-nav a:nth-child(3) { transition-delay: 0.16s; }
 .menu-nav a:nth-child(4) { transition-delay: 0.21s; }
 .menu-nav a:nth-child(5) { transition-delay: 0.26s; }
+.menu-nav a:nth-child(6) { transition-delay: 0.31s; }
 
 .menu-nav a span {
     font-family: var(--font-mono);
@@ -1052,6 +1053,10 @@ body.menu-open {
 .contact-meta a span {
     display: inline-block;
     margin-left: 4px;
+}
+
+.contact-cv {
+    margin-top: 36px;
 }
 
 /* ---------- Footer ---------- */

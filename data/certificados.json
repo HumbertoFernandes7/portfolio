@@ -1,0 +1,1361 @@
+[
+ {
+  "title": "PostgreSQL",
+  "issuer": "Alura",
+  "date": "2026-02-07",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/5539201e-4abd-4dee-a977-0fda7f7293c0",
+  "thumb": "assets/certificados/thumb/5539201e-4abd-4dee-a977-0fda7f7293c0.webp",
+  "image": "assets/certificados/full/5539201e-4abd-4dee-a977-0fda7f7293c0.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Dados"
+  ]
+ },
+ {
+  "title": "Microsserviços na prática: IaC com CDK e deploy na AWS",
+  "issuer": "Alura",
+  "date": "2025-11-27",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/e037303e-2754-4d6a-a718-3ec637410e87",
+  "thumb": "assets/certificados/thumb/e037303e-2754-4d6a-a718-3ec637410e87.webp",
+  "image": "assets/certificados/full/e037303e-2754-4d6a-a718-3ec637410e87.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Amazon EC2: alta disponibilidade e escalabilidade em uma aplicação",
+  "issuer": "Alura",
+  "date": "2025-08-01",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/e533cd13-6061-4be0-bc35-542e1ff30b97",
+  "thumb": "assets/certificados/thumb/e533cd13-6061-4be0-bc35-542e1ff30b97.webp",
+  "image": "assets/certificados/full/e533cd13-6061-4be0-bc35-542e1ff30b97.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Amazon Lightsail: descomplicando a nuvem",
+  "issuer": "Alura",
+  "date": "2025-07-28",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b74d27f9-97d9-4ca2-af19-d7cbbc212d15",
+  "thumb": "assets/certificados/thumb/b74d27f9-97d9-4ca2-af19-d7cbbc212d15.webp",
+  "image": "assets/certificados/full/b74d27f9-97d9-4ca2-af19-d7cbbc212d15.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Microsserviços na prática: implementando com Java e Spring",
+  "issuer": "Alura",
+  "date": "2025-07-22",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/9ef79573-0877-42b6-9a3b-a2bc3c574074",
+  "thumb": "assets/certificados/thumb/9ef79573-0877-42b6-9a3b-a2bc3c574074.webp",
+  "image": "assets/certificados/full/9ef79573-0877-42b6-9a3b-a2bc3c574074.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Java e Spring Security: crie perfis e autorize requisições",
+  "issuer": "Alura",
+  "date": "2025-07-10",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b69725bb-7095-43bc-a342-a375ed946896",
+  "thumb": "assets/certificados/thumb/b69725bb-7095-43bc-a342-a375ed946896.webp",
+  "image": "assets/certificados/full/b69725bb-7095-43bc-a342-a375ed946896.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Spring Boot 3: documente, teste e prepare uma API para o deploy",
+  "issuer": "Alura",
+  "date": "2025-06-25",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/969b3093-0ec4-40ea-860e-b6a78a24029f",
+  "thumb": "assets/certificados/thumb/969b3093-0ec4-40ea-860e-b6a78a24029f.webp",
+  "image": "assets/certificados/full/969b3093-0ec4-40ea-860e-b6a78a24029f.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Testes"
+  ]
+ },
+ {
+  "title": "Java e Spring Security: proteja suas aplicações web",
+  "issuer": "Alura",
+  "date": "2025-06-18",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/fbad160d-28e1-48b8-8812-bb8aeea74422",
+  "thumb": "assets/certificados/thumb/fbad160d-28e1-48b8-8812-bb8aeea74422.webp",
+  "image": "assets/certificados/full/fbad160d-28e1-48b8-8812-bb8aeea74422.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "MySQL: conhecendo a ferramenta",
+  "issuer": "Alura",
+  "date": "2025-06-12",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/dae59b96-d7c1-4b16-a839-5696d6467a51",
+  "thumb": "assets/certificados/thumb/dae59b96-d7c1-4b16-a839-5696d6467a51.webp",
+  "image": "assets/certificados/full/dae59b96-d7c1-4b16-a839-5696d6467a51.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Dados"
+  ]
+ },
+ {
+  "title": "Java: novidades e recursos das versões 9 a 14",
+  "issuer": "Alura",
+  "date": "2025-06-05",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/fdd8c32a-d59e-4d11-abd1-23a9c4ee26f2",
+  "thumb": "assets/certificados/thumb/fdd8c32a-d59e-4d11-abd1-23a9c4ee26f2.webp",
+  "image": "assets/certificados/full/fdd8c32a-d59e-4d11-abd1-23a9c4ee26f2.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Docker: criando e gerenciando containers",
+  "issuer": "Alura",
+  "date": "2025-06-04",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/34d6899b-f501-4bcc-b9cb-10afb0402adb",
+  "thumb": "assets/certificados/thumb/34d6899b-f501-4bcc-b9cb-10afb0402adb.webp",
+  "image": "assets/certificados/full/34d6899b-f501-4bcc-b9cb-10afb0402adb.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Salesforce: Do Zero ao Apex",
+  "issuer": "Udemy",
+  "date": "2025-03-10",
+  "hours": 9.5,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://www.udemy.com/certificate/UC-6b20fe1c-da4d-4874-8fec-5a9ebdf75aae/",
+  "thumb": "assets/certificados/thumb/UC-6b20fe1c-da4d-4874-8fec-5a9ebdf75aae.webp",
+  "image": "assets/certificados/full/UC-6b20fe1c-da4d-4874-8fec-5a9ebdf75aae.webp",
+  "width": 1536,
+  "height": 1130,
+  "tags": [
+   "Carreira & outros"
+  ]
+ },
+ {
+  "title": "CRUD Angular + Spring",
+  "issuer": "Loiane Groner",
+  "date": "2024-04-11",
+  "hours": 19,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://loiane.training/certificado/G9AC9td4Rj9xpiwsjgtA",
+  "thumb": "assets/certificados/thumb/G9AC9td4Rj9xpiwsjgtA.webp",
+  "image": "assets/certificados/full/G9AC9td4Rj9xpiwsjgtA.webp",
+  "width": 1012,
+  "height": 806,
+  "tags": [
+   "Java & Spring",
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: desenvolvendo em React Router com JavaScript",
+  "issuer": "Alura",
+  "date": "2023-02-23",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/67765a72-fcb4-4011-91e6-9baf4d7105af",
+  "thumb": "assets/certificados/thumb/67765a72-fcb4-4011-91e6-9baf4d7105af.webp",
+  "image": "assets/certificados/full/67765a72-fcb4-4011-91e6-9baf4d7105af.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React com JavaScript: lidando com arquivos estáticos",
+  "issuer": "Alura",
+  "date": "2023-02-16",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/445194b2-757e-4926-b38f-08e28d9e33ea",
+  "thumb": "assets/certificados/thumb/445194b2-757e-4926-b38f-08e28d9e33ea.webp",
+  "image": "assets/certificados/full/445194b2-757e-4926-b38f-08e28d9e33ea.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: como os componentes funcionam",
+  "issuer": "Alura",
+  "date": "2023-02-10",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/4ba37fe3-7fec-4508-82d9-a6296912a925",
+  "thumb": "assets/certificados/thumb/4ba37fe3-7fec-4508-82d9-a6296912a925.webp",
+  "image": "assets/certificados/full/4ba37fe3-7fec-4508-82d9-a6296912a925.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: desenvolvendo com JavaScript",
+  "issuer": "Alura",
+  "date": "2023-02-09",
+  "hours": 14,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/aba0dbd4-c50a-4b13-8c04-80fdc46e1df6",
+  "thumb": "assets/certificados/thumb/aba0dbd4-c50a-4b13-8c04-80fdc46e1df6.webp",
+  "image": "assets/certificados/full/aba0dbd4-c50a-4b13-8c04-80fdc46e1df6.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: gerenciando estado com Recoil",
+  "issuer": "Alura",
+  "date": "2023-01-23",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/eee6f7d9-8068-4ffd-b66b-34026ab939bf",
+  "thumb": "assets/certificados/thumb/eee6f7d9-8068-4ffd-b66b-34026ab939bf.webp",
+  "image": "assets/certificados/full/eee6f7d9-8068-4ffd-b66b-34026ab939bf.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "HTTP: Entendendo a web por baixo dos panos",
+  "issuer": "Alura",
+  "date": "2023-01-23",
+  "hours": 14,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/12509c19-9f11-49d5-b9e9-fcfeb5675569",
+  "thumb": "assets/certificados/thumb/12509c19-9f11-49d5-b9e9-fcfeb5675569.webp",
+  "image": "assets/certificados/full/12509c19-9f11-49d5-b9e9-fcfeb5675569.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "React: integrando seu projeto React com APIs",
+  "issuer": "Alura",
+  "date": "2023-01-20",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/47fb54c4-0a90-4e53-9080-3545bc4f5c83",
+  "thumb": "assets/certificados/thumb/47fb54c4-0a90-4e53-9080-3545bc4f5c83.webp",
+  "image": "assets/certificados/full/47fb54c4-0a90-4e53-9080-3545bc4f5c83.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: conhecendo a biblioteca React Router",
+  "issuer": "Alura",
+  "date": "2023-01-19",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/db190b79-78fb-4dc0-a9c6-bb437bb53855",
+  "thumb": "assets/certificados/thumb/db190b79-78fb-4dc0-a9c6-bb437bb53855.webp",
+  "image": "assets/certificados/full/db190b79-78fb-4dc0-a9c6-bb437bb53855.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: lidando com arquivos estáticos",
+  "issuer": "Alura",
+  "date": "2023-01-13",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/8c0e84cd-10fc-4ab5-9894-fe00dd1a80da",
+  "thumb": "assets/certificados/thumb/8c0e84cd-10fc-4ab5-9894-fe00dd1a80da.webp",
+  "image": "assets/certificados/full/8c0e84cd-10fc-4ab5-9894-fe00dd1a80da.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Spring Boot 3: aplique boas práticas e proteja uma API Rest",
+  "issuer": "Alura",
+  "date": "2023-01-13",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/43a0c444-098f-4051-8bd2-0296181ae3b5",
+  "thumb": "assets/certificados/thumb/43a0c444-098f-4051-8bd2-0296181ae3b5.webp",
+  "image": "assets/certificados/full/43a0c444-098f-4051-8bd2-0296181ae3b5.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Spring Boot 3: desenvolva uma API Rest em Java",
+  "issuer": "Alura",
+  "date": "2023-01-13",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b8c51428-ee88-409b-be5e-5cf25bd889ea",
+  "thumb": "assets/certificados/thumb/b8c51428-ee88-409b-be5e-5cf25bd889ea.webp",
+  "image": "assets/certificados/full/b8c51428-ee88-409b-be5e-5cf25bd889ea.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Angular (curso completo)",
+  "issuer": "Loiane Groner",
+  "date": "2023-01-12",
+  "hours": 28,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://loiane.training/certificado/Vh8VfXKIiZQf0XSxoNrc",
+  "thumb": "assets/certificados/thumb/Vh8VfXKIiZQf0XSxoNrc.webp",
+  "image": "assets/certificados/full/Vh8VfXKIiZQf0XSxoNrc.webp",
+  "width": 1012,
+  "height": 806,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular 14: evoluindo a aplicação",
+  "issuer": "Alura",
+  "date": "2023-01-10",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/60899273-06a0-493b-829e-51877deae133",
+  "thumb": "assets/certificados/thumb/60899273-06a0-493b-829e-51877deae133.webp",
+  "image": "assets/certificados/full/60899273-06a0-493b-829e-51877deae133.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular 14: aplique os conceitos e desenvolva seu primeiro CRUD",
+  "issuer": "Alura",
+  "date": "2022-12-13",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/1b5ad414-ed80-40ff-9f8e-8b1904599d9d",
+  "thumb": "assets/certificados/thumb/1b5ad414-ed80-40ff-9f8e-8b1904599d9d.webp",
+  "image": "assets/certificados/full/1b5ad414-ed80-40ff-9f8e-8b1904599d9d.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular: design de componentes com acessibilidade",
+  "issuer": "Alura",
+  "date": "2022-12-07",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/98eff2fb-0a02-46b3-b4c5-063a0b6e0dff",
+  "thumb": "assets/certificados/thumb/98eff2fb-0a02-46b3-b4c5-063a0b6e0dff.webp",
+  "image": "assets/certificados/full/98eff2fb-0a02-46b3-b4c5-063a0b6e0dff.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "C#: orientação a objetos",
+  "issuer": "Alura",
+  "date": "2022-11-30",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/19575560-125e-4cf7-95d6-786a79f10376",
+  "thumb": "assets/certificados/thumb/19575560-125e-4cf7-95d6-786a79f10376.webp",
+  "image": "assets/certificados/full/19575560-125e-4cf7-95d6-786a79f10376.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "C# & .NET"
+  ]
+ },
+ {
+  "title": "React Native: criando um app",
+  "issuer": "Alura",
+  "date": "2022-11-21",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/a6e9076e-193e-4ee6-9e28-090639d325fd",
+  "thumb": "assets/certificados/thumb/a6e9076e-193e-4ee6-9e28-090639d325fd.webp",
+  "image": "assets/certificados/full/a6e9076e-193e-4ee6-9e28-090639d325fd.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "React: escrevendo com Typescript",
+  "issuer": "Alura",
+  "date": "2022-11-09",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/de25cfa2-c436-4b6d-8f8b-589877be238d",
+  "thumb": "assets/certificados/thumb/de25cfa2-c436-4b6d-8f8b-589877be238d.webp",
+  "image": "assets/certificados/full/de25cfa2-c436-4b6d-8f8b-589877be238d.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "API Rest com .NET 5: operações essenciais com verbos HTTP",
+  "issuer": "Alura",
+  "date": "2022-11-07",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/130c69ce-6f24-4975-a2e8-fb4cbf6665c3",
+  "thumb": "assets/certificados/thumb/130c69ce-6f24-4975-a2e8-fb4cbf6665c3.webp",
+  "image": "assets/certificados/full/130c69ce-6f24-4975-a2e8-fb4cbf6665c3.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Arquitetura & APIs",
+   "C# & .NET"
+  ]
+ },
+ {
+  "title": "C#: orientação a objetos",
+  "issuer": "Alura",
+  "date": "2022-11-03",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b9f1b7fa-314a-48e5-9cef-dc2ab5f13e0c",
+  "thumb": "assets/certificados/thumb/b9f1b7fa-314a-48e5-9cef-dc2ab5f13e0c.webp",
+  "image": "assets/certificados/full/b9f1b7fa-314a-48e5-9cef-dc2ab5f13e0c.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "C# & .NET"
+  ]
+ },
+ {
+  "title": "C# parte 1: primeiros passos",
+  "issuer": "Alura",
+  "date": "2022-10-31",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/bb4e98ef-0864-469f-90ab-792fd9a922ec",
+  "thumb": "assets/certificados/thumb/bb4e98ef-0864-469f-90ab-792fd9a922ec.webp",
+  "image": "assets/certificados/full/bb4e98ef-0864-469f-90ab-792fd9a922ec.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "C# & .NET"
+  ]
+ },
+ {
+  "title": "C#: explorando a linguagem",
+  "issuer": "Alura",
+  "date": "2022-10-31",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/91670dd8-70e2-465b-a861-0a9e83fb66a1",
+  "thumb": "assets/certificados/thumb/91670dd8-70e2-465b-a861-0a9e83fb66a1.webp",
+  "image": "assets/certificados/full/91670dd8-70e2-465b-a861-0a9e83fb66a1.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "C# & .NET"
+  ]
+ },
+ {
+  "title": "Layouts Responsivos: trabalhando com layouts mobile",
+  "issuer": "Alura",
+  "date": "2022-10-07",
+  "hours": 7,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/bb2b5c18-eed5-416b-bd0d-af33bfb9411c",
+  "thumb": "assets/certificados/thumb/bb2b5c18-eed5-416b-bd0d-af33bfb9411c.webp",
+  "image": "assets/certificados/full/bb2b5c18-eed5-416b-bd0d-af33bfb9411c.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Amazon S3: Manipule e armazene objetos na nuvem",
+  "issuer": "Alura",
+  "date": "2022-09-16",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/1fb2e33a-7fcc-4ba2-b29d-e13454390b88",
+  "thumb": "assets/certificados/thumb/1fb2e33a-7fcc-4ba2-b29d-e13454390b88.webp",
+  "image": "assets/certificados/full/1fb2e33a-7fcc-4ba2-b29d-e13454390b88.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Java 8: conheça as novidades dessa versão",
+  "issuer": "Alura",
+  "date": "2022-08-23",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/d0792e5f-c7c6-48c4-b9d5-2a8f4f0c3a4b",
+  "thumb": "assets/certificados/thumb/d0792e5f-c7c6-48c4-b9d5-2a8f4f0c3a4b.webp",
+  "image": "assets/certificados/full/d0792e5f-c7c6-48c4-b9d5-2a8f4f0c3a4b.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Formação Java e Orientação a Objetos",
+  "issuer": "Alura",
+  "date": "2022-08-23",
+  "hours": 121,
+  "kind": "trilha",
+  "courses": 10,
+  "url": "https://cursos.alura.com.br/degree/certificate/8d9525a5-5b51-4e93-ad04-299fd3c4ae2b",
+  "thumb": "assets/certificados/thumb/8d9525a5-5b51-4e93-ad04-299fd3c4ae2b.webp",
+  "image": "assets/certificados/full/8d9525a5-5b51-4e93-ad04-299fd3c4ae2b.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Scrum: agilidade em seu projeto",
+  "issuer": "Alura",
+  "date": "2022-08-12",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/faf3815d-b208-409a-9896-4263c717f28d",
+  "thumb": "assets/certificados/thumb/faf3815d-b208-409a-9896-4263c717f28d.webp",
+  "image": "assets/certificados/full/faf3815d-b208-409a-9896-4263c717f28d.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Carreira & outros"
+  ]
+ },
+ {
+  "title": "Java Collections: Dominando Listas, Sets e Mapas",
+  "issuer": "Alura",
+  "date": "2022-08-03",
+  "hours": 20,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/32220149-cfba-4eff-ad42-017e6bc77227",
+  "thumb": "assets/certificados/thumb/32220149-cfba-4eff-ad42-017e6bc77227.webp",
+  "image": "assets/certificados/full/32220149-cfba-4eff-ad42-017e6bc77227.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java e java.util: Coleções, Wrappers e Lambda expressions",
+  "issuer": "Alura",
+  "date": "2022-07-19",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/f8f785a4-1aa6-4b79-b9db-23098474ce59",
+  "thumb": "assets/certificados/thumb/f8f785a4-1aa6-4b79-b9db-23098474ce59.webp",
+  "image": "assets/certificados/full/f8f785a4-1aa6-4b79-b9db-23098474ce59.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java e java.lang: programe com a classe Object e String",
+  "issuer": "Alura",
+  "date": "2022-07-14",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/7ba6f68d-f5fb-4d1f-88b8-c822f7582cb2",
+  "thumb": "assets/certificados/thumb/7ba6f68d-f5fb-4d1f-88b8-c822f7582cb2.webp",
+  "image": "assets/certificados/full/7ba6f68d-f5fb-4d1f-88b8-c822f7582cb2.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java Exceções: aprenda a criar, lançar e controlar exceções",
+  "issuer": "Alura",
+  "date": "2022-06-28",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/9dc72ec3-8e07-4226-897d-7e4f2236647c",
+  "thumb": "assets/certificados/thumb/9dc72ec3-8e07-4226-897d-7e4f2236647c.webp",
+  "image": "assets/certificados/full/9dc72ec3-8e07-4226-897d-7e4f2236647c.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java Polimorfismo: entenda herança e interfaces",
+  "issuer": "Alura",
+  "date": "2022-06-21",
+  "hours": 16,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/96affeb8-dcce-4149-a5b7-ba705c6213d0",
+  "thumb": "assets/certificados/thumb/96affeb8-dcce-4149-a5b7-ba705c6213d0.webp",
+  "image": "assets/certificados/full/96affeb8-dcce-4149-a5b7-ba705c6213d0.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java JRE e JDK: compile e execute o seu programa",
+  "issuer": "Alura",
+  "date": "2022-06-15",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/4b338eda-e83b-413e-a68f-ff01473519bb",
+  "thumb": "assets/certificados/thumb/4b338eda-e83b-413e-a68f-ff01473519bb.webp",
+  "image": "assets/certificados/full/4b338eda-e83b-413e-a68f-ff01473519bb.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Java OO: Entendendo a Orientação a Objetos",
+  "issuer": "Alura",
+  "date": "2022-06-14",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/8d598441-54b0-4345-984b-82fac4693b58",
+  "thumb": "assets/certificados/thumb/8d598441-54b0-4345-984b-82fac4693b58.webp",
+  "image": "assets/certificados/full/8d598441-54b0-4345-984b-82fac4693b58.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Angular parte 4: lapidando o projeto",
+  "issuer": "Alura",
+  "date": "2022-06-10",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/137bff4b-a464-4d3b-9780-d8c3b41e34bb",
+  "thumb": "assets/certificados/thumb/137bff4b-a464-4d3b-9780-d8c3b41e34bb.webp",
+  "image": "assets/certificados/full/137bff4b-a464-4d3b-9780-d8c3b41e34bb.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular parte 3: upload, build e novos componentes",
+  "issuer": "Alura",
+  "date": "2022-06-07",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/f5ce839a-4506-46dc-97ed-ffc3a4594b13",
+  "thumb": "assets/certificados/thumb/f5ce839a-4506-46dc-97ed-ffc3a4594b13.webp",
+  "image": "assets/certificados/full/f5ce839a-4506-46dc-97ed-ffc3a4594b13.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular parte 2: Autenticação, Forms e lazy loading",
+  "issuer": "Alura",
+  "date": "2022-06-02",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/f9e2ed7a-9047-4cc6-8193-543a0e08c0b7",
+  "thumb": "assets/certificados/thumb/f9e2ed7a-9047-4cc6-8193-543a0e08c0b7.webp",
+  "image": "assets/certificados/full/f9e2ed7a-9047-4cc6-8193-543a0e08c0b7.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular parte 1: produtividade e organização com framework SPA",
+  "issuer": "Alura",
+  "date": "2022-05-30",
+  "hours": 16,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/e8680ed5-e075-43e6-b9d0-a680114a7b65",
+  "thumb": "assets/certificados/thumb/e8680ed5-e075-43e6-b9d0-a680114a7b65.webp",
+  "image": "assets/certificados/full/e8680ed5-e075-43e6-b9d0-a680114a7b65.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Integração Contínua: mais qualidade e menos risco no desenvolvimento",
+  "issuer": "Alura",
+  "date": "2022-05-25",
+  "hours": 6,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/e843c392-5edf-4ee5-a95c-3d9d13812e93",
+  "thumb": "assets/certificados/thumb/e843c392-5edf-4ee5-a95c-3d9d13812e93.webp",
+  "image": "assets/certificados/full/e843c392-5edf-4ee5-a95c-3d9d13812e93.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "jQuery: domine a biblioteca mais popular do mercado parte 1",
+  "issuer": "Alura",
+  "date": "2022-05-24",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/2f619258-c305-4cb0-9dc3-138fd16e2d45",
+  "thumb": "assets/certificados/thumb/2f619258-c305-4cb0-9dc3-138fd16e2d45.webp",
+  "image": "assets/certificados/full/2f619258-c305-4cb0-9dc3-138fd16e2d45.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Spring MVC: autenticação com Spring Security, API Rest e AJAX",
+  "issuer": "Alura",
+  "date": "2022-05-20",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/18a86ba9-6da4-409c-9474-32ff5edea5ce",
+  "thumb": "assets/certificados/thumb/18a86ba9-6da4-409c-9474-32ff5edea5ce.webp",
+  "image": "assets/certificados/full/18a86ba9-6da4-409c-9474-32ff5edea5ce.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Spring MVC: crie um web app com Thymeleaf e Bootstrap",
+  "issuer": "Alura",
+  "date": "2022-05-19",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/622db681-2772-45ec-baed-8bcf14f4c338",
+  "thumb": "assets/certificados/thumb/622db681-2772-45ec-baed-8bcf14f4c338.webp",
+  "image": "assets/certificados/full/622db681-2772-45ec-baed-8bcf14f4c338.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "LGPD: conhecendo e entendendo seus impactos",
+  "issuer": "Alura",
+  "date": "2022-05-16",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/a4f87a75-eb5a-43e1-8a59-db08888765b5",
+  "thumb": "assets/certificados/thumb/a4f87a75-eb5a-43e1-8a59-db08888765b5.webp",
+  "image": "assets/certificados/full/a4f87a75-eb5a-43e1-8a59-db08888765b5.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Carreira & outros"
+  ]
+ },
+ {
+  "title": "Jenkins: integração contínua",
+  "issuer": "Alura",
+  "date": "2022-05-12",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/c7e69491-4e18-4f7e-b45f-feb051b1ff85",
+  "thumb": "assets/certificados/thumb/c7e69491-4e18-4f7e-b45f-feb051b1ff85.webp",
+  "image": "assets/certificados/full/c7e69491-4e18-4f7e-b45f-feb051b1ff85.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Maven: gerenciamento de dependências e build de aplicações Java",
+  "issuer": "Alura",
+  "date": "2022-05-11",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/760ce55d-cd00-4de7-8811-a326d10b8365",
+  "thumb": "assets/certificados/thumb/760ce55d-cd00-4de7-8811-a326d10b8365.webp",
+  "image": "assets/certificados/full/760ce55d-cd00-4de7-8811-a326d10b8365.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Formação TypeScript",
+  "issuer": "Alura",
+  "date": "2022-05-10",
+  "hours": 31,
+  "kind": "trilha",
+  "courses": 3,
+  "url": "https://cursos.alura.com.br/degree/certificate/dfd80393-e855-4eef-9557-d6637a23e85c",
+  "thumb": "assets/certificados/thumb/dfd80393-e855-4eef-9557-d6637a23e85c.webp",
+  "image": "assets/certificados/full/dfd80393-e855-4eef-9557-d6637a23e85c.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "TypeScript parte 2: avançando na linguagem",
+  "issuer": "Alura",
+  "date": "2022-05-06",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b94dc8cb-17c7-4081-8061-29f882138a2d",
+  "thumb": "assets/certificados/thumb/b94dc8cb-17c7-4081-8061-29f882138a2d.webp",
+  "image": "assets/certificados/full/b94dc8cb-17c7-4081-8061-29f882138a2d.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Swagger: documentando suas APIs",
+  "issuer": "Alura",
+  "date": "2022-05-04",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/ef6c9dd7-21ed-4dd9-9edb-ea589ebead9b",
+  "thumb": "assets/certificados/thumb/ef6c9dd7-21ed-4dd9-9edb-ea589ebead9b.webp",
+  "image": "assets/certificados/full/ef6c9dd7-21ed-4dd9-9edb-ea589ebead9b.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "TDD e Java: testes automatizados com JUnit",
+  "issuer": "Alura",
+  "date": "2022-05-03",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/6991d855-d1a7-4f2c-91b5-11ff29866ade",
+  "thumb": "assets/certificados/thumb/6991d855-d1a7-4f2c-91b5-11ff29866ade.webp",
+  "image": "assets/certificados/full/6991d855-d1a7-4f2c-91b5-11ff29866ade.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Testes"
+  ]
+ },
+ {
+  "title": "Spring Data JPA: Repositórios, Consultas, Projeções e Specifications",
+  "issuer": "Alura",
+  "date": "2022-05-02",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/a7e2e9aa-3075-4175-a4b5-1850cb98cb2b",
+  "thumb": "assets/certificados/thumb/a7e2e9aa-3075-4175-a4b5-1850cb98cb2b.webp",
+  "image": "assets/certificados/full/a7e2e9aa-3075-4175-a4b5-1850cb98cb2b.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Dados"
+  ]
+ },
+ {
+  "title": "Java e JPA: consultas avançadas, performance e modelos complexos",
+  "issuer": "Alura",
+  "date": "2022-04-29",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/385e8011-2442-438c-978f-1b4f25b540cd",
+  "thumb": "assets/certificados/thumb/385e8011-2442-438c-978f-1b4f25b540cd.webp",
+  "image": "assets/certificados/full/385e8011-2442-438c-978f-1b4f25b540cd.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Dados"
+  ]
+ },
+ {
+  "title": "Persistência com JPA: introdução ao Hibernate",
+  "issuer": "Alura",
+  "date": "2022-04-27",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/4e015371-7e10-47d1-bf52-8803e7a1aba4",
+  "thumb": "assets/certificados/thumb/4e015371-7e10-47d1-bf52-8803e7a1aba4.webp",
+  "image": "assets/certificados/full/4e015371-7e10-47d1-bf52-8803e7a1aba4.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Dados"
+  ]
+ },
+ {
+  "title": "Spring Boot e Teste: Profiles, Testes e Deploy",
+  "issuer": "Alura",
+  "date": "2022-04-26",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/09afabf7-c742-42ad-a508-f47a647288a0",
+  "thumb": "assets/certificados/thumb/09afabf7-c742-42ad-a508-f47a647288a0.webp",
+  "image": "assets/certificados/full/09afabf7-c742-42ad-a508-f47a647288a0.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Testes"
+  ]
+ },
+ {
+  "title": "Spring Boot API Rest: Segurança da API, Cache e Monitoramento",
+  "issuer": "Alura",
+  "date": "2022-04-25",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/891b2b89-0732-4473-a58d-cb8bc529c1cd",
+  "thumb": "assets/certificados/thumb/891b2b89-0732-4473-a58d-cb8bc529c1cd.webp",
+  "image": "assets/certificados/full/891b2b89-0732-4473-a58d-cb8bc529c1cd.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Spring Boot API REST: construa uma API",
+  "issuer": "Alura",
+  "date": "2022-04-22",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/34a7428c-a513-4c08-8fb1-2ff165adb090",
+  "thumb": "assets/certificados/thumb/34a7428c-a513-4c08-8fb1-2ff165adb090.webp",
+  "image": "assets/certificados/full/34a7428c-a513-4c08-8fb1-2ff165adb090.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Java & Spring",
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Lógica de Programação com Java para Iniciantes",
+  "issuer": "AlgaWorks",
+  "date": "2022-04-20",
+  "hours": 60,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://app.algaworks.com/certs/PLCV35ML66",
+  "thumb": "assets/certificados/thumb/PLCV35ML66.webp",
+  "image": "assets/certificados/full/PLCV35ML66.webp",
+  "width": 816,
+  "height": 582,
+  "tags": [
+   "Java & Spring"
+  ]
+ },
+ {
+  "title": "Angular: controle o fluxo de navegação",
+  "issuer": "Alura",
+  "date": "2022-04-11",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/57de57d5-09d1-4e0c-bb03-78e927878338",
+  "thumb": "assets/certificados/thumb/57de57d5-09d1-4e0c-bb03-78e927878338.webp",
+  "image": "assets/certificados/full/57de57d5-09d1-4e0c-bb03-78e927878338.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular: boas práticas em arquiteturas e formulários",
+  "issuer": "Alura",
+  "date": "2022-04-06",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/df81b43e-b3f9-4718-aed7-53439e072e5b",
+  "thumb": "assets/certificados/thumb/df81b43e-b3f9-4718-aed7-53439e072e5b.webp",
+  "image": "assets/certificados/full/df81b43e-b3f9-4718-aed7-53439e072e5b.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "UML Fundamentos: Na Prática",
+  "issuer": "Alura",
+  "date": "2022-04-04",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/371ba619-5db3-4efc-ab57-afbecdb5aa7f",
+  "thumb": "assets/certificados/thumb/371ba619-5db3-4efc-ab57-afbecdb5aa7f.webp",
+  "image": "assets/certificados/full/371ba619-5db3-4efc-ab57-afbecdb5aa7f.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Arquitetura & APIs"
+  ]
+ },
+ {
+  "title": "Angular e RxJS: programação reativa",
+  "issuer": "Alura",
+  "date": "2022-04-01",
+  "hours": 6,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/3541ded0-515e-4ec4-bc61-8505b3329a53",
+  "thumb": "assets/certificados/thumb/3541ded0-515e-4ec4-bc61-8505b3329a53.webp",
+  "image": "assets/certificados/full/3541ded0-515e-4ec4-bc61-8505b3329a53.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Angular: começando com o framework",
+  "issuer": "Alura",
+  "date": "2022-03-28",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/dff307d9-8f67-4024-a7dd-930364e762cd",
+  "thumb": "assets/certificados/thumb/dff307d9-8f67-4024-a7dd-930364e762cd.webp",
+  "image": "assets/certificados/full/dff307d9-8f67-4024-a7dd-930364e762cd.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "TypeScript parte 1: evoluindo seu JavaScript",
+  "issuer": "Alura",
+  "date": "2022-03-25",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/22a895e7-a5e4-4067-a277-5c9c4e9d084c",
+  "thumb": "assets/certificados/thumb/22a895e7-a5e4-4067-a277-5c9c4e9d084c.webp",
+  "image": "assets/certificados/full/22a895e7-a5e4-4067-a277-5c9c4e9d084c.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "Git e Github: estratégias de ramificação, Conflitos e Pull Requests",
+  "issuer": "Alura",
+  "date": "2022-03-23",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/c501e4ed-d47d-4963-9cc3-c3c8350c9206",
+  "thumb": "assets/certificados/thumb/c501e4ed-d47d-4963-9cc3-c3c8350c9206.webp",
+  "image": "assets/certificados/full/c501e4ed-d47d-4963-9cc3-c3c8350c9206.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "Git e Github: controle e compartilhe seu código",
+  "issuer": "Alura",
+  "date": "2022-03-23",
+  "hours": 6,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/4e8d4f43-a56e-4bb0-843a-d4d26d2fea4e",
+  "thumb": "assets/certificados/thumb/4e8d4f43-a56e-4bb0-843a-d4d26d2fea4e.webp",
+  "image": "assets/certificados/full/4e8d4f43-a56e-4bb0-843a-d4d26d2fea4e.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Cloud & DevOps"
+  ]
+ },
+ {
+  "title": "JavaScript: interfaces e Herança em Orientação a Objetos",
+  "issuer": "Alura",
+  "date": "2022-03-22",
+  "hours": 12,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/b3d25f62-cf12-420e-abc7-73db178e3938",
+  "thumb": "assets/certificados/thumb/b3d25f62-cf12-420e-abc7-73db178e3938.webp",
+  "image": "assets/certificados/full/b3d25f62-cf12-420e-abc7-73db178e3938.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "JavaScript: programando a Orientação a Objetos",
+  "issuer": "Alura",
+  "date": "2022-03-21",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/3cdad709-f0bb-4017-b556-5fd23d7a9c45",
+  "thumb": "assets/certificados/thumb/3cdad709-f0bb-4017-b556-5fd23d7a9c45.webp",
+  "image": "assets/certificados/full/3cdad709-f0bb-4017-b556-5fd23d7a9c45.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "JavaScript: primeiros passos com a linguagem",
+  "issuer": "Alura",
+  "date": "2022-03-18",
+  "hours": 10,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/24208d11-4413-47bc-af67-ad3051927db7",
+  "thumb": "assets/certificados/thumb/24208d11-4413-47bc-af67-ad3051927db7.webp",
+  "image": "assets/certificados/full/24208d11-4413-47bc-af67-ad3051927db7.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "HTML5 e CSS3 parte 4: avançando no CSS",
+  "issuer": "Alura",
+  "date": "2022-03-18",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/2c061175-32d5-497f-86de-fb3977d191ee",
+  "thumb": "assets/certificados/thumb/2c061175-32d5-497f-86de-fb3977d191ee.webp",
+  "image": "assets/certificados/full/2c061175-32d5-497f-86de-fb3977d191ee.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "HTML5 e CSS3 parte 3: trabalhando com formulários e tabelas",
+  "issuer": "Alura",
+  "date": "2022-03-17",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/500c8807-37f6-4b1f-8951-e94e76a1568a",
+  "thumb": "assets/certificados/thumb/500c8807-37f6-4b1f-8951-e94e76a1568a.webp",
+  "image": "assets/certificados/full/500c8807-37f6-4b1f-8951-e94e76a1568a.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "HTML5 e CSS3 parte 2: posicionamento, listas e navegação",
+  "issuer": "Alura",
+  "date": "2022-03-17",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/85ef8cad-5504-4c3a-82e3-57251cd90403",
+  "thumb": "assets/certificados/thumb/85ef8cad-5504-4c3a-82e3-57251cd90403.webp",
+  "image": "assets/certificados/full/85ef8cad-5504-4c3a-82e3-57251cd90403.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ },
+ {
+  "title": "HTML5 e CSS3 parte 1: a primeira página da Web",
+  "issuer": "Alura",
+  "date": "2022-03-16",
+  "hours": 8,
+  "kind": "curso",
+  "courses": null,
+  "url": "https://cursos.alura.com.br/certificate/57838581-5cfc-4a66-8129-f589a3cb2dd0",
+  "thumb": "assets/certificados/thumb/57838581-5cfc-4a66-8129-f589a3cb2dd0.webp",
+  "image": "assets/certificados/full/57838581-5cfc-4a66-8129-f589a3cb2dd0.webp",
+  "width": 726,
+  "height": 512,
+  "tags": [
+   "Front-end"
+  ]
+ }
+]
