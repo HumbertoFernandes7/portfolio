@@ -740,6 +740,177 @@ html.lb-open body {
     }
 }
 
+/* ---------- Toque: campos sem zoom e alvos de 44px ---------- */
+
+@media (max-width: 720px), (pointer: coarse) {
+    /* 16px: abaixo disso o iOS dá zoom na página quando o campo ganha foco */
+    .cert-field input,
+    .cert-field select {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .chip {
+        align-items: center;
+        min-height: 44px;
+        padding-block: 0;
+    }
+
+    .cert-chips:empty {
+        min-height: 44px;
+    }
+
+    /* links finos: a área tocável cresce por um ::after invisível, o visual fica igual */
+    .cert-link,
+    .lb-link,
+    .footer-back {
+        position: relative;
+    }
+
+    .cert-link::after,
+    .lb-link::after,
+    .footer-back::after {
+        content: "";
+        position: absolute;
+        inset: -11px -8px;
+    }
+
+    .footer-back::after {
+        inset: -13px -8px;
+    }
+
+    .lb-close,
+    .lb-step {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* ---------- Celular: leitura ---------- */
+
+@media (max-width: 720px) {
+    /* rótulos mono um degrau acima (~13px), mantendo a hierarquia */
+    .cert-stats,
+    .cert-subtitle,
+    .cert-count {
+        font-size: 0.8rem;
+    }
+
+    .cert-field label {
+        font-size: 0.75rem;
+    }
+
+    .chip {
+        font-size: 0.8rem;
+    }
+
+    .chip-count {
+        font-size: 0.74rem;
+    }
+
+    .diploma-level,
+    .diploma-ph-level {
+        font-size: 0.78rem;
+    }
+
+    .diploma-meta {
+        font-size: 0.8rem;
+    }
+
+    .lb-meta,
+    .lb-count,
+    .lb-link {
+        font-size: 0.8rem;
+    }
+
+    .cert-toolbar {
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    /* 2 (padding) + 44 (chip) + 8 (padding): a fileira reservada já tem a altura final */
+    .cert-chips:empty {
+        min-height: 54px;
+    }
+}
+
+/* ---------- Celular: grade em 2 colunas ---------- */
+
+@media (max-width: 600px) {
+    .cert-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .cert-body {
+        gap: 8px;
+        padding: 12px 12px 14px;
+    }
+
+    .cert-name {
+        font-size: 0.95rem;
+        line-height: 1.3;
+        hyphens: auto;
+    }
+
+    /* instituição numa linha e "data · horas" na de baixo, sem "·" solto no fim da linha */
+    .cert-meta {
+        font-size: 0.75rem;
+    }
+
+    .cert-meta span:first-child {
+        flex: 0 0 100%;
+    }
+
+    .cert-meta span:first-child::after {
+        content: none;
+    }
+
+    .cert-badge {
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+    }
+
+    .cert-tags {
+        gap: 5px;
+    }
+
+    .cert-tags li {
+        font-size: 0.7rem;
+        line-height: 1.4;
+        padding: 2px 6px;
+    }
+
+    .cert-link {
+        letter-spacing: 0.02em;
+    }
+}
+
+/* telas bem estreitas (320px): cada coluna tem ~134px, então cabe um pouco menos */
+@media (max-width: 340px) {
+    .cert-body {
+        padding: 10px 10px 12px;
+    }
+
+    .cert-name {
+        font-size: 0.9rem;
+    }
+
+    .cert-meta {
+        font-size: 0.72rem;
+    }
+
+    .cert-link {
+        font-size: 0.7rem;
+        letter-spacing: 0;
+        white-space: nowrap;
+    }
+
+    .cert-link span {
+        margin-left: 3px;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .cert-card:hover {
         transform: none;
