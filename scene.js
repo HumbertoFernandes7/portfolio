@@ -1029,12 +1029,16 @@
     /* fora do layout dividido o texto ocupa a tela toda: partículas só no hero.
        Formação única: só enquanto o bloco âncora está na tela (nos dois layouts),
        para nunca ficar atrás do conteúdo que vem depois dele. */
+    let onDim = null; /* avisa o loop (mais abaixo), que pausa com o canvas apagado */
     const updateDim = () => {
         if (solo) {
             canvas.classList.toggle("is-dim", !anchorVisible);
-            return;
+        } else {
+            canvas.classList.toggle("is-dim", !split && activeIndex !== 0);
         }
-        canvas.classList.toggle("is-dim", !split && activeIndex !== 0);
+        if (onDim) {
+            onDim();
+        }
     };
 
     const setFormation = (index) => {
@@ -1301,18 +1305,46 @@
         renderer.render(scene, camera);
     };
 
-    tick();
+    /* duração do fade do canvas, lida do CSS (transition de opacity) */
+    const fadeMs = () => {
+        const ms = (v) => parseFloat(v) * (/ms\s*$/.test(v) ? 1 : 1000) || 0;
+        const style = getComputedStyle(canvas);
+        return Math.max(...style.transitionDuration.split(",").map(ms)) +
+            Math.max(...style.transitionDelay.split(",").map(ms));
+    };
 
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            if (frameId !== null) {
-                cancelAnimationFrame(frameId);
-                frameId = null;
-            }
-            clock.stop();
-        } else if (frameId === null) {
+    /* Pausa única do loop: aba oculta, ou canvas apagado (is-dim) depois que
+       o fade-out terminou. Ao acender, volta a desenhar na hora, antes do
+       fade-in, para não aparecer quadro congelado. */
+    let fadeTimer = null;
+    let fadedOut = false;
+
+    const syncLoop = () => {
+        if (!canvas.classList.contains("is-dim")) {
+            clearTimeout(fadeTimer);
+            fadeTimer = null;
+            fadedOut = false;
+        } else if (!fadedOut && fadeTimer === null) {
+            fadeTimer = setTimeout(() => {
+                fadeTimer = null;
+                fadedOut = true;
+                syncLoop();
+            }, fadeMs() + 50);
+        }
+
+        const run = !document.hidden && !fadedOut;
+        if (run && frameId === null) {
+            /* dt não acumula o tempo parado */
             clock.start();
             tick();
+        } else if (!run && frameId !== null) {
+            cancelAnimationFrame(frameId);
+            frameId = null;
+            clock.stop();
         }
-    });
+    };
+
+    onDim = syncLoop;
+    syncLoop();
+    document.addEventListener("visibilitychange", syncLoop);
 })();
