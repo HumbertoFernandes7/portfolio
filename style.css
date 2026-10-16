@@ -1137,7 +1137,7 @@ body.menu-open {
 .contact-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px 40px;
+    gap: 14px 32px;
     font-family: var(--font-mono);
     font-size: 0.78rem;
     color: var(--text-dim);
@@ -1534,6 +1534,203 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     }
 }
 
+/* ---------- Celular: áreas de toque e letras ----------
+   Áreas de toque de 44px no mínimo. Onde dá, o visual fica como está e um
+   ::after sem cor (inset negativo) aumenta só a área tocável; os recuos
+   foram escolhidos para as áreas de vizinhos não se sobreporem. Os links
+   do Contato viram linhas de 44px de verdade. Rótulos mono de ~12px sobem
+   para 13-14px, mantendo a ordem (rótulo < apoio < texto do bloco). */
+
+@media (max-width: 720px) {
+    .brand,
+    .theme-toggle,
+    .menu-toggle,
+    .hero-links a,
+    .project-links a,
+    .about-notes a,
+    .footer-top,
+    .menu-meta a {
+        position: relative;
+    }
+
+    .brand::after,
+    .theme-toggle::after,
+    .menu-toggle::after,
+    .hero-links a::after,
+    .project-links a::after,
+    .about-notes a::after,
+    .footer-top::after,
+    .menu-meta a::after,
+    .step-link::after {
+        content: "";
+        position: absolute;
+    }
+
+    .brand::after { inset: -6px; }
+    .theme-toggle::after { inset: -6px; }
+    .menu-toggle::after { inset: -3px; }
+
+    /* 13px acima/abaixo ficam dentro dos 14px de respiro do hero-actions */
+    .hero-links a::after { inset: -13px -8px; }
+    .project-links a::after { inset: -11px -6px; }
+    .about-notes a::after,
+    .footer-top::after,
+    .menu-meta a::after { inset: -13px -6px; }
+
+    /* "role para explorar" (hero): só cresce na vertical */
+    .scroll-cue::after { inset: -8px 0; }
+
+    /* setas entre seções: quadro de 46px em volta do quadro de 22/30px
+       (o link tem box + 2px de altura) */
+    .section-step .step-link::after {
+        inset: calc((var(--box) + 2px - 46px) / 2) calc((var(--box) - 46px) / 2);
+    }
+
+    /* menu aberto: linhas de 46px (o respiro entre elas encolhe na conta) */
+    .menu-nav {
+        gap: 2px;
+    }
+
+    .menu-nav a {
+        padding-block: max(2px, calc((46px - 1.2em) / 2));
+    }
+
+    /* Contato: cada item vira uma linha de 44px (o respiro entre linhas
+       passa para dentro do item); o padding de cima e a margem do CV
+       encolhem o que a linha ganhou, para o bloco não crescer à toa */
+    .contact-meta {
+        gap: 0 32px;
+        padding-top: 12px;
+    }
+
+    .contact-meta li,
+    .contact-meta a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .contact-cv {
+        margin-top: 22px;
+    }
+
+    /* letras: rótulos de 12px → 13px; apoio → 13,6px; listas e contato → 14px */
+    .eyebrow,
+    .kicker,
+    .timeline-tag,
+    .timeline-date,
+    .hero-facts dt,
+    .stack-title,
+    .project-kind,
+    .project-footnote,
+    .hero-links a,
+    .menu-nav a span,
+    .menu-meta,
+    .menu-toggle,
+    .button,
+    .site-footer {
+        font-size: 0.8125rem;
+    }
+
+    .hero-foot .scroll-cue {
+        font-size: 0.8125rem;
+    }
+
+    /* a seta do cue mantém o tamanho de antes (13,8px) */
+    .hero-foot .scroll-cue .step-arrow {
+        font-size: 1.06em;
+    }
+
+    .hero-facts dd,
+    .project-index,
+    .project-stack,
+    .project-links a,
+    .stack-col li,
+    .about-notes li {
+        font-size: 0.85rem;
+    }
+
+    .stack-col h3,
+    .contact-meta {
+        font-size: 0.875rem;
+    }
+
+    /* mesma largura de antes: letra maior, espaçamento menor (o eyebrow
+       do hero cabe numa linha só em 390px) */
+    .eyebrow {
+        letter-spacing: 0.1em;
+    }
+
+    .project-kind {
+        letter-spacing: 0.11em;
+    }
+
+    .button {
+        letter-spacing: 0.14em;
+    }
+}
+
+/* ---------- Celular: Sobre compacto ----------
+   Retrato pequeno com a legenda ao lado (em vez de largura toda) e a stack
+   em linhas corridas por categoria (em vez de um item por linha). Mesmo
+   conteúdo, bem menos rolagem. A partir de 721px nada muda. */
+
+@media (max-width: 720px) {
+    .about-grid {
+        gap: 28px;
+        margin-bottom: 44px;
+    }
+
+    .about-portrait {
+        display: flex;
+        align-items: flex-end;
+        gap: 16px;
+        max-width: none;
+    }
+
+    /* ~48% da largura: o rosto fica inteiro (corte 4/5 centralizado) */
+    .portrait-frame {
+        flex: 0 0 min(48%, 220px);
+        padding: 8px;
+    }
+
+    .portrait-frame::after {
+        inset: 8px;
+    }
+
+    .about-portrait figcaption {
+        margin: 0 0 2px;
+        font-size: 0.8125rem;
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .stack-cols {
+        gap: 24px;
+    }
+
+    .stack-col h3 {
+        margin-bottom: 10px;
+    }
+
+    .stack-col ul {
+        display: flex;
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+
+    .stack-col li {
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    .stack-col li:not(:last-child)::after {
+        content: "·";
+        margin: 0 9px;
+        color: var(--text-faint);
+    }
+}
+
 /* ---------- Movimento reduzido ---------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1567,6 +1764,14 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 /* as partículas de tinta multiplicam sobre o papel */
 [data-theme="light"] .webgl canvas {
     mix-blend-mode: multiply;
+}
+
+/* coluna única: o símbolo fica atrás do texto do hero; no papel ele recua
+   um pouco para o texto não perder contraste (o :not mantém o is-dim) */
+@media (max-width: 1099px) {
+    [data-theme="light"] .webgl canvas.is-on:not(.is-dim) {
+        opacity: 0.55;
+    }
 }
 
 /* topo mais claro (luz de gelo) sobre os brilhos azuis; a cor de fundo
