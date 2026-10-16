@@ -1580,10 +1580,11 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     /* "role para explorar" (hero): só cresce na vertical */
     .scroll-cue::after { inset: -8px 0; }
 
-    /* setas entre seções: quadro de 46px em volta do quadro de 22/30px
-       (o link tem box + 2px de altura) */
-    .section-step .step-link::after {
-        inset: calc((var(--box) + 2px - 46px) / 2) calc((var(--box) - 46px) / 2);
+    /* setas entre seções só no desktop: no celular rolar já é o gesto
+       natural e o menu leva a qualquer seção (a de cima não ocupa espaço;
+       sem a de baixo, a seção termina no próprio respiro) */
+    .section-step {
+        display: none;
     }
 
     /* menu aberto: linhas de 46px (o respiro entre elas encolhe na conta) */
