@@ -1587,6 +1587,12 @@ html:active-view-transition-type(back)::view-transition-new(root) {
         display: none;
     }
 
+    /* sem as setas, o respiro entre seções pode encolher (de ~110 para
+       ~68px no iPhone, de cada lado da linha) */
+    .section {
+        --section-pad: clamp(56px, 8vh, 72px);
+    }
+
     /* menu aberto: linhas de 46px (o respiro entre elas encolhe na conta) */
     .menu-nav {
         gap: 2px;
