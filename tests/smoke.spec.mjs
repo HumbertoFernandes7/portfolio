@@ -218,6 +218,7 @@ for (const { name: pageName, path } of PAGES) {
                                         (el) => el.localName
                                     );
                                     window.__footersAtDCL = document.querySelectorAll("footer.site-footer").length;
+                                    window.__headersAtDCL = document.querySelectorAll("header.site-header, #menu-overlay").length;
                                 },
                                 { once: true }
                             );
@@ -263,12 +264,14 @@ for (const { name: pageName, path } of PAGES) {
                         return {
                             undefinedAtDCL: window.__undefinedAtDCL,
                             footersAtDCL: window.__footersAtDCL,
+                            headersAtDCL: window.__headersAtDCL,
                             duplicateIds: [...counts].filter(([, n]) => n > 1).map(([id]) => id),
                             anchorsWithoutTarget: anchors
                         };
                     });
                     expect(dom.undefinedAtDCL, "elementos :not(:defined) no DOMContentLoaded").toEqual([]);
-                    /* o <site-footer> (components.js) já montou quando o script.js roda */
+                    /* o <site-header> e o <site-footer> (components.js) já montaram quando o script.js roda */
+                    expect(dom.headersAtDCL, "header.site-header e #menu-overlay no DOMContentLoaded").toBe(2);
                     expect(dom.footersAtDCL, "footer.site-footer no DOMContentLoaded").toBe(1);
                     expect(dom.duplicateIds, "ids repetidos").toEqual([]);
                     expect(dom.anchorsWithoutTarget, 'a[href^="#"] sem alvo').toEqual([]);
@@ -411,3 +414,37 @@ for (const { name: pageName, path } of PAGES) {
         }
     }
 }
+
+/* <site-header> (components.js): site-nav e menu-nav levam aos mesmos destinos, na mesma
+   ordem, nas duas páginas. Só o topo se escreve diferente: "#inicio" na home e "index.html"
+   nas outras (os dois abrem o index no topo), então "index.html#<hero>" conta como "index.html". */
+test.describe("cabeçalho nas duas páginas", () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test("site-nav e menu-nav: mesmas URLs absolutas, na mesma ordem", async ({ page }) => {
+        const found = [];
+        for (const { name, path } of PAGES) {
+            await open(page, path);
+            found.push({
+                name,
+                ...(await page.evaluate(() => ({
+                    hero: (document.querySelector("main > section[data-section]") || {}).id || null,
+                    site: [...document.querySelectorAll(".site-nav a")].map((a) => a.href),
+                    menu: [...document.querySelectorAll(".menu-nav a")].map((a) => a.href)
+                })))
+            });
+        }
+        const hero = found.find((f) => f.name === "index").hero;
+        expect(hero, "id da primeira seção do index").toBeTruthy();
+        const indexUrl = new URL("/index.html", page.url()).href;
+        const top = (href) => (href === `${indexUrl}#${hero}` ? indexUrl : href);
+
+        const [ref, ...others] = found;
+        expect(ref.site.length, `links no site-nav de ${ref.name}`).toBeGreaterThan(0);
+        expect(ref.menu.length, `links no menu-nav de ${ref.name}`).toBeGreaterThan(0);
+        for (const other of others) {
+            expect(other.site.map(top), `site-nav de ${other.name} × ${ref.name}`).toEqual(ref.site.map(top));
+            expect(other.menu.map(top), `menu-nav de ${other.name} × ${ref.name}`).toEqual(ref.menu.map(top));
+        }
+    });
+});

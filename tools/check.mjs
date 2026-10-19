@@ -13,7 +13,7 @@
    parser geral: serve para achar elementos, atributos, texto e linha.
 
    Componentes: o components.js roda numa sandbox (node:vm) com um DOM
-   mínimo, e o HTML que cada elemento dele (<site-footer>…) gera entra na
+   mínimo, e o HTML que cada elemento dele (<site-header>, <site-footer>) gera entra na
    árvore da página dentro do elemento, como no navegador. Assim as regras
    de ids, âncoras, arquivos e classes enxergam esse HTML; o que estiver
    errado nele aponta para a linha do elemento na página.
@@ -244,6 +244,40 @@ function loadComponents(ctx) {
         return node.__html || null;
     };
     return out;
+}
+
+/* const SECTIONS = [ … ] do components.js (fica dentro do escopo do arquivo, fora do
+   alcance da sandbox): o literal do array é avaliado numa sandbox própria (node:vm).
+   Devolve { items: [{ id, label, line }], line, end } ou { error, line }. */
+function componentSections(ctx) {
+    const rel = ctx.components.rel;
+    const src = ctx.source(rel);
+    if (!src) {
+        return { error: `${rel} não existe`, line: 1 };
+    }
+    const m = /\bconst\s+SECTIONS\s*=\s*(\[[\s\S]*?\])\s*;/.exec(src.text);
+    if (!m) {
+        return { error: `não achei const SECTIONS = [ … ]; no ${rel}`, line: 1 };
+    }
+    const at = m.index + m[0].indexOf(m[1]);
+    const line = src.lineAt(m.index);
+    let list;
+    try {
+        list = vm.runInNewContext(`(${m[1]})`, Object.create(null), { timeout: 1000 });
+    } catch (e) {
+        return { error: `SECTIONS do ${rel} não é um array literal que dê para avaliar: ${e.message}`, line };
+    }
+    const valid = (item) => item && typeof item.id === "string" && item.id !== "" && typeof item.label === "string" && item.label !== "";
+    if (!Array.isArray(list) || !list.every(valid)) {
+        return { error: "SECTIONS tem que ser uma lista de { id, label } com textos não vazios", line };
+    }
+    let cursor = at;
+    const items = list.map((item) => {
+        const i = src.text.indexOf(item.id, cursor);
+        cursor = i === -1 ? cursor : i;
+        return { id: item.id, label: item.label, line: src.lineAt(cursor) };
+    });
+    return { items, line, end: src.lineAt(at + m[1].length) };
 }
 
 /* ---------- Consultas na árvore ---------- */
@@ -690,7 +724,9 @@ function ruleNumbering(ctx) {
 }
 
 /* site-nav e menu-nav iguais nas páginas (rótulo, ordem e destino); números do menu-nav
-   são a posição; .menu-page por último. */
+   são a posição; .menu-page por último. Os menus saem do <site-header> (components.js) e a
+   regra lê o HTML gerado em cada página: pega erro num ramo só do componente (home × outras
+   páginas). A lista de seções em si é conferida na regra "lista-secoes". */
 function ruleMenus(ctx) {
     const sections = indexSections(ctx);
     const firstId = sections.length ? sections[0].id : null;
@@ -771,6 +807,46 @@ function ruleMenus(ctx) {
     });
 }
 
+/* SECTIONS do components.js (de onde saem os menus) = as seções do index: os mesmos ids na
+   mesma ordem, e o rótulo de cada uma é o do kicker. O hero não tem kicker: o rótulo dele é
+   "Início" (o indexSections tira esse rótulo do menu-nav, que agora sai do próprio SECTIONS;
+   comparar com ele não conferiria nada). */
+function ruleSectionList(ctx) {
+    const HERO_LABEL = "Início";
+    const rel = ctx.components.rel;
+    if (!ctx.source(rel)) {
+        return; /* a regra "componentes" já acusa */
+    }
+    const list = componentSections(ctx);
+    if (list.error) {
+        ctx.error(rel, list.line, list.error);
+        return;
+    }
+    const sections = indexSections(ctx);
+    const n = Math.max(list.items.length, sections.length);
+    for (let i = 0; i < n; i++) {
+        const item = list.items[i];
+        const s = sections[i];
+        if (!item) {
+            ctx.error(rel, list.end, `SECTIONS: falta a seção ${pad2(i)}, #${s.id} (index.html:${s.el.line})`);
+            continue;
+        }
+        if (!s) {
+            ctx.error(rel, item.line, `SECTIONS: "${item.id}" a mais; o index.html tem ${sections.length} seções`);
+            continue;
+        }
+        if (item.id !== s.id) {
+            ctx.error(rel, item.line, `SECTIONS: o item ${pad2(i)} é "${item.id}"; no index.html a seção ${pad2(i)} é #${s.id} (linha ${s.el.line})`);
+            continue;
+        }
+        const expected = s.kicker ? numberedLabel(s.kicker).label : i === 0 ? HERO_LABEL : null;
+        if (expected !== null && item.label !== expected) {
+            const from = s.kicker ? `o do kicker de #${s.id}, index.html:${s.kicker.line}` : "o hero não tem kicker";
+            ctx.error(rel, item.line, `SECTIONS: "${item.id}" com rótulo "${item.label}"; esperado "${expected}" (${from})`);
+        }
+    }
+}
+
 /* Head: three igual no modulepreload e no importmap; mesma URL de fontes; um só ?v=;
    metas og/twitter com as mesmas chaves nas páginas. */
 function ruleHead(ctx) {
@@ -849,9 +925,9 @@ function ruleHead(ctx) {
    (sem defer, async, module nem blocking), depois do script de tema e antes do primeiro
    stylesheet (script síncrono depois de stylesheet espera o CSS baixar). Cada elemento
    dele na página: vazio, com page válido (o componente monta algo com ele) e sem repetir
-   o page que outra página usa; um <site-footer> por página. */
+   o page que outra página usa; um <site-header> e um <site-footer> por página. */
 function ruleComponents(ctx) {
-    const ONE_PER_PAGE = ["site-footer"];
+    const ONE_PER_PAGE = ["site-header", "site-footer"];
     const comps = ctx.components;
     const name = comps.rel;
     if (comps.error) {
@@ -1259,6 +1335,7 @@ const RULES = [
     ["secoes", ruleSections],
     ["numeracao", ruleNumbering],
     ["menus", ruleMenus],
+    ["lista-secoes", ruleSectionList],
     ["head", ruleHead],
     ["componentes", ruleComponents],
     ["cores", ruleThemeColors],
