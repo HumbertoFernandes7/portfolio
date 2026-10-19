@@ -9,10 +9,21 @@
    1. cria (ou atualiza) o git worktree da base em .ab/base (detached, na ref pedida);
    2. roda tests/ab.spec.mjs servindo .ab/base e grava os snapshots em .ab/snapshots;
    3. roda de novo servindo a árvore atual, comparando com esses snapshots;
-   4. confirmação: o que diferiu roda de novo (base e comparação, só esses testes). Só conta
-      como diferença o que diferir nas duas vezes; o resto aparece como instável. O raster de
-      texto do Chromium solta, raramente, uma variação de antialiasing numa captura;
-   5. mostra onde ficam as diferenças (.ab/results e o relatório em .ab/report).
+   4. confirmação, só dos testes que diferiram, em até 3 tentativas. Cada tentativa captura a
+      base de novo (uma pasta de snapshots por captura: .ab/snapshots-1, -2, -3; a da etapa 2
+      é a .ab/snapshots) e compara a versão nova, capturada de novo a cada comparação, com
+      TODAS as capturas da base que já existem, a mais nova primeiro. Basta UM par de capturas
+      idênticas entre as variantes da base e as da versão nova para o teste valer como igual
+      (aparece como instável); só conta como diferença o que diferir em todos os pares, da 1ª
+      comparação e de todas as tentativas. Motivo: o raster de texto do Chromium sem GPU solta
+      variações de antialiasing (bordas de letras em Fraunces, cabeçalho rolado) que, às vezes,
+      se repetem numa segunda comparação; o main contra ele mesmo já deu essa diferença.
+      O limiar de pixels é o do playwright.config.mjs, igual em toda comparação: repetir a
+      captura não afrouxa nada, só dá mais chances de achar o par que o ruído separou. Uma
+      diferença real (pixel que mudou de verdade) falha em todos os pares e é confirmada, à
+      custa de ~3 capturas da base e ~9 comparações a mais (10 testes: uns 4 minutos no total);
+   5. mostra onde ficam as diferenças (.ab/results e o relatório em .ab/report, os da última
+      comparação).
    Sai com código 1 se houver diferença confirmada.
    ============================================================ */
 
@@ -29,6 +40,9 @@ const BASE = join(AB_DIR, "base");
 const RESULTS = join(AB_DIR, "results");
 const FIRST_RESULTS = join(AB_DIR, "results-1a-comparacao");
 const LAST_RUN = join(AB_DIR, "last-run.json"); /* reporter json do playwright.config.mjs */
+const SNAPSHOTS = join(AB_DIR, "snapshots");
+const ATTEMPTS = 3; /* tentativas de confirmação (etapa 4) */
+const snapshotsOf = (attempt) => join(AB_DIR, `snapshots-${attempt}`);
 const CLI = createRequire(import.meta.url).resolve("@playwright/test/cli");
 
 const argv = process.argv.slice(2);
@@ -78,15 +92,21 @@ say(`base = ${label} em ${rel(BASE)}`);
 
 /* ---------- 2 a 4. rodadas ---------- */
 
-["snapshots", "results", "report", "results-1a-comparacao", "last-run.json"].forEach((name) =>
-    rmSync(join(AB_DIR, name), { recursive: true, force: true })
-);
+[
+    "snapshots",
+    ...Array.from({ length: ATTEMPTS }, (_, i) => `snapshots-${i + 1}`),
+    "results",
+    "report",
+    "results-1a-comparacao",
+    "last-run.json"
+].forEach((name) => rmSync(join(AB_DIR, name), { recursive: true, force: true }));
 
-const run = (siteDir, updateSnapshots, filter = []) =>
+/* `snapshots`: a pasta de snapshots desta rodada (grava com "all", compara com "none") */
+const run = (siteDir, updateSnapshots, filter = [], snapshots = SNAPSHOTS) =>
     spawnSync(process.execPath, [CLI, "test", `--update-snapshots=${updateSnapshots}`, ...extra, ...filter], {
         cwd: ROOT,
         stdio: "inherit",
-        env: { ...process.env, AB: "1", SITE_DIR: siteDir, PORT: process.env.PORT || "4392" }
+        env: { ...process.env, AB: "1", SITE_DIR: siteDir, AB_SNAPSHOTS: rel(snapshots), PORT: process.env.PORT || "4392" }
     }).status;
 
 /* títulos ("describe teste") dos testes que falharam na última rodada, lidos do reporter json */
@@ -108,14 +128,16 @@ const failedTitles = () => {
 };
 const grepFor = (titles) => ["--grep", titles.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")];
 
-say(`1/2 gravando os snapshots da base em ${rel(join(AB_DIR, "snapshots"))}…`);
+say(`1/2 gravando os snapshots da base em ${rel(SNAPSHOTS)}…`);
 if (run(BASE, "all") !== 0) {
     fail("a rodada da base falhou (veja acima); nada foi comparado.");
 }
 
 say("2/2 comparando a árvore atual com a base…");
 let ok = run(ROOT, "none") === 0;
-let unstable = [];
+let unstable = []; /* [título, onde bateu]: diferiu na 1ª comparação e depois bateu */
+let against = SNAPSHOTS; /* a captura da base da última comparação (as evidências são dela) */
+let attempts = 0;
 
 if (!ok) {
     const first = failedTitles();
@@ -123,13 +145,35 @@ if (!ok) {
         fail("a comparação falhou sem teste reprovado (veja acima).");
     }
     cpSync(RESULTS, FIRST_RESULTS, { recursive: true });
-    say(`confirmando ${first.length} diferença(s): base e comparação de novo, só nesses testes…`);
-    if (run(BASE, "all", grepFor(first)) !== 0) {
-        fail("a rodada de confirmação da base falhou (veja acima).");
+    say(`confirmando ${first.length} diferença(s): até ${ATTEMPTS} tentativas de captura da base e da versão nova…`);
+    let failing = first;
+    const bases = [SNAPSHOTS]; /* capturas da base, a mais nova na frente */
+    for (let attempt = 1; attempt <= ATTEMPTS && failing.length; attempt++) {
+        attempts = attempt;
+        const dir = snapshotsOf(attempt);
+        say(`tentativa ${attempt}/${ATTEMPTS}: nova captura da base de ${failing.length} teste(s) em ${rel(dir)}…`);
+        if (run(BASE, "all", grepFor(failing), dir) !== 0) {
+            fail("a captura da base na confirmação falhou (veja acima).");
+        }
+        bases.unshift(dir);
+        for (const snap of bases) {
+            if (!failing.length) {
+                break;
+            }
+            say(`  versão nova (captura nova) contra ${rel(snap)}, ${failing.length} teste(s)…`);
+            against = snap;
+            const passed = run(ROOT, "none", grepFor(failing), snap) === 0;
+            const still = passed ? [] : failedTitles();
+            if (!passed && !still.length) {
+                fail("a comparação falhou sem teste reprovado (veja acima).");
+            }
+            failing.filter((t) => !still.includes(t)).forEach((t) => {
+                unstable.push([t, `${attempt}ª tentativa, contra ${rel(snap)}`]);
+            });
+            failing = failing.filter((t) => still.includes(t));
+        }
     }
-    ok = run(ROOT, "none", grepFor(first)) === 0;
-    const confirmed = ok ? [] : failedTitles();
-    unstable = first.filter((t) => !confirmed.includes(t));
+    ok = !failing.length;
 }
 
 /* ---------- 5. resumo ---------- */
@@ -143,7 +187,8 @@ const walk = (dir) =>
 
 const seconds = Math.round((Date.now() - started) / 1000);
 if (unstable.length) {
-    console.log(`\nab: instável (diferiu na 1ª comparação e bateu na confirmação): ${unstable.join("; ")}`);
+    console.log("\nab: instável (diferiu na 1ª comparação e, na confirmação, bateu com alguma captura da base):");
+    unstable.forEach(([title, where]) => console.log(`    ${title} — ${where}`));
     console.log(`    evidência da 1ª comparação: ${rel(FIRST_RESULTS)}`);
 }
 if (ok) {
@@ -152,12 +197,12 @@ if (ok) {
 }
 
 const evidence = walk(RESULTS).filter((f) => /-(diff|actual)\.[^/\\]+$/.test(f));
-say(`DIFERENTE da base ${label} — ${seconds} s`);
+say(`DIFERENTE da base ${label} — diferiu em todas as comparações (a 1ª e ${attempts} tentativas de confirmação) — ${seconds} s`);
 if (evidence.length) {
     console.log("   arquivos com a diferença (*-diff.png marca os pixels; *-actual.* é a árvore atual):");
     evidence.forEach((f) => console.log(`     ${rel(f)}`));
 }
-console.log(`   snapshots da base: ${rel(join(AB_DIR, "snapshots"))}`);
+console.log(`   snapshots da base: ${rel(against)} (os da última comparação)`);
 console.log(`   resultados:        ${rel(RESULTS)}`);
 console.log("   lado a lado:       npx playwright show-report .ab/report");
 process.exit(1);

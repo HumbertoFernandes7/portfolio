@@ -6,6 +6,8 @@
    Variáveis:
      SITE_DIR   pasta servida (padrão "."; o A/B aponta para .ab/base na rodada da base)
      PORT       porta do servidor local (padrão 4391; a 4173 é do preview do dono)
+     AB_SNAPSHOTS  pasta dos snapshots do A/B, relativa a esta (padrão ".ab/snapshots"); a
+                   confirmação do tools/ab.mjs usa uma pasta por captura da base
      CI         no GitHub Actions: chromium do Playwright com WebGL por software
 */
 import { defineConfig, devices } from "@playwright/test";
@@ -15,6 +17,7 @@ const CI = Boolean(process.env.CI);
 const AB = Boolean(process.env.AB);
 const PORT = Number(process.env.PORT || 4391);
 const SITE_DIR = resolve(process.env.SITE_DIR || ".");
+const SNAPSHOTS = process.env.AB_SNAPSHOTS || ".ab/snapshots";
 const PYTHON = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 
 /* O mesmo http.server do `python -m http.server`, com dois ajustes para vários workers
@@ -45,7 +48,7 @@ export default defineConfig({
             : [["list"]],
     outputDir: AB ? ".ab/results" : "test-results",
     /* só o A/B grava snapshots */
-    snapshotPathTemplate: ".ab/snapshots/{arg}{ext}",
+    snapshotPathTemplate: `${SNAPSHOTS}/{arg}{ext}`,
 
     expect: {
         timeout: 10_000,
