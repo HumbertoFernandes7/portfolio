@@ -12,7 +12,8 @@
    - document.fonts.ready e imagens lazy trocadas por eager (e decodificadas) antes da captura;
    - página inteira em fatias de até 8000 px: acima de 16384 px o Chromium repete o topo
      no fim da imagem (certificados passa de 19000 px em 768);
-   - tolerância zero (maxDiffPixels 0, threshold 0, no playwright.config.mjs). */
+   - nenhum pixel pode mudar de forma perceptível (maxDiffPixels 0, threshold 0.01 no
+     playwright.config.mjs: só absorve o arredondamento de 1 nível do raster por software). */
 import { test, expect } from "@playwright/test";
 
 const PAGES = [
