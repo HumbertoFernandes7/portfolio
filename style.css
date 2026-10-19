@@ -1187,10 +1187,9 @@ body.js-ready .rec-card[data-reveal] {
     border-color: var(--line-strong);
 }
 
-/* o trecho ocupa a altura que sobra: a assinatura desce junto nos dois cartões */
+/* o texto ocupa a altura que sobra: o link do LinkedIn desce junto nos dois cartões */
 .rec-quote {
     flex: 1;
-    quotes: "\201C" "\201D";
 }
 
 .rec-quote p {
@@ -1204,21 +1203,6 @@ body.js-ready .rec-card[data-reveal] {
 .rec-quote p + p,
 .rec-more p {
     margin-top: 12px;
-}
-
-/* aspas só na abertura e no fim do texto completo (o fim fica dentro do "ler completa") */
-.rec-quote > p:first-child::before,
-.rec-quote p:last-child::after {
-    font-family: var(--font-display);
-    color: var(--accent);
-}
-
-.rec-quote > p:first-child::before {
-    content: open-quote;
-}
-
-.rec-more p:last-child::after {
-    content: close-quote;
 }
 
 /* "ler completa": o resto do texto abre ali mesmo, sem sair da página */
