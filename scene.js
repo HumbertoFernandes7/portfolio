@@ -1,9 +1,10 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
-   Cada seção tem uma formação que remete a ela:
-   00 </> (código) → 01 xícara de café fumegante (símbolo do
-   Java) → 02 janela de terminal (projetos) → 03 logo do Python
-   → 04 balão de fala (recomendações) → 05 rede neural (IA).
+   Cada seção do index tem uma formação, e o data-scene da seção é o
+   índice dela na lista builders (hoje: 00 </> (código) → 01 xícara de
+   café fumegante (símbolo do Java) → 02 janela de terminal (projetos)
+   → 03 logo do Python → 04 balão de fala (recomendações) → 05 rede
+   neural (IA)). Seção nova pede uma formação nova ali.
    As formas planas são amostradas de um
    canvas 2D; a rede neural é gerada por coordenadas. A xícara
    (azul com chamas laranja) e o Python (azul e dourado) são
@@ -837,7 +838,8 @@
 
     /* Páginas de formação única: o canvas declara qual (data-formation) e
        a formação acompanha o bloco marcado com data-scene-anchor. Sem
-       data-formation (index), valem as 6 formações por seção. */
+       data-formation (index), valem as formações de builders, uma por
+       seção (data-scene = o índice dela na lista). */
     const SOLO_PAGES = {
         cap: {
             make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.22),

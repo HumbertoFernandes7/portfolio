@@ -64,9 +64,10 @@
         sobre-title no aria-labelledby), os textos e o rótulo do kicker; o NN
         o fix acerta. O data-scene escolhe o desenho 3D da seção: só mexa
         nele para uma seção nova. Ela precisa de uma formação nova no
-        scene.js (um item a mais em builders, com outro desenho ou o mesmo
-        builder de outra seção), e o data-scene dela é o id novo (N, o próximo
-        depois do último); o conjunto tem que continuar 0..N-1, sem repetir.
+        scene.js (um item a mais em builders e outro, na mesma posição, em
+        configs, com outro desenho ou o mesmo builder de outra seção), e o
+        data-scene dela é o id novo (N, o próximo depois do último); o
+        conjunto tem que continuar 0..N-1, sem repetir.
         Quem só muda de lugar leva o data-scene que já tem.
      3. Rode npm run fix. Ele renumera os kickers, refaz os destinos e
         rótulos das setas (das seções vizinhas também) e deixa o SECTIONS do
