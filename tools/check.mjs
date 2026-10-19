@@ -2,7 +2,9 @@
 /* ============================================================
    Verificador estático do portfólio — Node puro, sem dependências.
 
-   Uso:   node tools/check.mjs [pasta]     (padrão: a raiz do projeto)
+   Uso:   node tools/check.mjs [--fix] [pasta]     (padrão: a raiz do projeto)
+          --fix (npm run fix): antes de conferir, acerta a numeração das seções do
+          index.html a partir da ordem delas; veja tools/numbering.mjs.
 
    Cada regra é uma função (ctx) => void registrada em RULES. Ela relata
    com ctx.error(arquivo, linha, mensagem) ou ctx.warn(...): erro faz o
@@ -23,6 +25,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import { applyFixes, leftoverHint } from "./numbering.mjs";
 
 const started = performance.now();
 
@@ -133,7 +136,8 @@ function parseHtml(src, expand = null) {
         }
 
         const tag = m[2].toLowerCase();
-        const el = { tag, attrs: parseAttrs(m[3]), children: [], parent: current, line: src.lineAt(m.index) };
+        /* pos…end = a tag de abertura no texto (o --fix troca valores ali) */
+        const el = { tag, attrs: parseAttrs(m[3]), children: [], parent: current, line: src.lineAt(m.index), pos: m.index, end: last };
         current.children.push(el);
         elements.push(el);
 
@@ -395,8 +399,12 @@ function createContext(root) {
             }
         },
 
-        error(file, line, msg) {
-            problems.push({ level: "erro", file, line, rule: ctx.rule, msg });
+        /* fix (opcional): o que o --fix faz para resolver este erro (tools/numbering.mjs):
+           { el, attr, value } troca o valor de um atributo; { el, value } troca o texto do
+           elemento; { orphan, cls, from } seta que sobra e { missing, cls, to } seta que
+           falta (o fix move a que sobra para a que falta, se for 1 para 1) */
+        error(file, line, msg, fix = null) {
+            problems.push({ level: "erro", file, line, rule: ctx.rule, msg, fix });
         },
 
         warn(file, line, msg) {
@@ -639,7 +647,12 @@ function ruleDataFiles(ctx) {
     });
 }
 
-/* Todo filho de <main> no index é <section data-section data-scene>, com data-scene 0..N-1 em ordem. */
+/* Todo filho de <main> no index é <section data-section data-scene>. O data-scene NÃO é a
+   posição: é o id da formação 3D da seção (scene.js: 0 = </>, 1 = xícara, 2 = terminal,
+   3 = Python, 4 = balão, 5 = rede neural), e cada seção leva a sua ao mudar de lugar. Tem que
+   ser um inteiro, único, e o conjunto exatamente 0..N-1 (N = número de seções). A primeira
+   seção (hero) leva 0: o scene.js começa na formação 0 e só a deixa "apagada" fora dela. Seção
+   nova precisa de uma formação nova no scene.js (builders) ou de reaproveitar uma. */
 function ruleSections(ctx) {
     const page = ctx.page("index.html");
     if (!page) {
@@ -657,8 +670,11 @@ function ruleSections(ctx) {
         }
     });
 
+    const sections = indexSections(ctx);
+    const n = sections.length;
     const seen = new Map();
-    indexSections(ctx).forEach(({ el, id, pos }) => {
+    let broken = false;
+    sections.forEach(({ el, id, pos }) => {
         if (!id) {
             ctx.error(page.rel, el.line, `a seção na posição ${pos} está sem id`);
         }
@@ -666,15 +682,28 @@ function ruleSections(ctx) {
         if (raw === null) {
             return;
         }
-        if (seen.has(raw)) {
-            ctx.error(page.rel, el.line, `data-scene="${raw}" repetido em #${id} (já usado em #${seen.get(raw)})`);
+        if (!/^(0|[1-9]\d*)$/.test(raw)) {
+            broken = true;
+            ctx.error(page.rel, el.line, `#${id} com data-scene="${raw}": tem que ser um inteiro simples, sem zero à esquerda (o id da formação 3D da seção, de 0 a ${n - 1})`);
+            return;
+        }
+        if (Number(raw) >= n) {
+            broken = true;
+            ctx.error(page.rel, el.line, `#${id} com data-scene="${raw}", fora de 0..${n - 1} (há ${n} seções; os ids das formações 3D vão de 0 a ${n - 1}, um por seção)`);
+        } else if (seen.has(raw)) {
+            broken = true;
+            ctx.error(page.rel, el.line, `data-scene="${raw}" repetido em #${id} (já usado em #${seen.get(raw)}); cada seção leva uma formação 3D só sua`);
         } else {
             seen.set(raw, id);
         }
-        if (raw !== String(pos)) {
-            ctx.error(page.rel, el.line, `#${id} está na posição ${pos} com data-scene="${raw}"; esperado data-scene="${pos}"`);
+        if (pos === 0 && raw !== "0") {
+            ctx.error(page.rel, el.line, `#${id} é a primeira seção (hero) e está com data-scene="${raw}"; esperado data-scene="0" (o scene.js começa na formação 0)`);
         }
     });
+    const missing = Array.from({ length: n }, (_, k) => String(k)).filter((k) => !seen.has(k));
+    if (broken && missing.length) {
+        ctx.error(page.rel, main.line, `data-scene: o conjunto tem que ser exatamente 0..${n - 1}, cada valor uma vez; faltam ${missing.join(", ")}`);
+    }
 }
 
 /* Numeração do index: kicker NN = posição; setas entre seções apontam para a vizinha certa
@@ -690,12 +719,12 @@ function ruleNumbering(ctx) {
     const checkStep = (s, cls, target, { required, forbidden }) => {
         const steps = findAll(s.el, is("p", cls));
         if (forbidden) {
-            steps.forEach((p) => ctx.error(page.rel, p.line, `#${s.id}: ${forbidden}`));
+            steps.forEach((p) => ctx.error(page.rel, p.line, `#${s.id}: ${forbidden}`, { orphan: p, cls, from: s.el }));
             return;
         }
         if (!steps.length) {
             if (required) {
-                ctx.error(page.rel, s.el.line, `#${s.id} sem a seta .${cls}`);
+                ctx.error(page.rel, s.el.line, `#${s.id} sem a seta .${cls}`, { missing: true, cls, to: s.el });
             }
             return;
         }
@@ -707,13 +736,15 @@ function ruleNumbering(ctx) {
         }
         const href = attr(a, "href");
         if (target.id && href !== `#${target.id}`) {
-            ctx.error(page.rel, a.line, `.${cls} de #${s.id} aponta para "${href}"; esperado "#${target.id}"`);
+            ctx.error(page.rel, a.line, `.${cls} de #${s.id} aponta para "${href}"; esperado "#${target.id}"`,
+                { el: a, attr: "href", value: `#${target.id}` });
         }
         const expected = `Ir para ${pad2(target.pos)} · ${target.label ?? "?"}`;
         ["aria-label", "title"].forEach((name) => {
             const value = attr(a, name);
             if (value !== expected) {
-                ctx.error(page.rel, a.line, `.${cls} de #${s.id}: ${name}=${JSON.stringify(value)}; esperado "${expected}"`);
+                ctx.error(page.rel, a.line, `.${cls} de #${s.id}: ${name}=${JSON.stringify(value)}; esperado "${expected}"`,
+                    { el: a, attr: name, value: expected });
             }
         });
     };
@@ -721,7 +752,9 @@ function ruleNumbering(ctx) {
     sections.forEach((s, i) => {
         if (s.kicker) {
             if (s.kickerNum !== pad2(i)) {
-                ctx.error(page.rel, s.kicker.line, `kicker "${s.kickerNum}" em #${s.id}, que é a seção ${pad2(i)}; esperado "${pad2(i)}"`);
+                const span = s.kicker.children.find((c) => c.tag === "span");
+                ctx.error(page.rel, s.kicker.line, `kicker "${s.kickerNum}" em #${s.id}, que é a seção ${pad2(i)}; esperado "${pad2(i)}"`,
+                    span && { el: span, value: pad2(i) });
             }
         } else if (i > 0) {
             ctx.error(page.rel, s.el.line, `#${s.id} sem kicker (<p class="kicker"><span>${pad2(i)}</span>Rótulo</p>)`);
@@ -743,7 +776,8 @@ function ruleNumbering(ctx) {
         if (!cue) {
             ctx.error(page.rel, hero.el.line, `#${hero.id} sem a seta para a próxima seção (a.scroll-cue)`);
         } else if (attr(cue, "href") !== `#${sections[1].id}`) {
-            ctx.error(page.rel, cue.line, `a seta do hero (a.scroll-cue) aponta para "${attr(cue, "href")}"; esperado "#${sections[1].id}"`);
+            ctx.error(page.rel, cue.line, `a seta do hero (a.scroll-cue) aponta para "${attr(cue, "href")}"; esperado "#${sections[1].id}"`,
+                sections[1].id && { el: cue, attr: "href", value: `#${sections[1].id}` });
         }
     }
 }
@@ -1377,29 +1411,47 @@ const RULES = [
     ["contagem", warnCertCount]
 ];
 
+const fixing = process.argv.includes("--fix");
 const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const root = resolve(args[0] || join(dirname(fileURLToPath(import.meta.url)), ".."));
-const ctx = createContext(root);
+let ctx = createContext(root);
 
 if (!ctx.pages.length) {
     console.error(`check: nenhum .html em ${root}`);
     process.exit(1);
 }
 
-for (const [name, rule] of RULES) {
-    ctx.rule = name;
-    try {
-        rule(ctx);
-    } catch (e) {
-        ctx.error("tools/check.mjs", 1, `a regra quebrou: ${e.stack || e}`);
+function runRules(ctx) {
+    for (const [name, rule] of RULES) {
+        ctx.rule = name;
+        try {
+            rule(ctx);
+        } catch (e) {
+            ctx.error("tools/check.mjs", 1, `a regra quebrou: ${e.stack || e}`);
+        }
     }
+}
+
+runRules(ctx);
+/* --fix: cada volta aplica os `fix` dos erros, relê tudo e roda as regras de novo (a 2ª volta
+   acerta os valores do que a 1ª moveu); o que sobrar sai como no check normal */
+for (let pass = 1; fixing && pass <= 3 && applyFixes(ctx, { ATTR_RE }, pass); pass++) {
+    ctx = createContext(root);
+    runRules(ctx);
 }
 
 const errors = ctx.problems.filter((p) => p.level === "erro");
 const warnings = ctx.problems.filter((p) => p.level === "aviso");
+if (fixing && (errors.length || warnings.length)) {
+    console.log();
+}
 [...errors, ...warnings].forEach((p) => {
     console.log(`${p.file}:${p.line}: ${p.level} [${p.rule}] ${p.msg}`);
 });
+const hint = fixing ? leftoverHint(errors) : "";
+if (hint) {
+    console.log(`\n${hint}`);
+}
 
 const ms = Math.round(performance.now() - started);
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;

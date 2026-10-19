@@ -4,6 +4,7 @@
   "description": "Ferramentas só de desenvolvimento (verificador e testes no navegador). O site não depende de nada daqui.",
   "scripts": {
     "check": "node tools/check.mjs",
+    "fix": "node tools/check.mjs --fix",
     "test": "playwright test",
     "ab": "node tools/ab.mjs"
   },
