@@ -1109,6 +1109,212 @@ body.menu-open {
     background: var(--accent);
 }
 
+/* ---------- Recomendações (bloco dentro da Trajetória) ----------
+   Cartões com o mesmo vocabulário dos projetos/timeline (borda fina,
+   raio de 2px, --panel); no tema claro as variáveis já trazem fundo
+   branco e sombra. Lado a lado quando cabem 2 de 320px; na coluna
+   estreita do layout dividido (desktop) ficam empilhados. */
+
+.recs {
+    margin-top: clamp(56px, 8vw, 88px);
+}
+
+.recs-head {
+    margin-bottom: clamp(22px, 3.2vw, 32px);
+}
+
+.recs-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 14px;
+}
+
+.recs-label::after {
+    content: "";
+    flex: 0 0 56px;
+    height: 1px;
+    background: var(--line);
+}
+
+.recs-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 440;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+}
+
+.recs-title em {
+    font-style: italic;
+    font-weight: 420;
+    color: var(--accent);
+}
+
+.recs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+}
+
+.rec-card {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: clamp(22px, 3vw, 30px);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: var(--shadow-card);
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+/* o [data-reveal] ganha a transição de opacidade/transform com mais
+   especificidade: repete aqui junto com a do hover, senão ela se perde */
+body.js-ready .rec-card[data-reveal] {
+    transition: opacity 0.35s ease, transform 0.35s var(--ease-out),
+        background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.rec-card:hover {
+    background: var(--panel-hover);
+    border-color: var(--line-strong);
+}
+
+/* o trecho ocupa a altura que sobra: a assinatura desce junto nos dois cartões */
+.rec-quote {
+    flex: 1;
+    quotes: "\201C" "\201D";
+}
+
+.rec-quote p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+    max-width: 62ch;
+    text-wrap: pretty;
+}
+
+.rec-quote p::before,
+.rec-quote p::after {
+    font-family: var(--font-display);
+    color: var(--accent);
+}
+
+.rec-quote p::before {
+    content: open-quote;
+}
+
+.rec-quote p::after {
+    content: close-quote;
+}
+
+/* "[…]" marca as frases puladas entre dois trechos */
+.rec-cut {
+    color: var(--text-faint);
+    white-space: nowrap;
+}
+
+.rec-by {
+    display: grid;
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-soft);
+}
+
+.rec-who {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* iniciais no lugar de foto */
+.rec-avatar {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--glow);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+.rec-person {
+    min-width: 0;
+}
+
+.rec-name {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.rec-name a {
+    display: inline-block;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.rec-name a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.rec-role {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+.rec-meta {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+}
+
+/* mesmo desenho dos links dos projetos ("Ver no GitHub ↗") */
+.rec-source {
+    justify-self: start;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.rec-source span {
+    display: inline-block;
+    margin-left: 5px;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.rec-source:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.rec-source:hover span {
+    transform: translate(3px, -3px);
+}
+
 /* ---------- Contato ---------- */
 
 .contact {
@@ -1547,6 +1753,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .menu-toggle,
     .hero-links a,
     .project-links a,
+    .rec-name a,
+    .rec-source,
     .about-notes a,
     .footer-top,
     .menu-meta a {
@@ -1558,6 +1766,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .menu-toggle::after,
     .hero-links a::after,
     .project-links a::after,
+    .rec-name a::after,
+    .rec-source::after,
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after,
@@ -1573,6 +1783,9 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     /* 13px acima/abaixo ficam dentro dos 14px de respiro do hero-actions */
     .hero-links a::after { inset: -13px -8px; }
     .project-links a::after { inset: -11px -6px; }
+    /* recomendações: nome (linha de ~23px) e link de origem (~26px) */
+    .rec-name a::after { inset: -12px -6px; }
+    .rec-source::after { inset: -11px -6px; }
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after { inset: -13px -6px; }
@@ -1626,6 +1839,9 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .kicker,
     .timeline-tag,
     .timeline-date,
+    .recs-label,
+    .rec-meta,
+    .rec-avatar,
     .hero-facts dt,
     .stack-title,
     .project-kind,
@@ -1652,6 +1868,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .project-index,
     .project-stack,
     .project-links a,
+    .rec-source,
     .stack-col li,
     .about-notes li {
         font-size: 0.85rem;
@@ -1670,6 +1887,11 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
     .project-kind {
         letter-spacing: 0.11em;
+    }
+
+    /* o link de origem das recomendações cabe numa linha em 360px */
+    .rec-source {
+        letter-spacing: 0.04em;
     }
 
     .button {
@@ -1836,6 +2058,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 [data-theme="light"] .stack-title,
 [data-theme="light"] .timeline-tag,
 [data-theme="light"] .timeline-date,
+[data-theme="light"] .recs-label,
+[data-theme="light"] .rec-meta,
 [data-theme="light"] .project-index,
 [data-theme="light"] .hero-links a,
 [data-theme="light"] .site-nav a,
