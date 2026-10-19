@@ -1262,11 +1262,10 @@ body.js-ready .rec-card[data-reveal] {
     align-items: flex-start;
 }
 
+/* quem recomenda fica no topo do cartão; o texto vem embaixo */
 .rec-by {
-    display: grid;
-    gap: 16px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line-soft);
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line-soft);
 }
 
 .rec-who {
@@ -1342,7 +1341,7 @@ body.js-ready .rec-card[data-reveal] {
 
 /* mesmo desenho dos links dos projetos ("Ver no GitHub ↗") */
 .rec-source {
-    justify-self: start;
+    align-self: flex-start;
     font-family: var(--font-mono);
     font-size: 0.76rem;
     letter-spacing: 0.08em;
