@@ -54,12 +54,12 @@
    (scene.js) ocupa o lado livre, à direita dela. */
 @media (min-width: 1100px) {
     .cert-head {
-        max-width: 59%;
+        max-width: var(--split-col);
     }
 }
 
 .cert-block {
-    scroll-margin-top: calc(var(--header-h) + 8px);
+    scroll-margin-top: var(--anchor-offset);
     padding: clamp(32px, 5vw, 52px) 0 clamp(40px, 6vw, 72px);
     border-top: 1px solid var(--line-soft);
 }

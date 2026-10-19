@@ -1390,9 +1390,6 @@
         group.scale.setScalar(scaleNow * (1 + Math.sin(elapsed * 0.45) * 0.012));
 
         camera.position.z = camZ;
-        camera.position.x = 0;
-        camera.position.y = 0;
-        camera.lookAt(0, 0, 0);
 
         renderer.render(scene, camera);
     };
