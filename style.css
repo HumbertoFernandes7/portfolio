@@ -415,11 +415,21 @@ main,
 .menu-nav a:nth-child(4) { transition-delay: 0.21s; }
 .menu-nav a:nth-child(5) { transition-delay: 0.26s; }
 .menu-nav a:nth-child(6) { transition-delay: 0.31s; }
+.menu-nav a:nth-child(7) { transition-delay: 0.36s; }
 
+/* 2ch = a largura de "00" na mono: a seta do item de outra página
+   ocupa a mesma coluna dos números e os nomes ficam alinhados */
 .menu-nav a span {
+    min-width: 2ch;
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--accent);
+}
+
+/* item de outra página (certificados): fora da sequência numerada das
+   seções, com um respiro acima e a seta no lugar do número */
+.menu-nav .menu-page {
+    margin-top: 14px;
 }
 
 .menu-nav a:hover {
@@ -1109,6 +1119,205 @@ body.menu-open {
     background: var(--accent);
 }
 
+/* ---------- Recomendações ----------
+   Cartões com o mesmo vocabulário dos projetos/timeline (borda fina,
+   raio de 2px, --panel); no tema claro as variáveis já trazem fundo
+   branco e sombra. Lado a lado quando cabem 2 de 320px; na coluna
+   estreita do layout dividido (desktop) ficam empilhados. */
+
+.recs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+}
+
+.rec-card {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: clamp(22px, 3vw, 30px);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: var(--shadow-card);
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+/* o [data-reveal] ganha a transição de opacidade/transform com mais
+   especificidade: repete aqui junto com a do hover, senão ela se perde */
+body.js-ready .rec-card[data-reveal] {
+    transition: opacity 0.35s ease, transform 0.35s var(--ease-out),
+        background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.rec-card:hover {
+    background: var(--panel-hover);
+    border-color: var(--line-strong);
+}
+
+/* o texto ocupa a altura que sobra: o link do LinkedIn desce junto nos dois cartões */
+.rec-quote {
+    flex: 1;
+}
+
+.rec-quote p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+    max-width: 62ch;
+    text-wrap: pretty;
+}
+
+.rec-quote p + p,
+.rec-more p {
+    margin-top: 12px;
+}
+
+/* "ler completa": o resto do texto abre ali mesmo, sem sair da página */
+.rec-more summary {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    cursor: pointer;
+    list-style: none;
+}
+
+.rec-more summary::-webkit-details-marker {
+    display: none;
+}
+
+.rec-more summary::after {
+    content: "↓";
+    transition: transform 0.3s var(--ease-out);
+}
+
+.rec-more[open] summary {
+    order: 1;
+}
+
+.rec-more[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.rec-more[open] .rec-more-open,
+.rec-more:not([open]) .rec-more-close {
+    display: none;
+}
+
+.rec-more {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* quem recomenda fica no topo do cartão; o texto vem embaixo */
+.rec-by {
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.rec-who {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* foto salva no site (assets/recs); as iniciais ficam por baixo e aparecem se ela faltar */
+.rec-avatar {
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--glow);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+.rec-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.rec-person {
+    min-width: 0;
+}
+
+.rec-name {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.rec-name a {
+    display: inline-block;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.rec-name a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.rec-role {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+.rec-meta {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+}
+
+/* mesmo desenho dos links dos projetos ("Ver no GitHub ↗") */
+.rec-source {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.rec-source span {
+    display: inline-block;
+    margin-left: 5px;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.rec-source:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.rec-source:hover span {
+    transform: translate(3px, -3px);
+}
+
 /* ---------- Contato ---------- */
 
 .contact {
@@ -1297,9 +1506,10 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
 /* ---------- Layout dividido (desktop largo) ----------
    Conteúdo numa coluna de ~59% do container e a formação 3D no lado
-   livre, intercalando: cenas 0, 2 e 4 com texto à esquerda; 1 e 3 com
-   texto à direita. O scene.js usa a mesma media query (1100px) e mede
-   esta coluna para centralizar a formação na área livre. */
+   livre, intercalando: cenas 0, 2 e 4 com texto à esquerda; 1, 3 e 5
+   com texto à direita (o SIDE do scene.js espelha esta lista). O
+   scene.js usa a mesma media query (1100px) e mede esta coluna para
+   centralizar a formação na área livre. */
 
 @media (min-width: 1100px) {
     .hero > *,
@@ -1308,7 +1518,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     }
 
     #sobre > *,
-    #trajetoria > * {
+    #trajetoria > *,
+    #contato > * {
         margin-left: auto;
     }
 
@@ -1412,15 +1623,18 @@ html:active-view-transition-type(back)::view-transition-new(root) {
         gap: 20px;
     }
 
+    /* em bloco: num inline-block a margem automática (texto à direita) vale 0 */
     .contact-mail {
+        display: block;
         font-size: clamp(1.6rem, 2.5vw, 2.3rem);
     }
 }
 
 /* ---------- Rolagem por seção (desktop com mouse) ----------
    Scroll snap nativo, sem mexer no evento da roda: um giro leva à próxima
-   seção; numa seção mais alta que a tela (sobre, projetos, trajetória) a
-   rolagem corre livre dentro dela até o fim, e só o giro seguinte troca.
+   seção; numa seção mais alta que a tela (sobre, projetos, trajetória,
+   recomendações) a rolagem corre livre dentro dela até o fim, e só o
+   giro seguinte troca.
    snap-stop segura o giro forte numa seção por vez. O recuo do header sai
    do scroll-margin das seções e vai para o scroll-padding do html (os dois
    juntos dobrariam o recuo): com o scroll-margin, a área da seção seguinte
@@ -1479,6 +1693,15 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
     .menu-toggle {
         display: inline-block;
+    }
+}
+
+/* com os 6 itens do menu o nome ao lado do "HF" não cabe até ~1030px e
+   quebrava em duas linhas: fica só a marca, como no celular (com folga
+   para a fonte de reserva) */
+@media (min-width: 861px) and (max-width: 1059px) {
+    .brand-name {
+        display: none;
     }
 }
 
@@ -1547,6 +1770,9 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .menu-toggle,
     .hero-links a,
     .project-links a,
+    .rec-name a,
+    .rec-source,
+    .rec-more summary,
     .about-notes a,
     .footer-top,
     .menu-meta a {
@@ -1558,6 +1784,9 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .menu-toggle::after,
     .hero-links a::after,
     .project-links a::after,
+    .rec-name a::after,
+    .rec-source::after,
+    .rec-more summary::before,
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after,
@@ -1573,6 +1802,11 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     /* 13px acima/abaixo ficam dentro dos 14px de respiro do hero-actions */
     .hero-links a::after { inset: -13px -8px; }
     .project-links a::after { inset: -11px -6px; }
+    /* recomendações: nome (linha de ~23px) e link de origem (~26px) */
+    .rec-name a::after { inset: -12px -6px; }
+    .rec-source::after { inset: -11px -6px; }
+    /* o ::after do "ler completa" já é a seta, então a área de toque vai no ::before */
+    .rec-more summary::before { inset: -13px -6px; }
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after { inset: -13px -6px; }
@@ -1626,6 +1860,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .kicker,
     .timeline-tag,
     .timeline-date,
+    .rec-meta,
+    .rec-avatar,
     .hero-facts dt,
     .stack-title,
     .project-kind,
@@ -1652,6 +1888,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .project-index,
     .project-stack,
     .project-links a,
+    .rec-source,
     .stack-col li,
     .about-notes li {
         font-size: 0.85rem;
@@ -1670,6 +1907,11 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
     .project-kind {
         letter-spacing: 0.11em;
+    }
+
+    /* o link de origem das recomendações cabe numa linha em 360px */
+    .rec-source {
+        letter-spacing: 0.04em;
     }
 
     .button {
@@ -1836,6 +2078,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 [data-theme="light"] .stack-title,
 [data-theme="light"] .timeline-tag,
 [data-theme="light"] .timeline-date,
+[data-theme="light"] .rec-meta,
 [data-theme="light"] .project-index,
 [data-theme="light"] .hero-links a,
 [data-theme="light"] .site-nav a,
