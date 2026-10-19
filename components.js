@@ -1,22 +1,45 @@
 /* ============================================================
-   Componentes compartilhados pelas páginas (Web Components em DOM normal,
-   sem shadow DOM: o style.css e o script.js alcançam as classes e ids).
-   <site-header page="home|certificados"> e <site-footer page="…">.
+   Tema e componentes compartilhados pelas páginas (Web Components em DOM
+   normal, sem shadow DOM: o style.css e o script.js alcançam as classes e
+   ids). <site-header page="home|certificados"> e <site-footer page="…">.
 
-   Carregamento: <script src="components.js?v=…"> comum e síncrono no
-   <head>, logo depois do script de tema e antes de qualquer stylesheet
-   (script síncrono depois de stylesheet espera o CSS baixar). Assim o
-   customElements.define roda antes do <body> e cada elemento é montado
-   no connectedCallback, na hora em que o parser o insere: sem piscar e
-   com tudo no lugar quando o script.js roda (DOMContentLoaded). Com
-   defer, async ou module a definição chegaria depois do parse: o
-   elemento ficaria vazio na primeira pintura e o script.js não acharia
-   os links dele.
+   Carregamento: <script src="components.js?v=…"> comum e síncrono, o
+   primeiro script do <head>, antes de qualquer stylesheet (script síncrono
+   depois de stylesheet espera o CSS baixar). Assim o tema entra antes da
+   primeira pintura, o customElements.define roda antes do <body> e cada
+   elemento é montado no connectedCallback, na hora em que o parser o
+   insere: sem piscar e com tudo no lugar quando o script.js roda
+   (DOMContentLoaded). Com defer, async ou module a definição chegaria
+   depois do parse: o elemento ficaria vazio na primeira pintura e o
+   script.js não acharia os links dele.
 
    Os componentes só geram HTML, sem listeners; o comportamento continua
    no script.js. O tools/check.mjs roda este arquivo para conferir o HTML
    gerado (ids, âncoras, arquivos): monte sempre com this.innerHTML.
    ============================================================ */
+
+/* ---------- Tema ----------
+   Fora da checagem de Custom Elements: o tema vale em qualquer navegador.
+   Aplica o tema salvo no <html data-theme> e a cor da meta theme-color (que
+   fica no HTML com a cor do escuro) antes da primeira pintura, e liga a
+   classe js. A troca de tema é do script.js (THEME_KEY e THEME_META, com a
+   mesma chave e as mesmas cores; o tools/check.mjs confere as cores). */
+(() => {
+    const root = document.documentElement;
+    root.classList.add("js");
+    try {
+        const stored = localStorage.getItem("portfolio-theme");
+        root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
+    } catch (e) {
+        /* sem localStorage: fica o data-theme do HTML */
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+        meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
+    }
+})();
+
+/* ---------- Componentes ---------- */
 
 (() => {
     if (!window.customElements) {
@@ -75,6 +98,13 @@
         return section === SECTIONS[0] ? PAGES.home.href : `${PAGES.home.href}#${section.id}`;
     };
 
+    /* botão de tema com o estado do tema atual (o script de tema, no topo, já
+       rodou): os mesmos aria-label e aria-pressed que o syncThemeUI do script.js põe */
+    const themeToggleState = () => {
+        const dark = document.documentElement.dataset.theme !== "light";
+        return `aria-label="${dark ? "Ativar tema claro" : "Ativar tema escuro"}" aria-pressed="${dark ? "true" : "false"}"`;
+    };
+
     /* páginas que entram nos menus: [chave, dados] */
     const MENU_PAGES = Object.entries(PAGES).filter(([, p]) => p.label);
 
@@ -120,7 +150,7 @@
                     </nav>
 
                     <div class="header-tools">
-                        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Ativar tema claro" aria-pressed="true" title="Alternar tema">
+                        <button type="button" class="theme-toggle" id="theme-toggle" ${themeToggleState()} title="Alternar tema">
                             <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>

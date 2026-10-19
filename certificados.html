@@ -17,21 +17,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <title>Certificados — Humberto Fernandes</title>
 
-    <script>
-        (function () {
-            var root = document.documentElement;
-            root.classList.add("js");
-            try {
-                var stored = localStorage.getItem("portfolio-theme");
-                root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
-            } catch (e) {}
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) {
-                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
-            }
-        })();
-    </script>
-    <!-- síncrono e antes dos stylesheets: os componentes ficam definidos antes do <body> -->
+    <!-- primeiro script, síncrono e antes dos stylesheets: o tema entra antes
+         da primeira pintura e os componentes ficam definidos antes do <body> -->
     <script src="components.js?v=2026-10"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

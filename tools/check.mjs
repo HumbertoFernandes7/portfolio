@@ -178,8 +178,9 @@ function parseHtml(src, expand = null) {
 
 /* Roda o components.js numa sandbox com o mínimo de DOM que ele usa: HTMLElement com
    getAttribute/hasAttribute, firstElementChild (sempre null: o elemento acabou de
-   entrar) e innerHTML; customElements.define. render(el) monta como o navegador faz
-   (construtor e connectedCallback) e devolve o innerHTML gerado, ou null. */
+   entrar) e innerHTML; customElements.define; document e localStorage do script de tema
+   (themeSandbox). render(el) monta como o navegador faz (construtor e connectedCallback)
+   e devolve o innerHTML gerado, ou null. */
 function loadComponents(ctx) {
     const rel = "components.js";
     const out = { rel, tags: new Set(), error: null, render: () => null };
@@ -223,7 +224,8 @@ function loadComponents(ctx) {
         customElements: {
             define: (name, cls) => classes.set(name, cls),
             get: (name) => classes.get(name)
-        }
+        },
+        ...themeSandbox()
     };
     sandbox.window = sandbox;
     try {
@@ -244,6 +246,29 @@ function loadComponents(ctx) {
         return node.__html || null;
     };
     return out;
+}
+
+/* document e localStorage mínimos para o script de tema do topo do components.js: <html>
+   com classList, get/setAttribute e dataset; nenhuma meta (querySelector dá null); nada
+   salvo no localStorage, então o tema é o escuro, o padrão das páginas. */
+function themeSandbox() {
+    const attrs = new Map();
+    const dataset = {};
+    const documentElement = {
+        classList: { add() {}, remove() {}, contains: () => false },
+        dataset,
+        getAttribute: (name) => (attrs.has(name) ? attrs.get(name) : null),
+        setAttribute(name, value) {
+            attrs.set(name, String(value));
+            if (name.startsWith("data-")) {
+                dataset[name.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = String(value);
+            }
+        }
+    };
+    return {
+        document: { documentElement, querySelector: () => null },
+        localStorage: { getItem: () => null, setItem() {} }
+    };
 }
 
 /* const SECTIONS = [ … ] do components.js (fica dentro do escopo do arquivo, fora do
@@ -922,10 +947,11 @@ function ruleHead(ctx) {
 }
 
 /* components.js no <head> de cada página do jeito que funciona: um só, comum e síncrono
-   (sem defer, async, module nem blocking), depois do script de tema e antes do primeiro
-   stylesheet (script síncrono depois de stylesheet espera o CSS baixar). Cada elemento
-   dele na página: vazio, com page válido (o componente monta algo com ele) e sem repetir
-   o page que outra página usa; um <site-header> e um <site-footer> por página. */
+   (sem defer, async, module nem blocking), o primeiro script do <head> (o script de tema
+   mora no topo dele: nenhuma cópia inline) e antes do primeiro stylesheet (script
+   síncrono depois de stylesheet espera o CSS baixar). Cada elemento dele na página:
+   vazio, com page válido (o componente monta algo com ele) e sem repetir o page que
+   outra página usa; um <site-header> e um <site-footer> por página. */
 function ruleComponents(ctx) {
     const ONE_PER_PAGE = ["site-header", "site-footer"];
     const comps = ctx.components;
@@ -958,18 +984,24 @@ function ruleComponents(ctx) {
             } else {
                 const kids = childElements(head);
                 const at = kids.indexOf(script);
-                const theme = kids.findIndex((el) => el.tag === "script" && !hasAttr(el, "src") && !attr(el, "type") && el.raw.includes("data-theme"));
+                const first = kids.find((el) => el.tag === "script");
                 const sheet = kids.findIndex((el) => el.tag === "link" && relHas(el, "stylesheet"));
-                if (theme === -1) {
-                    ctx.error(page.rel, headLine, `não achei o script de tema inline no <head> (o ${name} vem logo depois dele)`);
-                } else if (at < theme) {
-                    ctx.error(page.rel, script.line, `<script src="${name}"> vem antes do script de tema (linha ${kids[theme].line}); tem que vir depois`);
+                if (first !== script) {
+                    ctx.error(page.rel, script.line, `<script src="${name}"> tem que ser o primeiro script do <head> (o tema dele entra antes da primeira pintura); antes dele vem o <script> da linha ${first.line}`);
                 }
                 if (sheet !== -1 && at > sheet) {
                     ctx.error(page.rel, script.line, `<script src="${name}"> vem depois do stylesheet da linha ${kids[sheet].line}: script síncrono depois de stylesheet espera o CSS baixar; tem que vir antes`);
                 }
             }
         }
+
+        /* o tema fica no topo do components.js: nenhuma cópia inline no <head> */
+        const inlineTheme = (el) =>
+            el.tag === "script" && !hasAttr(el, "src") && /^(text\/javascript)?$/i.test((attr(el, "type") || "").trim()) &&
+            /data-theme|theme-color|portfolio-theme/.test(el.raw);
+        (head ? findAll(head, inlineTheme) : []).forEach((el) => {
+            ctx.error(page.rel, el.line, `script de tema inline no <head>: o tema fica no topo do ${name}; apague este`);
+        });
 
         const counts = new Map();
         page.elements.filter((el) => comps.tags.has(el.tag) && !el.generated).forEach((el) => {
@@ -1005,7 +1037,7 @@ function ruleComponents(ctx) {
     });
 }
 
-/* Cores do tema iguais em: script.js (THEME_META), script de tema inline do head, meta
+/* Cores do tema iguais em: script.js (THEME_META), script de tema do components.js, meta
    theme-color, --bg do style.css e névoa (fog) do scene.js. */
 function ruleThemeColors(ctx) {
     const HEX = "#[0-9a-fA-F]{3,8}";
@@ -1033,18 +1065,19 @@ function ruleThemeColors(ctx) {
         missing("script.js", 1, "THEME_META no script.js");
     }
 
+    /* script de tema no topo do components.js: … === "light" ? "#claro" : "#escuro" */
+    const comps = ctx.source(ctx.components.rel);
+    const themeScript = comps && new RegExp(`["']light["']\\s*\\?\\s*["'](${HEX})["']\\s*:\\s*["'](${HEX})["']`).exec(comps.text);
+    if (themeScript) {
+        const line = comps.lineAt(themeScript.index);
+        add("light", comps.rel, line, themeScript[1], `script de tema do ${comps.rel}`);
+        add("dark", comps.rel, line, themeScript[2], `script de tema do ${comps.rel}`);
+    } else {
+        missing(ctx.components.rel, 1, `as cores no script de tema do ${ctx.components.rel}`);
+    }
+
     ctx.pages.forEach((page) => {
-        /* script inline do head: … === "light" ? "#claro" : "#escuro" */
         const head = findFirst(page.doc, is("head"));
-        const inline = head && findAll(head, (el) => el.tag === "script" && !hasAttr(el, "src") && !attr(el, "type"));
-        const found = (inline || []).map((el) => ({ el, m: new RegExp(`["']light["']\\s*\\?\\s*["'](${HEX})["']\\s*:\\s*["'](${HEX})["']`).exec(el.raw) })).find((x) => x.m);
-        if (found) {
-            const line = page.src.lineAt(found.el.rawPos + found.m.index);
-            add("light", page.rel, line, found.m[1], "script de tema inline do head");
-            add("dark", page.rel, line, found.m[2], "script de tema inline do head");
-        } else {
-            missing(page.rel, head ? head.line : 1, "as cores no script de tema inline do head");
-        }
 
         /* meta theme-color: vale para o tema inicial do <html data-theme> (padrão escuro) */
         const html = findFirst(page.doc, is("html"));

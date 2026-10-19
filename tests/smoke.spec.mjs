@@ -18,9 +18,14 @@ const VIEWPORTS = [
 
 const THEMES = ["dark", "light"];
 
-/* script de tema do head e script.js (o tools/check.mjs garante que as 5 fontes batem) */
+/* script de tema do components.js e script.js (o tools/check.mjs garante que as 5 fontes batem) */
 const THEME_KEY = "portfolio-theme";
 const THEME_COLOR = { dark: "#060b16", light: "#edf2f8" };
+/* botão de tema (syncThemeUI do script.js; o <site-header> já nasce assim) */
+const THEME_TOGGLE = {
+    dark: { pressed: "true", label: "Ativar tema claro" },
+    light: { pressed: "false", label: "Ativar tema escuro" }
+};
 
 /* style.css: até 860px a site-nav some e entra o botão Menu */
 const MENU_MAX = 860;
@@ -210,10 +215,20 @@ for (const { name: pageName, path } of PAGES) {
                             } catch (e) {
                                 /* about:blank */
                             }
-                            /* custom elements ainda não definidos quando o HTML termina de montar */
+                            /* custom elements ainda não definidos quando o HTML termina de montar.
+                               Este listener entra antes do script.js: o estado do tema é o que o
+                               components.js deixou, antes de o script.js sincronizar */
                             document.addEventListener(
                                 "DOMContentLoaded",
                                 () => {
+                                    const toggle = document.getElementById("theme-toggle");
+                                    const meta = document.querySelector('meta[name="theme-color"]');
+                                    window.__themeAtDCL = {
+                                        theme: document.documentElement.getAttribute("data-theme"),
+                                        color: meta && meta.getAttribute("content"),
+                                        pressed: toggle && toggle.getAttribute("aria-pressed"),
+                                        label: toggle && toggle.getAttribute("aria-label")
+                                    };
                                     window.__undefinedAtDCL = [...document.querySelectorAll(":not(:defined)")].map(
                                         (el) => el.localName
                                     );
@@ -283,14 +298,23 @@ for (const { name: pageName, path } of PAGES) {
                     const toggle = page.locator("#theme-toggle");
                     const meta = page.locator('meta[name="theme-color"]');
 
+                    /* já certo no DOMContentLoaded, antes do script.js: tema, cor e botão */
+                    expect(await page.evaluate(() => window.__themeAtDCL), "tema no DOMContentLoaded").toEqual({
+                        theme,
+                        color: THEME_COLOR[theme],
+                        ...THEME_TOGGLE[theme]
+                    });
+
                     await expect(html).toHaveAttribute("data-theme", theme);
-                    await expect(toggle).toHaveAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+                    await expect(toggle).toHaveAttribute("aria-pressed", THEME_TOGGLE[theme].pressed);
+                    await expect(toggle).toHaveAttribute("aria-label", THEME_TOGGLE[theme].label);
                     await expect(meta).toHaveAttribute("content", THEME_COLOR[theme]);
 
                     await press(toggle, vp.touch);
 
                     await expect(html).toHaveAttribute("data-theme", other);
-                    await expect(toggle).toHaveAttribute("aria-pressed", other === "dark" ? "true" : "false");
+                    await expect(toggle).toHaveAttribute("aria-pressed", THEME_TOGGLE[other].pressed);
+                    await expect(toggle).toHaveAttribute("aria-label", THEME_TOGGLE[other].label);
                     await expect(meta).toHaveAttribute("content", THEME_COLOR[other]);
                     expect(await page.evaluate((key) => localStorage.getItem(key), THEME_KEY)).toBe(other);
                 });
