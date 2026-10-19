@@ -653,7 +653,6 @@ html.lb-open body {
 
 [data-theme="light"] .diploma-card,
 [data-theme="light"] .cert-card {
-    background: var(--panel-solid);
     border-color: var(--line);
     box-shadow: var(--shadow-card);
 }
@@ -676,7 +675,7 @@ html.lb-open body {
 [data-theme="light"] .cert-field input,
 [data-theme="light"] .cert-field select {
     border-color: var(--line-strong);
-    background-color: var(--panel-solid);
+    background-color: var(--panel);
 }
 
 /* hover e estado ativo dos chips/campos não podem perder o azul */
@@ -697,7 +696,7 @@ html.lb-open body {
 }
 
 [data-theme="light"] .lightbox {
-    background: var(--panel-solid);
+    background: var(--panel);
 }
 
 [data-theme="light"] .lightbox::backdrop {

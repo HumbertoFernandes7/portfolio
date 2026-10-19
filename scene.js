@@ -47,10 +47,6 @@
     }
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isSmall = window.matchMedia("(max-width: 768px)").matches;
-    /* em telas estreitas as formações ficam atrás do texto: menos pontos e mais discretos */
-    const COUNT = isSmall ? 3600 : 14000;
-    const OPACITY_SCALE = isSmall ? 0.35 : 1;
 
     /* Layout dividido (mesma media query do style.css): o texto ocupa uma
        coluna e a formação vai para o lado livre — o oposto do texto —,
@@ -59,6 +55,10 @@
        empurra para a direita). */
     const splitQuery = window.matchMedia("(min-width: 1100px)");
     const narrowQuery = window.matchMedia("(max-width: 768px)");
+    const isSmall = narrowQuery.matches;
+    /* em telas estreitas as formações ficam atrás do texto: menos pontos e mais discretos */
+    const COUNT = isSmall ? 3600 : 14000;
+    const OPACITY_SCALE = isSmall ? 0.35 : 1;
     const SIDE = [1, -1, 1, -1, 1, -1];
     const FREE_GAP = 40; /* px entre a coluna de texto e a formação */
     const FREE_EDGE = 28; /* px de folga na borda da janela */

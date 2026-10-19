@@ -28,7 +28,6 @@
     --panel-hover: rgba(12, 20, 36, 0.65);
     /* tokens que só o tema claro usa (no escuro são neutros) */
     --line-strong: rgba(232, 237, 246, 0.22);
-    --panel-solid: var(--panel);
     --shadow-card: none;
 
     --shell: 1180px;
@@ -57,7 +56,6 @@
     --grain-opacity: 0.035;
     --panel: #ffffff;
     --panel-hover: #ffffff;
-    --panel-solid: #ffffff;
     --shadow-card: 0 1px 2px rgba(13, 24, 48, 0.05), 0 16px 36px -20px rgba(13, 24, 48, 0.28);
     color-scheme: light;
 }
@@ -1027,15 +1025,6 @@ body.menu-open {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--text-faint);
-}
-
-.section-note {
-    margin-top: 36px;
-    padding-left: 20px;
-    border-left: 2px solid var(--accent);
-    font-size: 0.95rem;
-    color: var(--text-dim);
-    max-width: 60ch;
 }
 
 /* ---------- Trajetória ---------- */
@@ -2095,7 +2084,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
 [data-theme="light"] .project-row,
 [data-theme="light"] .timeline-row {
-    background: var(--panel-solid);
     border: 1px solid var(--line);
     border-radius: 2px;
     box-shadow: var(--shadow-card);
@@ -2114,7 +2102,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 }
 
 [data-theme="light"] .stack {
-    background: var(--panel-solid);
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 30px 22px 10px;
@@ -2122,7 +2109,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 }
 
 [data-theme="light"] .portrait-frame {
-    background: var(--panel-solid);
+    background: var(--panel);
     box-shadow: var(--shadow-card);
 }
 
