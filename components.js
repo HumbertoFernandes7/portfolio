@@ -56,9 +56,13 @@
     };
 
     /* Seções do index, na ordem da página: id da <section> e rótulo nos menus.
-       Seção nova: acrescente uma linha aqui; o npm run check confere se a lista
-       bate com as seções do index (ids, ordem e rótulos dos kickers). A primeira
-       é o topo (o hero): a marca e o item 00 do menu levam a ela. */
+       Não precisa editar à mão: o npm run fix reordena estas linhas pelas
+       seções do index e acrescenta a linha da seção nova (id da seção e rótulo
+       do kicker). O npm run check confere se a lista bate (ids, ordem e rótulos
+       dos kickers). Seção que sai do index: apague a linha aqui, o fix não
+       apaga. Mantenha um item { id, label } por linha, o formato que o fix
+       reescreve. A primeira é o topo (o hero): a marca e o item 00 do menu
+       levam a ela. */
     const SECTIONS = [
         { id: "inicio", label: "Início" },
         { id: "sobre", label: "Sobre" },

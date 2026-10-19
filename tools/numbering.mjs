@@ -1,5 +1,6 @@
 /* ============================================================
-   --fix do verificador: acerta a numeração das seções do index.html.
+   --fix do verificador: acerta a numeração das seções do index.html e a
+   lista SECTIONS do components.js.
 
    Uso:   npm run fix                  (= node tools/check.mjs --fix [pasta])
 
@@ -9,7 +10,12 @@
      - o NN do <span> do kicker (<p class="kicker"><span>NN</span>Rótulo</p>);
      - href, aria-label e title das setas .step-prev e .step-next
        ("Ir para NN · Rótulo", com o rótulo do kicker da seção de destino);
-     - o href da seta do hero (a.scroll-cue), que leva à segunda seção.
+     - o href da seta do hero (a.scroll-cue), que leva à segunda seção;
+     - as linhas { id: "…", label: "…" }, do array SECTIONS do components.js
+       (de onde saem os menus): reordenadas para seguir as <section> do <main>
+       e, para a seção que ainda não tem linha, acrescentada uma (id = o id da
+       seção, label = o rótulo do kicker, no formato e na indentação das
+       outras), no lugar certo da ordem.
 
    O data-scene NUNCA é mexido: ele não é a posição, é o id da formação 3D da
    seção (scene.js: 0 = </>, 1 = xícara, 2 = terminal, 3 = Python, 4 = balão,
@@ -21,13 +27,19 @@
    Como o check e o fix nunca discordam: não existe um segundo cálculo. A
    regra "numeracao" do check.mjs calcula o valor esperado e, quando o valor
    está errado num lugar que existe, anexa ao erro o que trocar:
-   ctx.error(arquivo, linha, msg, { el, attr, value }). O --fix só aplica
-   esses `fix` no arquivo e roda o check normal de novo. O que o check não
-   reclama, o fix não toca (por isso rodar duas vezes não muda nada).
+   ctx.error(arquivo, linha, msg, { el, attr, value }). A regra "lista-secoes"
+   faz o mesmo com a lista do SECTIONS: calcula a que o index pede e a anexa ao
+   primeiro erro de ordem, de falta ou de sobra, como { list }. O --fix só
+   aplica esses `fix` no arquivo e roda o check normal de novo. O que o check
+   não reclama, o fix não toca (por isso rodar duas vezes não muda nada).
 
    Edição cirúrgica: troca só o valor, entre as aspas (ou o texto do <span>).
    Indentação, espaços, CRLF/LF, ordem dos atributos e o resto do arquivo
-   ficam byte a byte iguais.
+   ficam byte a byte iguais. No SECTIONS, só as linhas do array são
+   reescritas: cada linha que já existe segue inteira, com o mesmo texto (só a
+   vírgula do fim se ajusta); o resto do components.js nem é tocado. O fix só
+   mexe num array com um item por linha, o [ no fim da linha e o ] sozinho
+   na dele (como está hoje); com outro formato, avisa e deixa para você.
 
    Não inventa HTML: não cria nem apaga nada. Se faltar o kicker, uma seta ou
    um atributo, o --fix avisa o que falta e como copiar de outra seção, e o
@@ -36,8 +48,12 @@
    sobrando e uma faltando da mesma classe, a que sobra vai (a linha inteira,
    como está) para o fim da que falta; os valores dela o fix acerta em
    seguida. É o caso de mover o #contato, ou de acrescentar uma seção no fim.
-   Também não reordena menus (site-nav, menu-nav, SECTIONS do components.js):
-   essa ordem é sua.
+   Do SECTIONS ele também não apaga nada: uma linha a mais (sem seção no
+   index) é avisada e vai para o fim da lista, e o check continua vermelho
+   até você apagá-la (ou criar a seção). O rótulo de uma linha que já existe
+   também é seu: o fix não reescreve texto, só ordem e linha que falta.
+   Menus escritos à mão no HTML (site-nav, menu-nav) também não: hoje os dois
+   saem do <site-header>, que lê o SECTIONS.
 
    ------------------------------------------------------------
    Como acrescentar uma seção (ou mudar a ordem):
@@ -52,15 +68,18 @@
         builder de outra seção), e o data-scene dela é o id novo (N, o próximo
         depois do último); o conjunto tem que continuar 0..N-1, sem repetir.
         Quem só muda de lugar leva o data-scene que já tem.
-     3. Acrescente a linha da seção em SECTIONS no components.js (menus), na
-        mesma ordem do <main>.
-     4. Rode npm run fix. Ele renumera os kickers e refaz os destinos e
-        rótulos das setas, das seções vizinhas também.
-     5. npm run check confirma (0 erros).
+     3. Rode npm run fix. Ele renumera os kickers, refaz os destinos e
+        rótulos das setas (das seções vizinhas também) e deixa o SECTIONS do
+        components.js (menus) na ordem do <main>, com a linha da seção nova
+        (id da seção e rótulo do kicker). Não precisa editar o SECTIONS.
+     4. npm run check confirma (0 erros). Se sobrar erro, o fix explica.
+        Seção que sai do index: apague a linha dela no SECTIONS (o fix não
+        apaga) e rode o fix de novo.
    ============================================================ */
 
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import vm from "node:vm";
 
 const escapeValue = (value, quote) =>
     value.replace(/&/g, "&amp;").replace(quote === "'" ? /'/g : /"/g, quote === "'" ? "&#39;" : "&quot;");
@@ -128,11 +147,64 @@ function moveEdits(text, orphan, section) {
     ];
 }
 
+/* As linhas do array SECTIONS (o literal em `text`, de plan.at, com o texto plan.literal) na
+   ordem de plan.order, com a linha que falta, e as linhas a mais (plan.extras) no fim. Cada linha
+   que existe segue inteira (indentação, texto e o que vem depois da vírgula); só a vírgula do fim
+   se ajusta. A linha nova copia a indentação da primeira e o formato { id: "…", label: "…" }.
+   Só mexe num array de um item { … } por linha, com o [ no fim da linha dele e o ] sozinho
+   numa linha, e cujas linhas batem com os itens que o check leu (plan.items).
+   Devolve { edit } (edit = { start, end, to }, ou null se a lista já está certa) ou { reason }. */
+function sectionListEdit(text, plan) {
+    const { at, literal } = plan;
+    const unsupported = { reason: 'o fix só mexe em SECTIONS com um item { id: "…", label: "…" } por linha, o [ no fim da linha e o ] sozinho na dele; acerte à mão' };
+    if (text.slice(at, at + literal.length) !== literal) {
+        return { reason: "o components.js mudou depois da leitura; rode o fix de novo" };
+    }
+    const inner = literal.slice(1, -1);
+    const head = /^[ \t]*\r?\n/.exec(inner);
+    const tail = /\r?\n[ \t]*$/.exec(inner);
+    if (!head || !tail || tail.index < head[0].length) {
+        return unsupported;
+    }
+    const start = at + 1 + head[0].length;
+    const region = inner.slice(head[0].length, tail.index);
+    const parts = region.split(/(\r?\n)/); /* [linha, quebra, linha, quebra, …, linha] */
+    const lines = [];
+    for (let k = 0; k < parts.length; k += 2) {
+        const m = /^([ \t]*)(\{[^{}]*\})(,?)([ \t]*)$/.exec(parts[k]);
+        let id;
+        try {
+            id = m && vm.runInNewContext(`(${m[2]})`, Object.create(null), { timeout: 1000 }).id;
+        } catch {
+            id = undefined;
+        }
+        if (!m || id !== (plan.items[k / 2] || {}).id) {
+            return unsupported;
+        }
+        lines.push({ indent: m[1], obj: m[2], trail: m[4] });
+    }
+    if (lines.length !== plan.items.length) {
+        return unsupported;
+    }
+    const fresh = (o) => ({ indent: lines[0].indent, obj: `{ id: ${JSON.stringify(o.id)}, label: ${JSON.stringify(o.label)} }`, trail: "" });
+    const next = [
+        ...plan.order.map((o) => (o.item ? lines[o.item.index] : fresh(o))),
+        ...plan.extras.map((item) => lines[item.index])
+    ];
+    const eol = parts[1] ?? /\r?\n/.exec(head[0])[0];
+    const to = next
+        .map((l, k) => `${l.indent}${l.obj}${k < next.length - 1 ? "," : ""}${l.trail}`)
+        .map((line, k) => (k === 0 ? line : (parts[2 * k - 1] ?? eol) + line))
+        .join("");
+    return { edit: to === region ? null : { start, end: start + region.length, to } };
+}
+
 /* Aplica no disco os `fix` que as regras anexaram aos erros de ctx. Cada fix é
      { el, attr, value }     troca o valor do atributo;
      { el, value }           troca o texto do elemento;
      { orphan, cls, from }   seta que sobra (numa seção que não deve ter);
-     { missing, cls, to }    seta que falta (numa seção que deve ter).
+     { missing, cls, to }    seta que falta (numa seção que deve ter);
+     { list }                a lista que o SECTIONS deveria ter (veja sectionListEdit).
    Imprime o que reescreveu e o que não deu para corrigir. Devolve quantas mudanças fez
    (0 = nada a fazer, o check pode seguir com o que já leu). `pass` é a volta (1 = primeira). */
 export function applyFixes(ctx, { ATTR_RE }, pass = 1) {
@@ -163,6 +235,35 @@ export function applyFixes(ctx, { ATTR_RE }, pass = 1) {
                 : `${where(p)} <${el.tag}> não é só texto; o fix não mexe: ${p.msg}`);
         } else if (text.slice(edit.start, edit.end) !== edit.to) {
             add(p, edit, p.msg);
+        }
+    });
+
+    /* SECTIONS do components.js: reordena pelo <main> e acrescenta a linha da seção nova; linha
+       a mais o fix não apaga, só avisa (e ela vai para o fim) */
+    errors.filter((p) => p.fix.list).forEach((p) => {
+        const plan = p.fix.list;
+        plan.extras.forEach((item) => {
+            skipped.push(`${where(p)} SECTIONS: "${item.id}" (components.js:${item.line}) não tem seção no index.html; o fix não apaga linhas: apague-a à mão (ou crie a seção)`);
+        });
+        if (plan.blocked.length) {
+            skipped.push(`${where(p)} SECTIONS: sem rótulo para ${plan.blocked.map((id) => `#${id}`).join(", ")} (a seção não tem kicker no index.html); o fix não mexeu na lista`);
+            return;
+        }
+        const { edit, reason } = sectionListEdit(ctx.source(p.file).text, plan);
+        if (reason) {
+            skipped.push(`${where(p)} SECTIONS: ${reason}`);
+        } else if (edit) {
+            const added = plan.order.filter((o) => !o.item);
+            const kept = plan.order.filter((o) => o.item);
+            const keptNow = plan.items.filter((item) => kept.some((o) => o.item === item));
+            const said = [];
+            if (added.length) {
+                said.push(`acrescentei ${added.map((o) => `{ id: "${o.id}", label: "${o.label}" }`).join(", ")}`);
+            }
+            if (keptNow.some((item, k) => item !== kept[k].item)) {
+                said.push("reordenei as linhas pela ordem do <main>");
+            }
+            add(p, edit, `SECTIONS: ${said.length ? said.join("; ") : "levei as linhas a mais para o fim da lista"}`);
         }
     });
 
@@ -204,10 +305,10 @@ export function applyFixes(ctx, { ATTR_RE }, pass = 1) {
         skipped.forEach((s) => console.log(`  ${s}`));
     }
     if (pass === 1 && !changed && !skipped.length) {
-        const pending = ctx.problems.some((p) => p.level === "erro" && (p.rule === "numeracao" || p.rule === "secoes"));
+        const pending = ctx.problems.some((p) => p.level === "erro" && (p.rule === "numeracao" || p.rule === "secoes" || p.rule === "lista-secoes"));
         console.log(pending
             ? "fix: nenhum valor para trocar; o que sobrou é à mão (veja abaixo)"
-            : "fix: nada para corrigir (a numeração já bate com a ordem das seções)");
+            : "fix: nada para corrigir (a numeração e o SECTIONS já batem com a ordem das seções)");
     }
     return changed;
 }
@@ -230,8 +331,11 @@ export function leftoverHint(errors) {
     if (errors.some((e) => e.rule === "secoes")) {
         out.push("fix: o --fix nunca mexe em data-scene (é o id da formação 3D da seção, não a posição): cada seção leva o seu, único, de 0 a N-1, e o hero leva 0. Acerte à mão os erros [secoes] acima.");
     }
+    if (errors.some((e) => e.rule === "lista-secoes")) {
+        out.push("fix: no SECTIONS do components.js o --fix só reordena as linhas e acrescenta a da seção nova; não apaga linha a mais nem troca rótulo (o rótulo é o do kicker da seção). Acerte à mão os erros [lista-secoes] acima.");
+    }
     if (errors.some((e) => e.rule === "menus")) {
-        out.push("fix: o --fix não reordena menus (site-nav, menu-nav, SECTIONS do components.js): acerte a ordem dos itens à mão, igual à do <main>.");
+        out.push("fix: o --fix não mexe em menus escritos à mão (site-nav, menu-nav); os do <site-header> seguem o SECTIONS (veja [lista-secoes]). Acerte à mão os itens dos erros [menus] acima.");
     }
     return out.join("\n");
 }

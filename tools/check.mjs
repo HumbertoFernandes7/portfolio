@@ -4,7 +4,8 @@
 
    Uso:   node tools/check.mjs [--fix] [pasta]     (padrão: a raiz do projeto)
           --fix (npm run fix): antes de conferir, acerta a numeração das seções do
-          index.html a partir da ordem delas; veja tools/numbering.mjs.
+          index.html e a lista SECTIONS do components.js a partir da ordem delas;
+          veja tools/numbering.mjs.
 
    Cada regra é uma função (ctx) => void registrada em RULES. Ela relata
    com ctx.error(arquivo, linha, mensagem) ou ctx.warn(...): erro faz o
@@ -277,7 +278,8 @@ function themeSandbox() {
 
 /* const SECTIONS = [ … ] do components.js (fica dentro do escopo do arquivo, fora do
    alcance da sandbox): o literal do array é avaliado numa sandbox própria (node:vm).
-   Devolve { items: [{ id, label, line }], line, end } ou { error, line }. */
+   Devolve { items: [{ id, label, line, index }], line, end, at, literal } ou { error, line };
+   at e literal (posição e texto do array, de [ a ]) são o que o --fix usa para editar as linhas. */
 function componentSections(ctx) {
     const rel = ctx.components.rel;
     const src = ctx.source(rel);
@@ -301,12 +303,12 @@ function componentSections(ctx) {
         return { error: "SECTIONS tem que ser uma lista de { id, label } com textos não vazios", line };
     }
     let cursor = at;
-    const items = list.map((item) => {
+    const items = list.map((item, index) => {
         const i = src.text.indexOf(item.id, cursor);
         cursor = i === -1 ? cursor : i;
-        return { id: item.id, label: item.label, line: src.lineAt(cursor) };
+        return { id: item.id, label: item.label, line: src.lineAt(cursor), index };
     });
-    return { items, line, end: src.lineAt(at + m[1].length) };
+    return { items, line, end: src.lineAt(at + m[1].length), at, literal: m[1] };
 }
 
 /* ---------- Consultas na árvore ---------- */
@@ -402,7 +404,8 @@ function createContext(root) {
         /* fix (opcional): o que o --fix faz para resolver este erro (tools/numbering.mjs):
            { el, attr, value } troca o valor de um atributo; { el, value } troca o texto do
            elemento; { orphan, cls, from } seta que sobra e { missing, cls, to } seta que
-           falta (o fix move a que sobra para a que falta, se for 1 para 1) */
+           falta (o fix move a que sobra para a que falta, se for 1 para 1); { list } a lista
+           do SECTIONS que o index pede (o fix reordena as linhas e acrescenta a que falta) */
         error(file, line, msg, fix = null) {
             problems.push({ level: "erro", file, line, rule: ctx.rule, msg, fix });
         },
@@ -866,10 +869,41 @@ function ruleMenus(ctx) {
     });
 }
 
+/* Lista que o SECTIONS deveria ter, para o --fix: as seções do index na ordem do <main>, cada
+   uma com a linha que já existe no SECTIONS (a primeira de mesmo id) ou, sem ela, o rótulo da
+   linha nova (o do kicker; `expectedLabel` devolve null se não há de onde tirar). `extras` são
+   as linhas sem seção no index: o fix não as apaga, elas vão para o fim, na ordem em que estão.
+   `blocked` = ids das seções novas sem rótulo (o fix não inventa). null quando o index não
+   permite saber a ordem (sem seções, ou seção sem id, ou id repetido: a regra "ids" acusa). */
+function sectionListPlan(list, sections, expectedLabel) {
+    const ids = sections.map((s) => s.id);
+    if (!ids.length || ids.some((id) => !id) || new Set(ids).size !== ids.length) {
+        return null;
+    }
+    const byId = new Map();
+    list.items.forEach((item) => byId.has(item.id) || byId.set(item.id, item));
+    const order = sections.map((s, i) => {
+        const item = byId.get(s.id) || null;
+        return { id: s.id, item, label: item ? null : expectedLabel(s, i) };
+    });
+    const kept = new Set(order.map((o) => o.item));
+    return {
+        at: list.at,
+        literal: list.literal,
+        items: list.items,
+        order,
+        extras: list.items.filter((item) => !kept.has(item)),
+        blocked: order.filter((o) => !o.item && o.label === null).map((o) => o.id)
+    };
+}
+
 /* SECTIONS do components.js (de onde saem os menus) = as seções do index: os mesmos ids na
    mesma ordem, e o rótulo de cada uma é o do kicker. O hero não tem kicker: o rótulo dele é
    "Início" (o indexSections tira esse rótulo do menu-nav, que agora sai do próprio SECTIONS;
-   comparar com ele não conferiria nada). */
+   comparar com ele não conferiria nada).
+   O --fix (tools/numbering.mjs) acerta a ordem e acrescenta a linha da seção nova: o primeiro
+   erro de ordem, de falta ou de sobra leva o `fix` com a lista que o index pede (a conta é
+   a de sectionListPlan). Linha a mais e rótulo diferente ele não resolve: só avisa. */
 function ruleSectionList(ctx) {
     const HERO_LABEL = "Início";
     const rel = ctx.components.rel;
@@ -882,23 +916,31 @@ function ruleSectionList(ctx) {
         return;
     }
     const sections = indexSections(ctx);
+    const expectedLabel = (s, i) => (s.kicker ? numberedLabel(s.kicker).label : i === 0 ? HERO_LABEL : null);
+    const plan = sectionListPlan(list, sections, expectedLabel);
+    let fix = plan && { list: plan };
+    const takeFix = () => {
+        const f = fix;
+        fix = null; /* um só erro leva o fix: a correção é a lista inteira, não uma linha */
+        return f;
+    };
     const n = Math.max(list.items.length, sections.length);
     for (let i = 0; i < n; i++) {
         const item = list.items[i];
         const s = sections[i];
         if (!item) {
-            ctx.error(rel, list.end, `SECTIONS: falta a seção ${pad2(i)}, #${s.id} (index.html:${s.el.line})`);
+            ctx.error(rel, list.end, `SECTIONS: falta a seção ${pad2(i)}, #${s.id} (index.html:${s.el.line})`, takeFix());
             continue;
         }
         if (!s) {
-            ctx.error(rel, item.line, `SECTIONS: "${item.id}" a mais; o index.html tem ${sections.length} seções`);
+            ctx.error(rel, item.line, `SECTIONS: "${item.id}" a mais; o index.html tem ${sections.length} seções`, takeFix());
             continue;
         }
         if (item.id !== s.id) {
-            ctx.error(rel, item.line, `SECTIONS: o item ${pad2(i)} é "${item.id}"; no index.html a seção ${pad2(i)} é #${s.id} (linha ${s.el.line})`);
+            ctx.error(rel, item.line, `SECTIONS: o item ${pad2(i)} é "${item.id}"; no index.html a seção ${pad2(i)} é #${s.id} (linha ${s.el.line})`, takeFix());
             continue;
         }
-        const expected = s.kicker ? numberedLabel(s.kicker).label : i === 0 ? HERO_LABEL : null;
+        const expected = expectedLabel(s, i);
         if (expected !== null && item.label !== expected) {
             const from = s.kicker ? `o do kicker de #${s.id}, index.html:${s.kicker.line}` : "o hero não tem kicker";
             ctx.error(rel, item.line, `SECTIONS: "${item.id}" com rótulo "${item.label}"; esperado "${expected}" (${from})`);
@@ -1393,8 +1435,7 @@ function warnCertCount(ctx) {
    Execução
    ============================================================ */
 
-/* Ordem de execução. Regras novas entram aqui (ex.: ordem das seções no SECTIONS do
-   components.js; --fix da numeração). */
+/* Ordem de execução. Regras novas entram aqui. */
 const RULES = [
     ["ids", ruleIds],
     ["arquivos", ruleFiles],
