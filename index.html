@@ -9,7 +9,7 @@
     <meta property="og:title" content="Humberto Fernandes — Engenheiro de Software | Back-end e IA">
     <meta property="og:description" content="Engenheiro de software back-end e IA. Java, Spring Boot e Python: assistente financeiro com IA, vendas com IA e Open Finance.">
     <meta property="og:url" content="https://humbertofernandes7.github.io/portfolio/">
-    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/og-image.jpg?v=2026-10">
+    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/og-image.jpg?v=2026-10b">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Humberto Fernandes, engenheiro de software back-end e IA">
@@ -17,34 +17,24 @@
     <meta name="twitter:card" content="summary_large_image">
     <title>Humberto Fernandes — Engenheiro de Software | Back-end e IA</title>
 
-    <script>
-        (function () {
-            var root = document.documentElement;
-            root.classList.add("js");
-            try {
-                var stored = localStorage.getItem("portfolio-theme");
-                root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
-            } catch (e) {}
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) {
-                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
-            }
-        })();
-    </script>
+    <!-- primeiro script, síncrono e antes dos stylesheets: o tema entra antes
+         da primeira pintura e os componentes ficam definidos antes do <body> -->
+    <script src="components.js?v=2026-10b"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..650;1,9..144,300..650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=2026-10">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2026-10">
-    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2026-10">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=2026-10b">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2026-10b">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2026-10b">
 
     <!-- a página de certificados já fica no cache: a transição entre as duas é imediata -->
     <link rel="prefetch" href="certificados.html">
     <link rel="prefetch" href="certificados.css">
     <link rel="prefetch" href="certificados.js">
     <link rel="prefetch" href="data/certificados.json">
+    <link rel="prefetch" href="data/diplomas.json">
 
     <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.min.js">
     <script type="importmap">
@@ -61,7 +51,7 @@
         "jobTitle": "Engenheiro de Software",
         "address": { "@type": "PostalAddress", "addressLocality": "São Paulo", "addressCountry": "BR" },
         "url": "https://humbertofernandes7.github.io/portfolio/",
-        "image": "https://humbertofernandes7.github.io/portfolio/assets/foto-perfil.jpg?v=2026-10",
+        "image": "https://humbertofernandes7.github.io/portfolio/assets/foto-perfil.jpg?v=2026-10b",
         "sameAs": [
             "https://www.linkedin.com/in/humberto-fernandes-9a4599234/",
             "https://github.com/HumbertoFernandes7"
@@ -75,53 +65,7 @@
     <div class="webgl" aria-hidden="true"><canvas id="scene-canvas"></canvas></div>
     <div class="grain" aria-hidden="true"></div>
 
-    <header class="site-header" data-header>
-        <div class="header-shell">
-            <a class="brand" href="#inicio" aria-label="Ir para o início">
-                <span class="brand-mark">HF</span>
-                <span class="brand-name">Humberto Fernandes</span>
-            </a>
-
-            <nav class="site-nav" aria-label="Navegação principal">
-                <a href="#sobre" data-nav>Sobre</a>
-                <a href="#projetos" data-nav>Projetos</a>
-                <a href="#trajetoria" data-nav>Trajetória</a>
-                <a href="#recomendacoes" data-nav>Recomendações</a>
-                <a href="#contato" data-nav>Contato</a>
-                <a href="certificados.html">Certificados</a>
-            </nav>
-
-            <div class="header-tools">
-                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Ativar tema claro" aria-pressed="true" title="Alternar tema">
-                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                    </svg>
-                </button>
-                <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-overlay">Menu</button>
-            </div>
-        </div>
-    </header>
-
-    <div class="menu-overlay" id="menu-overlay" aria-hidden="true">
-        <nav class="menu-nav" aria-label="Menu">
-            <a href="#inicio"><span>00</span>Início</a>
-            <a href="#sobre"><span>01</span>Sobre</a>
-            <a href="#projetos"><span>02</span>Projetos</a>
-            <a href="#trajetoria"><span>03</span>Trajetória</a>
-            <a href="#recomendacoes"><span>04</span>Recomendações</a>
-            <a href="#contato"><span>05</span>Contato</a>
-            <!-- outra página: fora da numeração das seções, com a seta no lugar do número -->
-            <a class="menu-page" href="certificados.html"><span aria-hidden="true">→</span>Certificados</a>
-        </nav>
-        <div class="menu-meta">
-            <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
-            <span>São Paulo, Brasil</span>
-        </div>
-    </div>
+    <site-header page="home"></site-header>
 
     <main id="conteudo">
         <section id="inicio" class="hero" data-section data-scene="0" aria-labelledby="hero-title">
@@ -169,7 +113,7 @@
             </header>
 
             <div class="about-grid">
-                <div class="about-copy" data-reveal data-delay="80">
+                <div class="about-copy" data-reveal>
                     <p>
                         Tenho mais de 4 anos de experiência com Java e Spring Boot, somando trabalho
                         profissional e projetos pessoais, e atuo também com Python, Go e Angular.
@@ -195,15 +139,15 @@
                     </ul>
                 </div>
 
-                <figure class="about-portrait" data-reveal data-delay="160">
+                <figure class="about-portrait" data-reveal>
                     <div class="portrait-frame">
-                        <img src="assets/foto-perfil.jpg?v=2026-10" alt="Retrato de Humberto Fernandes" loading="lazy" decoding="async">
+                        <img src="assets/foto-perfil.jpg?v=2026-10b" alt="Retrato de Humberto Fernandes" loading="lazy" decoding="async">
                     </div>
                     <figcaption>Humberto Fernandes de Oliveira Pinto — São Paulo, BR</figcaption>
                 </figure>
             </div>
 
-            <div class="stack" data-reveal data-delay="120">
+            <div class="stack" data-reveal>
                 <p class="stack-title">Stack &amp; práticas</p>
                 <div class="stack-cols">
                     <div class="stack-col">
@@ -269,7 +213,7 @@
             </header>
 
             <div class="project-list">
-                <article class="project-row" data-reveal data-delay="60">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">01</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -286,7 +230,7 @@
                     </div>
                 </article>
 
-                <article class="project-row" data-reveal data-delay="120">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">02</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -301,7 +245,7 @@
                     </div>
                 </article>
 
-                <article class="project-row" data-reveal data-delay="180">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">03</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -318,7 +262,7 @@
                     </div>
                 </article>
 
-                <article class="project-row" data-reveal data-delay="60">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">04</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -339,7 +283,7 @@
                     </div>
                 </article>
 
-                <article class="project-row" data-reveal data-delay="120">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">05</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -357,7 +301,7 @@
                     </div>
                 </article>
 
-                <article class="project-row" data-reveal data-delay="180">
+                <article class="project-row" data-reveal>
                     <span class="project-index" aria-hidden="true">06</span>
                     <div class="project-body">
                         <div class="project-title">
@@ -391,7 +335,7 @@
             </header>
 
             <ol class="timeline">
-                <li class="timeline-row" data-reveal data-delay="60">
+                <li class="timeline-row" data-reveal>
                     <p class="timeline-date">fev 2026 — out 2026</p>
                     <div class="timeline-body">
                         <p class="timeline-tag">Experiência</p>
@@ -408,7 +352,7 @@
                         </ul>
                     </div>
                 </li>
-                <li class="timeline-row" data-reveal data-delay="120">
+                <li class="timeline-row" data-reveal>
                     <p class="timeline-date">2026</p>
                     <div class="timeline-body">
                         <p class="timeline-tag">Formação</p>
@@ -420,7 +364,7 @@
                         </p>
                     </div>
                 </li>
-                <li class="timeline-row" data-reveal data-delay="180">
+                <li class="timeline-row" data-reveal>
                     <p class="timeline-date">2024</p>
                     <div class="timeline-body">
                         <p class="timeline-tag">Graduação</p>
@@ -431,7 +375,7 @@
                         </p>
                     </div>
                 </li>
-                <li class="timeline-row" data-reveal data-delay="240">
+                <li class="timeline-row" data-reveal>
                     <p class="timeline-date">mar 2022 — jun 2023</p>
                     <div class="timeline-body">
                         <p class="timeline-tag">Experiência</p>
@@ -462,11 +406,11 @@
             <!-- Recomendações do LinkedIn, com o texto exato. Para acrescentar uma: salve a foto da pessoa
                  em assets/recs/ (96x96), copie um <figure class="rec-card"> inteiro, cole depois do último e
                  troque iniciais, foto, nome, link do perfil, cargo, relação, data e o texto (os primeiros
-                 parágrafos ficam à vista; o resto vai dentro do "ler completa"). Some 60 ao data-delay do
-                 cartão anterior. O link "Ver recomendação" é o mesmo para todas: o LinkedIn não tem endereço
+                 parágrafos ficam à vista; o resto vai dentro do "ler completa"). O link "Ver
+                 recomendação" é o mesmo para todas: o LinkedIn não tem endereço
                  próprio por recomendação, e essa página lista as recebidas. -->
             <div class="recs-grid">
-                <figure class="rec-card" data-reveal data-delay="60">
+                <figure class="rec-card" data-reveal>
                     <figcaption class="rec-by">
                         <div class="rec-who">
                             <span class="rec-avatar" aria-hidden="true">JB<img src="assets/recs/rec-julio-barros.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
@@ -490,7 +434,7 @@
                     <a class="rec-source" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/" target="_blank" rel="noopener noreferrer" aria-label="Ver recomendação no LinkedIn de Julio Barros">Ver recomendação no LinkedIn<span aria-hidden="true">↗</span></a>
                 </figure>
 
-                <figure class="rec-card" data-reveal data-delay="120">
+                <figure class="rec-card" data-reveal>
                     <figcaption class="rec-by">
                         <div class="rec-who">
                             <span class="rec-avatar" aria-hidden="true">MS<img src="assets/recs/rec-miguel-sanz-boragan.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
@@ -527,11 +471,11 @@
                 </p>
             </header>
 
-            <a class="contact-mail" href="mailto:humbertofernandes08@hotmail.com" data-reveal data-delay="80">
+            <a class="contact-mail" href="mailto:humbertofernandes08@hotmail.com" data-reveal>
                 humbertofernandes08<wbr>@hotmail.com
             </a>
 
-            <ul class="contact-meta" data-reveal data-delay="140">
+            <ul class="contact-meta" data-reveal>
                 <li><a href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/" target="_blank" rel="noopener noreferrer">LinkedIn<span aria-hidden="true">↗</span></a></li>
                 <li><a href="https://github.com/HumbertoFernandes7" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true">↗</span></a></li>
                 <li><a href="tel:+5511977728104">+55 (11) 97772-8104</a></li>
@@ -539,16 +483,12 @@
                 <li>São Paulo, Brasil</li>
             </ul>
 
-            <p class="contact-cv" data-reveal data-delay="200">
+            <p class="contact-cv" data-reveal>
                 <a class="button button-solid" href="https://docs.google.com/document/d/1bqdrPGP4nc1t7kE3XByRWwJTeWJgNwOFUBJD_CAq6hk/export?format=pdf" target="_blank" rel="noopener noreferrer">Baixar currículo (PDF)<span aria-hidden="true">↓</span></a>
             </p>
         </section>
     </main>
 
-    <footer class="site-footer">
-        <p>© 2026 Humberto Fernandes de Oliveira Pinto</p>
-        <p class="footer-made">HTML, CSS, JavaScript e Three.js — sem frameworks.</p>
-        <a href="#inicio" class="footer-top">voltar ao topo<span aria-hidden="true">↑</span></a>
-    </footer>
+    <site-footer page="home"></site-footer>
 </body>
 </html>

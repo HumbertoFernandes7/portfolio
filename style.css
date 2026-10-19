@@ -4,6 +4,37 @@
    profundo, grão de filme e cena 3D persistente entre seções.
    ============================================================ */
 
+/* ---------- Índice ----------
+   As seções deste arquivo, na ordem em que aparecem (cada uma abre com um
+   comentário "---------- Nome ----------"):
+     Tokens
+     Reset
+     Camadas de fundo (3D + grão)
+     Header
+     Menu overlay (mobile)
+     Blocos comuns
+     Botões e links
+     Hero
+     Setas entre seções
+     Sobre
+     Projetos
+     Trajetória
+     Recomendações
+     Contato
+     Footer
+     Animações de entrada
+     Transição entre páginas (View Transitions, same-origin)
+     Layout dividido (desktop largo)
+     Rolagem por seção (desktop com mouse)
+     Responsivo
+     Celular: áreas de toque e letras
+     Celular: Sobre compacto
+     Movimento reduzido
+     Tema claro: ajustes finos
+   A ordem importa: o fim do arquivo (responsivo, movimento reduzido e o
+   tema claro) sobrescreve o que vem antes, então as seções não se reordenam
+   por assunto sem conferir o resultado (npm run ab). */
+
 /* ---------- Tokens ---------- */
 
 :root {
@@ -28,12 +59,15 @@
     --panel-hover: rgba(12, 20, 36, 0.65);
     /* tokens que só o tema claro usa (no escuro são neutros) */
     --line-strong: rgba(232, 237, 246, 0.22);
-    --panel-solid: var(--panel);
     --shadow-card: none;
 
     --shell: 1180px;
     --gutter: clamp(20px, 5vw, 60px);
     --header-h: 72px;
+    /* largura da coluna de texto no layout dividido (>= 1100px); o resto fica para a formação 3D */
+    --split-col: 59%;
+    /* respiro abaixo do cabeçalho fixo ao rolar até uma âncora ou um snap */
+    --anchor-offset: calc(var(--header-h) + 8px);
 
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     color-scheme: dark;
@@ -57,7 +91,6 @@
     --grain-opacity: 0.035;
     --panel: #ffffff;
     --panel-hover: #ffffff;
-    --panel-solid: #ffffff;
     --shadow-card: 0 1px 2px rgba(13, 24, 48, 0.05), 0 16px 36px -20px rgba(13, 24, 48, 0.28);
     color-scheme: light;
 }
@@ -70,6 +103,10 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+[hidden] {
+    display: none !important;
 }
 
 html {
@@ -204,6 +241,13 @@ main,
 .site-footer {
     position: relative;
     z-index: 5;
+}
+
+/* <site-header> e <site-footer> (components.js) só embrulham o HTML que
+   geram: sem caixa própria, o layout é o de um <header>/<footer> no body */
+site-header,
+site-footer {
+    display: contents;
 }
 
 /* ---------- Header ---------- */
@@ -409,13 +453,13 @@ main,
     opacity: 1;
 }
 
-.menu-nav a:nth-child(1) { transition-delay: 0.06s; }
-.menu-nav a:nth-child(2) { transition-delay: 0.11s; }
-.menu-nav a:nth-child(3) { transition-delay: 0.16s; }
-.menu-nav a:nth-child(4) { transition-delay: 0.21s; }
-.menu-nav a:nth-child(5) { transition-delay: 0.26s; }
-.menu-nav a:nth-child(6) { transition-delay: 0.31s; }
-.menu-nav a:nth-child(7) { transition-delay: 0.36s; }
+/* entrada escalonada do menu: 60ms no 1º item e +50ms a cada um (--i é a
+   posição do item, posta pelo components.js). A conta fica em números e só
+   vira tempo no fim: 60ms + var(--i) * 50ms arredonda diferente (210ms do
+   4º item viravam 210.00000000000003ms) */
+.menu-nav a {
+    transition-delay: calc((60 + 50 * var(--i)) * 1ms);
+}
 
 /* 2ch = a largura de "00" na mono: a seta do item de outra página
    ocupa a mesma coluna dos números e os nomes ficam alinhados */
@@ -464,7 +508,7 @@ body.menu-open {
     margin: 0 auto;
     padding: var(--section-pad) var(--gutter);
     border-top: 1px solid var(--line-soft);
-    scroll-margin-top: calc(var(--header-h) + 8px);
+    scroll-margin-top: var(--anchor-offset);
 }
 
 .section-head {
@@ -505,6 +549,7 @@ body.menu-open {
     text-wrap: balance;
 }
 
+.section-head h1 em,
 .section-head h2 em,
 .hero h1 em {
     font-style: italic;
@@ -592,7 +637,10 @@ body.menu-open {
     max-width: 860px;
 }
 
-.hero h1 {
+/* o título da página de certificados (.section-head h1) tem a mesma escala do hero,
+   para as duas páginas abrirem com o mesmo peso visual */
+.hero h1,
+.section-head h1 {
     font-family: var(--font-display);
     font-size: clamp(2.35rem, 6.2vw, 4.7rem);
     font-weight: 430;
@@ -696,8 +744,9 @@ body.menu-open {
    outro para a próxima (no pé): só o quadro com a seta; o destino fica no
    aria-label e no title. São âncoras comuns: funcionam sem JS, no teclado
    e junto com o snap. O bloco é filho direto da seção, então segue a
-   coluna de texto no layout dividido — e, na seção sobre, é o
-   firstElementChild que o scene.js mede (mesma largura e lado da coluna). */
+   coluna de texto no layout dividido — e, na primeira seção com texto à
+   direita, é o firstElementChild que o scene.js mede (mesma largura e
+   lado da coluna). */
 
 .section-step {
     display: flex;
@@ -1027,15 +1076,6 @@ body.menu-open {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--text-faint);
-}
-
-.section-note {
-    margin-top: 36px;
-    padding-left: 20px;
-    border-left: 2px solid var(--accent);
-    font-size: 0.95rem;
-    color: var(--text-dim);
-    max-width: 60ch;
 }
 
 /* ---------- Trajetória ---------- */
@@ -1406,6 +1446,15 @@ body.js-ready .rec-card[data-reveal] {
     transform: translateY(-3px);
 }
 
+/* certificados: "← voltar ao portfólio", com a seta antes do texto */
+.footer-back span {
+    margin: 0 6px 0 0;
+}
+
+.footer-back:hover span {
+    transform: translateX(-3px);
+}
+
 /* ---------- Animações de entrada ---------- */
 
 /* Hero: anima sozinho no load (CSS puro, não depende do script.js) */
@@ -1506,24 +1555,26 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
 /* ---------- Layout dividido (desktop largo) ----------
    Conteúdo numa coluna de ~59% do container e a formação 3D no lado
-   livre, intercalando: cenas 0, 2 e 4 com texto à esquerda; 1, 3 e 5
-   com texto à direita (o SIDE do scene.js espelha esta lista). O
-   scene.js usa a mesma media query (1100px) e mede esta coluna para
-   centralizar a formação na área livre. */
+   livre, intercalando pela posição da seção no <main>: a 1ª, a 3ª… com
+   texto à esquerda; a 2ª, a 4ª… com texto à direita. A regra é uma só
+   (nth-of-type conta só as <section>), então seção nova ou trocada de
+   lugar alterna sozinha. O scene.js usa o mesmo seletor (TEXT_RIGHT,
+   sem o "> *") para pôr a formação do outro lado, usa a mesma media
+   query (1100px) e mede esta coluna para centralizar a formação na área
+   livre. */
 
 @media (min-width: 1100px) {
     .hero > *,
     .section > * {
-        width: 59%;
+        width: var(--split-col);
     }
 
-    #sobre > *,
-    #trajetoria > *,
-    #contato > * {
+    main > section:nth-of-type(even) > * {
         margin-left: auto;
     }
 
-    .hero h1 {
+    .hero h1,
+    .section-head h1 {
         font-size: clamp(2.6rem, 4.3vw, 4rem);
     }
 
@@ -1592,23 +1643,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
         padding-top: 1px;
     }
 
-    .stack-col ul {
-        display: flex;
-        flex-wrap: wrap;
-        row-gap: 4px;
-    }
-
-    .stack-col li {
-        padding: 0;
-        border-bottom: 0;
-    }
-
-    .stack-col li:not(:last-child)::after {
-        content: "·";
-        margin: 0 9px;
-        color: var(--text-faint);
-    }
-
     .project-row {
         grid-template-columns: 52px minmax(0, 1fr);
         gap: 16px;
@@ -1632,9 +1666,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
 /* ---------- Rolagem por seção (desktop com mouse) ----------
    Scroll snap nativo, sem mexer no evento da roda: um giro leva à próxima
-   seção; numa seção mais alta que a tela (sobre, projetos, trajetória,
-   recomendações) a rolagem corre livre dentro dela até o fim, e só o
-   giro seguinte troca.
+   seção; numa seção mais alta que a tela a rolagem corre livre dentro dela
+   até o fim, e só o giro seguinte troca.
    snap-stop segura o giro forte numa seção por vez. O recuo do header sai
    do scroll-margin das seções e vai para o scroll-padding do html (os dois
    juntos dobrariam o recuo): com o scroll-margin, a área da seção seguinte
@@ -1649,7 +1682,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 @media (min-width: 1100px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     html.section-snap {
         scroll-snap-type: y mandatory;
-        scroll-padding-top: calc(var(--header-h) + 8px);
+        scroll-padding-top: var(--anchor-offset);
     }
 
     .section-snap .hero,
@@ -1696,9 +1729,9 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     }
 }
 
-/* com os 6 itens do menu o nome ao lado do "HF" não cabe até ~1030px e
-   quebrava em duas linhas: fica só a marca, como no celular (com folga
-   para a fonte de reserva) */
+/* com todos os itens do menu (as seções e a página de certificados) o nome
+   ao lado do "HF" não cabe até ~1030px e quebrava em duas linhas: fica só a
+   marca, como no celular (com folga para a fonte de reserva) */
 @media (min-width: 861px) and (max-width: 1059px) {
     .brand-name {
         display: none;
@@ -1729,7 +1762,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
         width: 100%;
     }
 
-    .project-row {
+    .project-row,
+    .timeline-row {
         grid-template-columns: 1fr;
         gap: 8px;
         padding-left: 4px;
@@ -1738,13 +1772,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
     .project-index {
         padding-top: 0;
-    }
-
-    .timeline-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        padding-left: 4px;
-        padding-right: 4px;
     }
 
     .brand-name {
@@ -1919,6 +1946,21 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     }
 }
 
+/* "voltar ao portfólio" (certificados): a área de toque vale também em
+   tela de toque mais larga e é um pouco mais larga que a do .footer-top
+   (vem depois do bloco acima para o inset ganhar do dele) */
+@media (max-width: 720px), (pointer: coarse) {
+    .footer-back {
+        position: relative;
+    }
+
+    .footer-back::after {
+        content: "";
+        position: absolute;
+        inset: -13px -8px;
+    }
+}
+
 /* ---------- Celular: Sobre compacto ----------
    Retrato pequeno com a legenda ao lado (em vez de largura toda) e a stack
    em linhas corridas por categoria (em vez de um item por linha). Mesmo
@@ -1961,7 +2003,10 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .stack-col h3 {
         margin-bottom: 10px;
     }
+}
 
+/* Stack em linhas corridas: vale no layout dividido (desktop largo) e no celular */
+@media (min-width: 1100px), (max-width: 720px) {
     .stack-col ul {
         display: flex;
         flex-wrap: wrap;
@@ -2095,7 +2140,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
 [data-theme="light"] .project-row,
 [data-theme="light"] .timeline-row {
-    background: var(--panel-solid);
     border: 1px solid var(--line);
     border-radius: 2px;
     box-shadow: var(--shadow-card);
@@ -2114,7 +2158,6 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 }
 
 [data-theme="light"] .stack {
-    background: var(--panel-solid);
     border: 1px solid var(--line);
     border-radius: 2px;
     padding: 30px 22px 10px;
@@ -2122,7 +2165,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 }
 
 [data-theme="light"] .portrait-frame {
-    background: var(--panel-solid);
+    background: var(--panel);
     box-shadow: var(--shadow-card);
 }
 

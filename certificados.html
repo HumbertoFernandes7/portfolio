@@ -9,7 +9,7 @@
     <meta property="og:title" content="Certificados — Humberto Fernandes">
     <meta property="og:description" content="Diplomas e cursos desde 2022, com link para validar cada credencial.">
     <meta property="og:url" content="https://humbertofernandes7.github.io/portfolio/certificados.html">
-    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/og-image.jpg?v=2026-10">
+    <meta property="og:image" content="https://humbertofernandes7.github.io/portfolio/assets/og-image.jpg?v=2026-10b">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Humberto Fernandes, engenheiro de software back-end e IA">
@@ -17,29 +17,18 @@
     <meta name="twitter:card" content="summary_large_image">
     <title>Certificados — Humberto Fernandes</title>
 
-    <script>
-        (function () {
-            var root = document.documentElement;
-            root.classList.add("js");
-            try {
-                var stored = localStorage.getItem("portfolio-theme");
-                root.setAttribute("data-theme", stored === "light" ? "light" : "dark");
-            } catch (e) {}
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) {
-                meta.setAttribute("content", root.getAttribute("data-theme") === "light" ? "#edf2f8" : "#060b16");
-            }
-        })();
-    </script>
+    <!-- primeiro script, síncrono e antes dos stylesheets: o tema entra antes
+         da primeira pintura e os componentes ficam definidos antes do <body> -->
+    <script src="components.js?v=2026-10b"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..650;1,9..144,300..650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="certificados.css">
-    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=2026-10">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2026-10">
-    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2026-10">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png?v=2026-10b">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2026-10b">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2026-10b">
 
     <!-- dados dos cards já em voo durante o parse; a primeira pintura espera
          o grid existir (transição entre páginas chega com a estrutura pronta) -->
@@ -62,53 +51,7 @@
     <div class="webgl" aria-hidden="true"><canvas id="scene-canvas" data-formation="cap"></canvas></div>
     <div class="grain" aria-hidden="true"></div>
 
-    <header class="site-header" data-header>
-        <div class="header-shell">
-            <a class="brand" href="index.html" aria-label="Ir para o início">
-                <span class="brand-mark">HF</span>
-                <span class="brand-name">Humberto Fernandes</span>
-            </a>
-
-            <nav class="site-nav" aria-label="Navegação principal">
-                <a href="index.html#sobre">Sobre</a>
-                <a href="index.html#projetos">Projetos</a>
-                <a href="index.html#trajetoria">Trajetória</a>
-                <a href="index.html#recomendacoes">Recomendações</a>
-                <a href="index.html#contato">Contato</a>
-                <a href="certificados.html" class="active" aria-current="page">Certificados</a>
-            </nav>
-
-            <div class="header-tools">
-                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Ativar tema claro" aria-pressed="true" title="Alternar tema">
-                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M21 14.5A8.5 8.5 0 019.5 3a8.5 8.5 0 0011.5 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                    </svg>
-                </button>
-                <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-overlay">Menu</button>
-            </div>
-        </div>
-    </header>
-
-    <div class="menu-overlay" id="menu-overlay" aria-hidden="true">
-        <nav class="menu-nav" aria-label="Menu">
-            <a href="index.html"><span>00</span>Início</a>
-            <a href="index.html#sobre"><span>01</span>Sobre</a>
-            <a href="index.html#projetos"><span>02</span>Projetos</a>
-            <a href="index.html#trajetoria"><span>03</span>Trajetória</a>
-            <a href="index.html#recomendacoes"><span>04</span>Recomendações</a>
-            <a href="index.html#contato"><span>05</span>Contato</a>
-            <!-- outra página: fora da numeração das seções, com a seta no lugar do número -->
-            <a class="menu-page" href="certificados.html" aria-current="page"><span aria-hidden="true">→</span>Certificados</a>
-        </nav>
-        <div class="menu-meta">
-            <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
-            <span>São Paulo, Brasil</span>
-        </div>
-    </div>
+    <site-header page="certificados"></site-header>
 
     <main id="conteudo" class="cert-main">
         <div class="cert-shell">
@@ -201,10 +144,6 @@
         </div>
     </dialog>
 
-    <footer class="site-footer">
-        <p>© 2026 Humberto Fernandes de Oliveira Pinto</p>
-        <p class="footer-made">HTML, CSS e JavaScript — sem frameworks.</p>
-        <a href="index.html" class="footer-top footer-back"><span aria-hidden="true">←</span>voltar ao portfólio</a>
-    </footer>
+    <site-footer page="certificados"></site-footer>
 </body>
 </html>

@@ -1,9 +1,10 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
-   Cada seção tem uma formação que remete a ela:
-   00 </> (código) → 01 xícara de café fumegante (símbolo do
-   Java) → 02 janela de terminal (projetos) → 03 logo do Python
-   → 04 balão de fala (recomendações) → 05 rede neural (IA).
+   Cada seção do index tem uma formação, e o data-scene da seção é o
+   índice dela na lista builders (hoje: 00 </> (código) → 01 xícara de
+   café fumegante (símbolo do Java) → 02 janela de terminal (projetos)
+   → 03 logo do Python → 04 balão de fala (recomendações) → 05 rede
+   neural (IA)). Seção nova pede uma formação nova ali.
    As formas planas são amostradas de um
    canvas 2D; a rede neural é gerada por coordenadas. A xícara
    (azul com chamas laranja) e o Python (azul e dourado) são
@@ -47,19 +48,32 @@
     }
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isSmall = window.matchMedia("(max-width: 768px)").matches;
+
+    /* Layout dividido (mesma media query do style.css): o texto ocupa uma
+       coluna e a formação vai para o lado livre — o oposto do texto. O lado
+       sai da posição da seção no <main>, numa regra só: o style.css empurra
+       para a direita o texto das seções que casam com TEXT_RIGHT (a 2ª, a
+       4ª…) e as outras ficam com o texto à esquerda. TEXT_RIGHT é o mesmo
+       seletor do style.css, sem o "> *" (o tools/check.mjs confere). Uma
+       seção nova ou trocada de lugar alterna sozinha. */
+    const splitQuery = window.matchMedia("(min-width: 1100px)");
+    const narrowQuery = window.matchMedia("(max-width: 768px)");
+    const isSmall = narrowQuery.matches;
     /* em telas estreitas as formações ficam atrás do texto: menos pontos e mais discretos */
     const COUNT = isSmall ? 3600 : 14000;
     const OPACITY_SCALE = isSmall ? 0.35 : 1;
-
-    /* Layout dividido (mesma media query do style.css): o texto ocupa uma
-       coluna e a formação vai para o lado livre — o oposto do texto —,
-       alternando por seção: cenas 0, 2 e 4 à direita (texto à esquerda);
-       1, 3 e 5 à esquerda (#sobre, #trajetoria e #contato, que o CSS
-       empurra para a direita). */
-    const splitQuery = window.matchMedia("(min-width: 1100px)");
-    const narrowQuery = window.matchMedia("(max-width: 768px)");
-    const SIDE = [1, -1, 1, -1, 1, -1];
+    const TEXT_RIGHT = "main > section:nth-of-type(even)";
+    /* seções com formação (data-scene = índice da formação) */
+    const sceneSections = [...document.querySelectorAll("[data-scene]")];
+    /* SIDE[cena]: 1 = formação à direita (texto à esquerda); -1 = à
+       esquerda. Lido do DOM aqui, antes das formações: o balão das
+       recomendações usa o lado já na amostragem */
+    const SIDE = [];
+    sceneSections.forEach((s) => {
+        SIDE[Number(s.dataset.scene)] = s.matches(TEXT_RIGHT) ? -1 : 1;
+    });
+    /* cena sem seção: formação à direita */
+    const sideOf = (scene) => SIDE[scene] || 1;
     const FREE_GAP = 40; /* px entre a coluna de texto e a formação */
     const FREE_EDGE = 28; /* px de folga na borda da janela */
     const FREE_OVERHANG = 160; /* px que a área livre pode avançar além do container */
@@ -523,16 +537,18 @@
        raio 17 na altura do meio, em x = 200, 260 e 320. O balão ocupa 80%
        da largura do canvas (largura parecida com a do </> e a do Python).
        A ponta "fala" para os cartões: aponta para o lado do texto, o oposto
-       do lado da formação (SIDE). Com a formação à direita, fica como na
-       prévia (perto do canto esquerdo, para baixo e à esquerda); à
-       esquerda, o desenho é espelhado (corpo e furos são simétricos). */
+       do lado da formação. Com a formação à direita, fica como na prévia
+       (perto do canto esquerdo, para baixo e à esquerda); à esquerda, o
+       desenho é espelhado (corpo e furos são simétricos). O lado vem da
+       posição da seção (SIDE), não da largura da janela: decidido uma vez,
+       na amostragem, vale em qualquer largura. */
     const RECS_SCENE = 4;
     const drawRecsShape = (ctx, u) => {
         const [x0, y0, x1, y1, r] = [120, 60, 400, 230, 40];
         const k = (80 * u) / (x1 - x0);
         ctx.save();
         ctx.translate(50 * u, 50 * u);
-        ctx.scale(SIDE[RECS_SCENE] < 0 ? -k : k, k);
+        ctx.scale(sideOf(RECS_SCENE) < 0 ? -k : k, k);
         /* centro da caixa do desenho (corpo + ponta) na origem */
         ctx.translate(-(x0 + x1) / 2, -(y0 + 290) / 2);
 
@@ -822,7 +838,8 @@
 
     /* Páginas de formação única: o canvas declara qual (data-formation) e
        a formação acompanha o bloco marcado com data-scene-anchor. Sem
-       data-formation (index), valem as 6 formações por seção. */
+       data-formation (index), valem as formações de builders, uma por
+       seção (data-scene = o índice dela na lista). */
     const SOLO_PAGES = {
         cap: {
             make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.22),
@@ -853,6 +870,18 @@
     for (let k = 0; k < builders.length; k += 1) {
         await yieldToPage();
         formations.push(await builders[k]());
+    }
+    /* seção com data-scene sem formação: a troca ignoraria a seção em
+       silêncio (setFormation), então avisa já */
+    if (!solo) {
+        sceneSections.forEach((s) => {
+            if (!formations[Number(s.dataset.scene)]) {
+                console.error(
+                    `scene.js: data-scene="${s.dataset.scene}" em #${s.id} não tem formação ` +
+                        `(há ${formations.length}, de 0 a ${formations.length - 1}); a seção fica sem 3D.`
+                );
+            }
+        });
     }
     /* e mais uma vez antes da montagem da cena e do primeiro quadro */
     await yieldToPage();
@@ -1122,7 +1151,6 @@
         }
     };
 
-    const sceneSections = document.querySelectorAll("[data-scene]");
     if (solo) {
         if (anchorEl && "IntersectionObserver" in window) {
             /* "na tela" = ao menos 60% do bloco abaixo do header fixo (ou 60% da
@@ -1208,10 +1236,11 @@
         }
     };
 
-    /* Mede a coluna de texto de uma seção com conteúdo à esquerda (hero) e de
-       uma com conteúdo à direita (sobre); o lado oposto é a área livre. */
-    const columnRect = (index) => {
-        const section = sceneSections[index];
+    /* Mede a coluna de texto da primeira seção com o texto do lado pedido
+       (textRight: casa com TEXT_RIGHT); o lado oposto é a área livre. Todas
+       as colunas têm a mesma largura, então a primeira de cada lado basta. */
+    const columnRect = (textRight) => {
+        const section = sceneSections.find((s) => s.matches(TEXT_RIGHT) === textRight);
         const col = section && section.firstElementChild;
         return col ? col.getBoundingClientRect() : null;
     };
@@ -1237,8 +1266,8 @@
             /* o canvas (innerWidth) é exibido na largura sem a barra de rolagem */
             const cw = document.documentElement.clientWidth || w;
             const k = cw / w;
-            const leftCol = columnRect(0);
-            const rightCol = columnRect(1);
+            const leftCol = columnRect(false);
+            const rightCol = columnRect(true);
             /* em telas muito largas a área livre não passa muito do container,
                para a formação não se afastar demais do texto */
             const shell = sceneSections[0] ? sceneSections[0].getBoundingClientRect() : null;
@@ -1249,7 +1278,7 @@
                 left: [outerL, (rightCol ? rightCol.left : cw * 0.38) - FREE_GAP]
             };
             layout.forEach((item, i) => {
-                const [fl, fr] = SIDE[i] > 0 ? free.right : free.left;
+                const [fl, fr] = sideOf(i) > 0 ? free.right : free.left;
                 /* px de tela por unidade do mundo no plano z = 0, na distância da cena */
                 const halfH = configs[i].camZ * tanHalf;
                 const ppu = (h / 2 / halfH) * k;
@@ -1363,9 +1392,6 @@
         group.scale.setScalar(scaleNow * (1 + Math.sin(elapsed * 0.45) * 0.012));
 
         camera.position.z = camZ;
-        camera.position.x = 0;
-        camera.position.y = 0;
-        camera.lookAt(0, 0, 0);
 
         renderer.render(scene, camera);
     };

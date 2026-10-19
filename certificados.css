@@ -2,10 +2,6 @@
    Página de certificados — complementa o style.css (mesmos tokens).
    ============================================================ */
 
-[hidden] {
-    display: none !important;
-}
-
 /* ---------- Estrutura ---------- */
 
 .cert-main {
@@ -22,32 +18,8 @@
     margin-bottom: clamp(36px, 6vw, 64px);
 }
 
-/* mesma escala do título da tela inicial (.hero h1), para as duas páginas
-   abrirem com o mesmo peso visual */
-.section-head h1 {
-    font-family: var(--font-display);
-    font-size: clamp(2.35rem, 6.2vw, 4.7rem);
-    font-weight: 430;
-    line-height: 1.06;
-    letter-spacing: -0.015em;
-    margin: 28px 0 30px;
-    text-wrap: balance;
-}
-
 .cert-head .lead {
     font-size: clamp(1rem, 1.6vw, 1.14rem);
-}
-
-@media (min-width: 1100px) {
-    .section-head h1 {
-        font-size: clamp(2.6rem, 4.3vw, 4rem);
-    }
-}
-
-.section-head h1 em {
-    font-style: italic;
-    font-weight: 420;
-    color: var(--accent);
 }
 
 .cert-stats {
@@ -82,12 +54,12 @@
    (scene.js) ocupa o lado livre, à direita dela. */
 @media (min-width: 1100px) {
     .cert-head {
-        max-width: 59%;
+        max-width: var(--split-col);
     }
 }
 
 .cert-block {
-    scroll-margin-top: calc(var(--header-h) + 8px);
+    scroll-margin-top: var(--anchor-offset);
     padding: clamp(32px, 5vw, 52px) 0 clamp(40px, 6vw, 72px);
     border-top: 1px solid var(--line-soft);
 }
@@ -639,21 +611,10 @@ html.lb-open body {
     border-color: var(--accent);
 }
 
-/* ---------- Rodapé ---------- */
-
-.footer-back span {
-    margin: 0 6px 0 0;
-}
-
-.footer-back:hover span {
-    transform: translateX(-3px);
-}
-
 /* ---------- Tema claro: ajustes finos ---------- */
 
 [data-theme="light"] .diploma-card,
 [data-theme="light"] .cert-card {
-    background: var(--panel-solid);
     border-color: var(--line);
     box-shadow: var(--shadow-card);
 }
@@ -676,7 +637,7 @@ html.lb-open body {
 [data-theme="light"] .cert-field input,
 [data-theme="light"] .cert-field select {
     border-color: var(--line-strong);
-    background-color: var(--panel-solid);
+    background-color: var(--panel);
 }
 
 /* hover e estado ativo dos chips/campos não podem perder o azul */
@@ -697,7 +658,7 @@ html.lb-open body {
 }
 
 [data-theme="light"] .lightbox {
-    background: var(--panel-solid);
+    background: var(--panel);
 }
 
 [data-theme="light"] .lightbox::backdrop {
@@ -760,23 +721,18 @@ html.lb-open body {
         min-height: 44px;
     }
 
-    /* links finos: a área tocável cresce por um ::after invisível, o visual fica igual */
+    /* links finos: a área tocável cresce por um ::after invisível, o visual
+       fica igual (a do .footer-back fica no style.css, junto do rodapé) */
     .cert-link,
-    .lb-link,
-    .footer-back {
+    .lb-link {
         position: relative;
     }
 
     .cert-link::after,
-    .lb-link::after,
-    .footer-back::after {
+    .lb-link::after {
         content: "";
         position: absolute;
         inset: -11px -8px;
-    }
-
-    .footer-back::after {
-        inset: -13px -8px;
     }
 
     .lb-close,

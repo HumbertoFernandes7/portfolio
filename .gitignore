@@ -1,0 +1,14 @@
+# ferramentas de desenvolvimento (npm / Playwright)
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# comparação visual A/B (tools/ab.mjs): worktree da base, snapshots, resultados e relatório
+.ab/
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+*.log
