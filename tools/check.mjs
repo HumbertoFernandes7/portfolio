@@ -1021,6 +1021,106 @@ function ruleThemeColors(ctx) {
     });
 }
 
+/* Fim do bloco que abre em text[open] ("{"), contando chaves e pulando strings. */
+function matchBrace(text, open) {
+    let depth = 0;
+    for (let i = open; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"' || ch === "'") {
+            const end = text.indexOf(ch, i + 1);
+            i = end === -1 ? text.length : end;
+        } else if (ch === "{") {
+            depth++;
+        } else if (ch === "}" && --depth === 0) {
+            return i;
+        }
+    }
+    return text.length;
+}
+
+/* Regras de um CSS com comentários em branco: { prelude, at, body } para as comuns e
+   { prelude, at, rules } para as at-rules com bloco (@media…), recursivo. */
+function cssRules(text, from = 0, to = text.length) {
+    const out = [];
+    let start = from;
+    for (let i = from; i < to; i++) {
+        const ch = text[i];
+        if (ch === '"' || ch === "'") {
+            const end = text.indexOf(ch, i + 1);
+            i = end === -1 ? to : end;
+        } else if (ch === ";" || ch === "}") {
+            start = i + 1;
+        } else if (ch === "{") {
+            const close = matchBrace(text, i);
+            const raw = text.slice(start, i);
+            const prelude = raw.trim();
+            const rule = { prelude, at: start + raw.indexOf(prelude) };
+            if (prelude.startsWith("@")) {
+                rule.rules = cssRules(text, i + 1, close);
+            } else {
+                rule.body = text.slice(i + 1, close);
+            }
+            out.push(rule);
+            i = close;
+            start = close + 1;
+        }
+    }
+    return out;
+}
+
+/* Lado do texto no layout dividido (@media (min-width: 1100px)): o style.css alterna pela
+   posição da seção numa regra só, `<seletor de lado> > * { margin-left: auto }`, sem
+   `#id > *` mexendo na margem horizontal; o scene.js (TEXT_RIGHT) usa o mesmo seletor para
+   pôr a formação 3D do outro lado. */
+function ruleSplitSide(ctx) {
+    const SPLIT = "(min-width:1100px)";
+    const HORIZONTAL = /(^|;)\s*(margin|margin-left|margin-right|margin-inline(-start|-end)?)\s*:/;
+    const css = ctx.source("style.css");
+    const scene = ctx.source("scene.js");
+    if (!css || !scene) {
+        ctx.error(css ? "scene.js" : "style.css", 1, "arquivo não encontrado (regra do lado do layout dividido)");
+        return;
+    }
+    const query = (rule) => rule.prelude.replace(/^@media\b/i, "").replace(/\s+/g, "");
+    const medias = cssRules(blankComments(css.text)).filter((r) => r.rules && /^@media\b/i.test(r.prelude));
+
+    /* nenhum #id > * mexe na margem horizontal em media query do layout dividido */
+    medias.filter((m) => query(m).includes(SPLIT)).forEach((m) => {
+        m.rules.filter((r) => r.body !== undefined && HORIZONTAL.test(r.body)).forEach((r) => {
+            r.prelude.split(",").map((s) => s.trim()).filter((s) => /#[\w-]+\s*>\s*\*$/.test(s)).forEach((s) => {
+                ctx.error("style.css", css.lineAt(r.at + r.prelude.indexOf(s)), `"${s}" controla o lado por id no layout dividido; o lado sai da posição da seção (seletor de lado do scene.js, TEXT_RIGHT)`);
+            });
+        });
+    });
+
+    /* o seletor de lado: a regra com margin-left: auto em @media (min-width: 1100px) */
+    const sides = medias.filter((m) => query(m) === SPLIT)
+        .flatMap((m) => m.rules.filter((r) => r.body !== undefined && /(^|;)\s*margin-left\s*:\s*auto\s*(;|$)/.test(r.body)));
+    if (sides.length !== 1) {
+        ctx.error("style.css", sides.length ? css.lineAt(sides[1].at) : 1,
+            `esperada 1 regra de lado (margin-left: auto) em @media (min-width: 1100px); há ${sides.length}`);
+        return;
+    }
+    const side = sides[0];
+    const sideLine = css.lineAt(side.at);
+    const selector = side.prelude.replace(/\s+/g, " ");
+    const m = /^(.+?)\s*>\s*\*$/.exec(selector);
+    if (selector.includes(",") || !m) {
+        ctx.error("style.css", sideLine, `a regra de lado deveria ser um seletor só, "<seletor de lado> > *"; é "${selector}"`);
+        return;
+    }
+    const cssSide = m[1];
+
+    const js = /\bconst\s+TEXT_RIGHT\s*=\s*(["'])([^"'\n]*)\1/.exec(blankComments(scene.text));
+    if (!js) {
+        ctx.error("scene.js", 1, `sem const TEXT_RIGHT = "…" (o seletor de lado do style.css: "${cssSide}")`);
+        return;
+    }
+    if (js[2].replace(/\s+/g, " ").trim() !== cssSide) {
+        ctx.error("scene.js", scene.lineAt(js.index), `TEXT_RIGHT = "${js[2]}"; no style.css (linha ${sideLine}) o seletor de lado é "${cssSide}"`);
+    }
+}
+
 /* ---------- Avisos ---------- */
 
 /* Strings literais de um JS (para achar classes usadas em classList, className, innerHTML…). */
@@ -1162,6 +1262,7 @@ const RULES = [
     ["head", ruleHead],
     ["componentes", ruleComponents],
     ["cores", ruleThemeColors],
+    ["lado", ruleSplitSide],
     ["css-sem-uso", warnUnusedCss],
     ["contagem", warnCertCount]
 ];
