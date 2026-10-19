@@ -1142,6 +1142,7 @@
         const repaint = TONES[index] !== TONES[activeIndex];
         activeIndex = index;
         target = formations[index];
+        canvas.dataset.activeScene = String(index);
         if (repaint) {
             applyTheme(currentTheme());
         }
@@ -1177,6 +1178,15 @@
             anchorObserver.observe(anchorEl);
         }
     } else if ("IntersectionObserver" in window) {
+        /* data-active-scene no canvas: o data-scene da seção ativa (o setFormation
+           o atualiza). Não muda nada na tela; serve para depurar (DevTools) e para
+           os testes conferirem a seção ativa sem medir pixels */
+        canvas.dataset.activeScene = String(activeIndex);
+
+        /* Ativa = a seção que cruza a faixa do meio da tela: BAND da altura fica
+           de fora em cima e embaixo (de 42% a 58%). O observer avisa quando uma
+           seção entra na faixa, e a última que entrou vira a ativa */
+        const BAND = 0.42;
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -1186,9 +1196,57 @@
                     }
                 });
             },
-            { rootMargin: "-42% 0px -42% 0px", threshold: 0 }
+            { rootMargin: `-${BAND * 100}% 0px -${BAND * 100}% 0px`, threshold: 0 }
         );
         sceneSections.forEach((section) => observer.observe(section));
+
+        /* O observer só reage a quem entra ou sai da faixa. Numa mudança de
+           tamanho o layout se reorganiza (e o snap rola sozinho), e o snap
+           também pode passar da divisa e voltar: outra seção passa pela faixa
+           no meio do caminho e vira a ativa, enquanto a certa fica na faixa o
+           tempo todo e nunca "entra" de novo; a formação errada ficava presa
+           até a próxima troca de seção. Por isso, quando o layout assenta
+           (resize e fim da rolagem, com um intervalo curto), a ativa é
+           conferida pela geometria, com a mesma faixa: se a atual ainda cruza
+           a faixa, fica (é o que o observer decidiu); senão, vale a seção que
+           ocupa mais a faixa. */
+        const SETTLE_MS = 150;
+        const settle = () => {
+            const h = window.innerHeight;
+            if (h === 0) {
+                return;
+            }
+            const top = h * BAND;
+            const bottom = h - top;
+            let best = null;
+            let bestOverlap = 0;
+            for (const section of sceneSections) {
+                const r = section.getBoundingClientRect();
+                const overlap = Math.min(r.bottom, bottom) - Math.max(r.top, top);
+                if (overlap > 0) {
+                    const index = Number(section.dataset.scene);
+                    if (index === activeIndex) {
+                        return;
+                    }
+                    if (overlap > bestOverlap) {
+                        best = index;
+                        bestOverlap = overlap;
+                    }
+                }
+            }
+            if (best !== null) {
+                setFormation(best);
+                updateDim();
+            }
+        };
+        let settleTimer = null;
+        const queueSettle = () => {
+            clearTimeout(settleTimer);
+            settleTimer = setTimeout(settle, SETTLE_MS);
+        };
+        window.addEventListener("resize", queueSettle);
+        /* sem scrollend (Safari antigo), o fim da rolagem é o último scroll */
+        window.addEventListener("onscrollend" in window ? "scrollend" : "scroll", queueSettle, { passive: true });
     }
 
     let lastW = 0;

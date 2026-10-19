@@ -472,3 +472,84 @@ test.describe("cabeçalho nas duas páginas", () => {
         }
     });
 });
+
+/* scene.js: a formação ativa (data-active-scene no canvas) é a da seção que cruza a faixa do
+   meio da tela (de 42% a 58% da altura, o rootMargin do observer), também depois de redimensionar.
+   O caso: de 1080 para 1440px de largura o layout dividido e o snap entram, o conteúdo acima das
+   Recomendações cresce e, sem mudar a rolagem, a divisa Trajetória|Recomendações cai dentro da
+   faixa: a Trajetória "entra" e vira a ativa. O snap então rola até o início das Recomendações, a
+   Trajetória sai e as Recomendações, que nunca saíram da faixa, não avisam de novo: sem a
+   conferência pela geometria (resize/scrollend), o Python da Trajetória ficava preso. */
+test.describe("cena 3D: formação ativa depois de redimensionar", () => {
+    const HEIGHT = 900;
+    const FROM = 1080; /* abaixo de SPLIT_MIN: uma coluna, sem snap */
+    const TO = 1440;
+    test.use({ viewport: { width: TO, height: HEIGHT } });
+
+    /* data-scene das seções que cruzam a faixa do meio, e a formação ativa */
+    const sceneState = (page) =>
+        page.evaluate(() => {
+            const h = window.innerHeight;
+            const middle = [...document.querySelectorAll("[data-scene]")]
+                .filter((section) => {
+                    const r = section.getBoundingClientRect();
+                    return r.bottom > h * 0.42 && r.top < h * 0.58;
+                })
+                .map((section) => section.dataset.scene);
+            return { active: document.getElementById("scene-canvas").dataset.activeScene, middle: middle.join("+") };
+        });
+
+    /* espera a rolagem parar (o snap anima) */
+    const scrollSettled = async (page) => {
+        let last = null;
+        await expect
+            .poll(
+                async () => {
+                    const y = await page.evaluate(() => Math.round(window.scrollY));
+                    const same = y === last;
+                    last = y;
+                    return same;
+                },
+                { message: "a rolagem para", intervals: [300], timeout: 5_000 }
+            )
+            .toBe(true);
+    };
+
+    test("Recomendações: de 1080 para 1440px a formação não fica presa na Trajetória", async ({ page }) => {
+        await page.addInitScript((key) => {
+            try {
+                localStorage.setItem(key, "light");
+            } catch (e) {
+                /* about:blank */
+            }
+        }, THEME_KEY);
+        await open(page, "/index.html");
+        const ready = await page.waitForFunction(() =>
+            document.body.classList.contains("no-webgl") ||
+            document.querySelector("#scene-canvas.is-on[data-active-scene]")
+        , null, { timeout: 20_000 });
+        test.skip(await ready.evaluate((v) => v === true), "sem WebGL: não há formação");
+
+        const recs = page.locator("#recomendacoes");
+        const recsScene = await recs.getAttribute("data-scene");
+        const docTop = () => recs.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+
+        /* onde as Recomendações começam em 1440px; em 1080px, a rolagem que, de volta a 1440px,
+           põe esse começo no meio da tela (dentro da faixa e mais perto do snap das Recomendações
+           que do fim da Trajetória: é o caminho em que a Trajetória entra e sai da faixa) */
+        const topWide = await docTop();
+        await page.setViewportSize({ width: FROM, height: HEIGHT });
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), topWide - HEIGHT * 0.5);
+        await expect.poll(() => sceneState(page), { message: `${FROM}px: nas Recomendações` }).toEqual({
+            active: recsScene,
+            middle: recsScene
+        });
+
+        await page.setViewportSize({ width: TO, height: HEIGHT });
+        await scrollSettled(page);
+        expect((await sceneState(page)).middle, `${TO}px: o snap para nas Recomendações`).toBe(recsScene);
+        await expect
+            .poll(async () => (await sceneState(page)).active, { message: "a formação ativa é a das Recomendações" })
+            .toBe(recsScene);
+    });
+});
