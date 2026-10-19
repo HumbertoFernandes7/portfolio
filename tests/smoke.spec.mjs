@@ -101,10 +101,15 @@ async function refetch(request, url) {
 }
 
 const test = base.extend({
+    /* console.error que o próprio teste provoca (ex.: pedido abortado pelo page.route): RegExp
+       conferidas contra a linha inteira, "console.error: <texto> (<url>:<linha>)". Só um bloco
+       que provoca a falha liga (test.use); fora dele, todo console.error reprova. */
+    expectedConsole: [[], { option: true }],
+
     /* Coleta pageerror e console.error durante o teste inteiro e falha no fim. O erro de
        transporte (TRANSPORT_ERROR) só conta se o recurso falhar de novo no fim do teste. */
     pageErrors: [
-        async ({ page }, use, testInfo) => {
+        async ({ page, expectedConsole }, use, testInfo) => {
             const errors = [];
             const transport = new Map();
             page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
@@ -114,7 +119,7 @@ const test = base.extend({
                     const line = `console.error: ${msg.text()}${url ? ` (${url}:${lineNumber})` : ""}`;
                     if (url && TRANSPORT_ERROR.test(msg.text())) {
                         transport.set(url, line);
-                    } else {
+                    } else if (!expectedConsole.some((pattern) => pattern.test(line))) {
                         errors.push(line);
                     }
                 }
@@ -551,5 +556,155 @@ test.describe("cena 3D: formação ativa depois de redimensionar", () => {
         await expect
             .poll(async () => (await sceneState(page)).active, { message: "a formação ativa é a das Recomendações" })
             .toBe(recsScene);
+    });
+});
+
+/* certificados.js: o JSON que falha por rede (ou 5xx/429) ganha até 2 tentativas automáticas, com
+   a página no estado de carregamento; se ainda assim falhar, a mensagem de erro traz o botão
+   "Tentar de novo", que baixa só os dados. 404 (ou JSON inválido) mostra o erro na hora. As falhas
+   vêm do page.route; o console.error que o navegador solta para cada pedido abortado (ou o 404) é
+   esperado nestes testes, e só nestes. */
+test.describe("certificados: falha ao baixar os dados", () => {
+    /* espera do certificados.js antes da 2ª e da 3ª tentativa (RETRY_DELAYS) */
+    const RETRY_DELAYS = [600, 1500];
+    const failedLoad = (cause, files) =>
+        new RegExp(`^console\\.error: Failed to load resource: ${cause} \\(http://[^/]+/data/(?:${files})\\.json:\\d+\\)$`);
+
+    test.use({
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+        expectedConsole: [failedLoad("net::ERR_INTERNET_DISCONNECTED", "certificados|diplomas")]
+    });
+
+    /* Responde os pedidos de data/<file>: plan(n) diz o que fazer com o n-ésimo (1, 2…): "rede"
+       aborta como sem internet, "ok" deixa passar e um número responde com esse status (pode
+       devolver uma Promise, para segurar a resposta). O 1º pedido é o <link rel="preload"> do
+       certificados.html, que o fetch da 1ª tentativa reaproveita. Devolve o contador de pedidos. */
+    async function routeData(page, file, plan) {
+        const hits = { count: 0 };
+        await page.route(`**/data/${file}`, async (route) => {
+            hits.count += 1;
+            const step = await plan(hits.count);
+            if (step === "rede") {
+                await route.abort("internetdisconnected");
+            } else if (step === "ok") {
+                await route.continue();
+            } else {
+                await route.fulfill({ status: step, body: "" });
+            }
+        });
+        return hits;
+    }
+
+    /* anota quando a mensagem de erro aparece (ms desde o DOMContentLoaded), se aparecer */
+    async function watchError(page) {
+        await page.addInitScript(() => {
+            document.addEventListener(
+                "DOMContentLoaded",
+                () => {
+                    const start = performance.now();
+                    const box = document.getElementById("cert-error");
+                    new MutationObserver(() => {
+                        if (!box.hidden && window.__errorAfter === undefined) {
+                            window.__errorAfter = performance.now() - start;
+                        }
+                    }).observe(box, { attributes: true, attributeFilter: ["hidden"] });
+                },
+                { once: true }
+            );
+        });
+    }
+
+    test("(a) a 1ª tentativa falha e a 2ª dá certo: os cards aparecem sozinhos", async ({ page }) => {
+        await watchError(page);
+        const hits = await routeData(page, "certificados.json", (n) => (n === 1 ? "rede" : "ok"));
+        await page.goto("/certificados.html");
+
+        await expect(page.locator("#cert-grid > li").first()).toBeVisible();
+        expect(hits.count, "pedidos de certificados.json").toBe(2);
+        expect(await page.evaluate(() => window.__errorAfter), "a mensagem de erro não aparece").toBeUndefined();
+        await expect(page.locator("#cert-error")).toBeHidden();
+    });
+
+    test("(b) todas as tentativas falham: mensagem com o botão Tentar de novo", async ({ page }) => {
+        const hits = await routeData(page, "certificados.json", () => "rede");
+        await page.goto("/certificados.html");
+
+        const message = page.locator("#cert-error");
+        const retry = message.getByRole("button", { name: "Tentar de novo" });
+        await expect(message).toBeVisible();
+        expect(hits.count, "1 pedido e 2 novas tentativas").toBe(1 + RETRY_DELAYS.length);
+        await expect(message).toHaveAttribute("role", "alert");
+        await expect(message).toContainText("Não consegui carregar os certificados agora.");
+        await expect(retry).toBeVisible();
+        await expect(retry).toHaveAttribute("type", "button");
+        await expect(page.locator(".cert-toolbar")).toBeHidden();
+        const box = await retry.boundingBox();
+        expect(box.height, "área de toque do botão (px)").toBeGreaterThanOrEqual(44);
+
+        /* ainda sem rede: o botão tenta de novo (com as novas tentativas), a mensagem volta e o
+           foco volta para o botão */
+        await retry.tap();
+        await expect(message).toBeHidden();
+        await expect(message).toBeVisible();
+        expect(hits.count, "mais 1 pedido e 2 novas tentativas").toBe(2 * (1 + RETRY_DELAYS.length));
+        await expect(retry).toBeFocused();
+    });
+
+    test("(c) com o botão na tela, a rede volta e o clique traz os cards", async ({ page }) => {
+        let online = false;
+        let release;
+        const held = new Promise((resolve) => {
+            release = resolve;
+        });
+        /* com a rede de volta, a resposta fica presa até o teste conferir o estado de carregamento */
+        const plan = () => (online ? held.then(() => "ok") : "rede");
+        await routeData(page, "certificados.json", plan);
+        await routeData(page, "diplomas.json", plan);
+        await page.goto("/certificados.html");
+
+        const message = page.locator("#cert-error");
+        const retry = message.getByRole("button", { name: "Tentar de novo" });
+        const title = page.locator("#cursos-title");
+        await expect(retry).toBeVisible();
+        await expect(page.locator("#diplomas")).toBeHidden();
+        const before = await title.evaluate((el) => el.getBoundingClientRect().top);
+
+        online = true;
+        await retry.tap();
+        /* estado de carregamento: sem a mensagem, barra de filtros de volta, grid vazio */
+        await expect(message).toBeHidden();
+        await expect(page.locator(".cert-toolbar")).toBeVisible();
+        await expect(page.locator("#cert-grid > li")).toHaveCount(0);
+        await expect(title).toBeFocused();
+
+        release();
+        await expect(page.locator("#cert-grid > li").first()).toBeVisible();
+        await expect(page.locator("#cert-chips button").first()).toBeVisible();
+        await expect(page.locator("#diploma-list .diploma-card:not(.is-skeleton)").first()).toBeVisible();
+        await expect(title, "o foco fica no título da lista").toBeFocused();
+        const after = await title.evaluate((el) => el.getBoundingClientRect().top);
+        expect(Math.abs(after - before), `o título da lista fica no lugar (${before} → ${after})`).toBeLessThanOrEqual(1);
+    });
+
+    test.describe("404", () => {
+        test.use({
+            expectedConsole: [failedLoad("the server responded with a status of 404 \\([^)]*\\)", "certificados")]
+        });
+
+        test("(d) 404: erro na hora, sem novas tentativas", async ({ page }) => {
+            await watchError(page);
+            const hits = await routeData(page, "certificados.json", () => 404);
+            await page.goto("/certificados.html");
+
+            await expect(page.locator("#cert-error")).toBeVisible();
+            await expect(page.locator("#cert-retry")).toBeVisible();
+            const after = await page.evaluate(() => window.__errorAfter);
+            expect(after, `erro ${Math.round(after)} ms depois do DOMContentLoaded`).toBeLessThan(RETRY_DELAYS[0]);
+            /* nem depois do tempo que as tentativas levariam */
+            await page.waitForTimeout(RETRY_DELAYS.reduce((sum, ms) => sum + ms, 300));
+            expect(hits.count, "pedidos de certificados.json").toBe(1);
+        });
     });
 });
