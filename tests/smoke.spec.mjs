@@ -1,5 +1,6 @@
 /* Smoke no navegador: as 2 páginas × 5 viewports × 2 temas.
-   Todo teste falha se houver pageerror ou console.error (fixture automática). */
+   Todo teste falha se houver pageerror ou console.error (fixture automática); falha de
+   transporte da máquina tem tratamento próprio (veja "Falha de rede da máquina"). */
 import { test as base, expect } from "@playwright/test";
 
 const PAGES = [
@@ -26,19 +27,102 @@ const MENU_MAX = 860;
 /* style.css e scene.js: a partir de 1100px o texto ocupa uma coluna e alterna de lado */
 const SPLIT_MIN = 1100;
 
+/* ---------- Falha de rede da máquina ----------
+   No Windows, com vários workers (ou outra suíte rodando junto), a pilha de rede solta de vez
+   em quando um erro de transporte numa conexão ao servidor local, em qualquer arquivo:
+   net::ERR_NO_BUFFER_SPACE ou net::ERR_ADDRESS_IN_USE (WSAENOBUFS/WSAEADDRINUSE no connect).
+   É falha da máquina, não do site. Dois cuidados, sem tirar nenhuma conferência:
+   - carregamento (loadClean): se um pedido falhou assim, a página veio incompleta (sem CSS,
+     sem os cards…) e é recarregada uma vez; os testes conferem a página recarregada;
+   - console (fixture pageErrors): o "Failed to load resource: net::ERR_…" é conferido no fim,
+     pedindo o recurso de novo; só conta se continuar falhando.
+   Resposta de erro do servidor (404 etc.) não é falha de transporte e reprova na hora. Cada
+   caso tolerado sai no terminal ("rede: …") e fica anotado no teste. */
+
+/* Só erros de conexão (o pedido nem teve resposta). Ficam de fora os que o site pode causar
+   (CORS, ORB, certificado, conteúdo inválido…) e o ERR_ABORTED (pedido cancelado pela própria
+   navegação). Um 404 aparece como "Failed to load resource: the server responded with a status
+   of 404 …". */
+const SOCKET_ERRORS = "NO_BUFFER_SPACE|ADDRESS_IN_USE|CONNECTION_(?:REFUSED|RESET|ABORTED|CLOSED)|EMPTY_RESPONSE";
+/* texto do console */
+const TRANSPORT_ERROR = new RegExp(`^Failed to load resource: net::ERR_(?:${SOCKET_ERRORS})$`);
+/* request.failure().errorText */
+const TRANSPORT_FAILURE = new RegExp(`^net::ERR_(?:${SOCKET_ERRORS})$`);
+
+const noteNetwork = (testInfo, message) => {
+    testInfo.annotations.push({ type: "rede", description: message });
+    console.log(`rede: ${message}`);
+};
+
+/* Roda `navigate` e espera o load; se algum pedido falhou por transporte nesse meio-tempo,
+   recarrega a página uma vez. */
+async function loadClean(page, navigate) {
+    const failed = [];
+    const onFailed = (request) => {
+        const error = (request.failure() || {}).errorText || "";
+        if (TRANSPORT_FAILURE.test(error)) {
+            failed.push(`${error} em ${request.url()}`);
+        }
+    };
+    page.on("requestfailed", onFailed);
+    try {
+        await navigate();
+        await page.waitForLoadState("load");
+        if (failed.length) {
+            noteNetwork(test.info(), `${failed.join("; ")} ao carregar ${page.url()}; página recarregada`);
+            await page.reload();
+        }
+    } finally {
+        page.off("requestfailed", onFailed);
+    }
+}
+
+/* Pede o recurso de novo, fora da página, até 3 vezes; null se carregou, senão o motivo. */
+async function refetch(request, url) {
+    let reason = "";
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const res = await request.get(url, { failOnStatusCode: false, timeout: 10_000 });
+            if (res.ok()) {
+                return null;
+            }
+            return `HTTP ${res.status()}`;
+        } catch (error) {
+            reason = error.message.split("\n")[0];
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
+    return reason;
+}
+
 const test = base.extend({
-    /* coleta pageerror e console.error durante o teste inteiro e falha no fim */
+    /* Coleta pageerror e console.error durante o teste inteiro e falha no fim. O erro de
+       transporte (TRANSPORT_ERROR) só conta se o recurso falhar de novo no fim do teste. */
     pageErrors: [
-        async ({ page }, use) => {
+        async ({ page }, use, testInfo) => {
             const errors = [];
+            const transport = new Map();
             page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
             page.on("console", (msg) => {
                 if (msg.type() === "error") {
                     const { url, lineNumber } = msg.location();
-                    errors.push(`console.error: ${msg.text()}${url ? ` (${url}:${lineNumber})` : ""}`);
+                    const line = `console.error: ${msg.text()}${url ? ` (${url}:${lineNumber})` : ""}`;
+                    if (url && TRANSPORT_ERROR.test(msg.text())) {
+                        transport.set(url, line);
+                    } else {
+                        errors.push(line);
+                    }
                 }
             });
             await use(errors);
+            for (const [url, line] of transport) {
+                const reason = await refetch(page.request, url);
+                if (reason) {
+                    errors.push(`${line}; pedido de novo, falhou outra vez: ${reason}`);
+                } else {
+                    noteNetwork(testInfo, `${line}; carregou quando pedido de novo`);
+                }
+            }
             expect(errors, "sem pageerror nem console.error").toEqual([]);
         },
         { auto: true }
@@ -47,7 +131,7 @@ const test = base.extend({
 
 /* abre a página e espera o estado "pronto": load, fontes e (certificados) os cards */
 async function open(page, path) {
-    await page.goto(path);
+    await loadClean(page, () => page.goto(path));
     await page.evaluate(() => document.fonts.ready);
     if (path.includes("certificados")) {
         await expect(page.locator("#cert-grid > li").first()).toBeAttached();
@@ -133,6 +217,7 @@ for (const { name: pageName, path } of PAGES) {
                                     window.__undefinedAtDCL = [...document.querySelectorAll(":not(:defined)")].map(
                                         (el) => el.localName
                                     );
+                                    window.__footersAtDCL = document.querySelectorAll("footer.site-footer").length;
                                 },
                                 { once: true }
                             );
@@ -177,11 +262,14 @@ for (const { name: pageName, path } of PAGES) {
                             .filter((href) => !document.getElementById(decodeURIComponent(href.slice(1))));
                         return {
                             undefinedAtDCL: window.__undefinedAtDCL,
+                            footersAtDCL: window.__footersAtDCL,
                             duplicateIds: [...counts].filter(([, n]) => n > 1).map(([id]) => id),
                             anchorsWithoutTarget: anchors
                         };
                     });
                     expect(dom.undefinedAtDCL, "elementos :not(:defined) no DOMContentLoaded").toEqual([]);
+                    /* o <site-footer> (components.js) já montou quando o script.js roda */
+                    expect(dom.footersAtDCL, "footer.site-footer no DOMContentLoaded").toBe(1);
                     expect(dom.duplicateIds, "ids repetidos").toEqual([]);
                     expect(dom.anchorsWithoutTarget, 'a[href^="#"] sem alvo').toEqual([]);
                 });
@@ -300,17 +388,21 @@ for (const { name: pageName, path } of PAGES) {
                 }
 
                 if (pageName === "index") {
+                    /* é o teste que mais carrega (3 páginas em poucos segundos, com prefetch e
+                       pedidos cancelados no meio): o que mais pegava a falha de rede da máquina */
                     test("navegação: index → certificados → voltar", async ({ page }) => {
-                        if (vp.width <= MENU_MAX) {
-                            await press(page.locator("#menu-toggle"), vp.touch);
-                            await press(page.locator(".menu-nav a.menu-page"), vp.touch);
-                        } else {
-                            await page.locator('.site-nav a[href="certificados.html"]').click();
-                        }
-                        await expect(page).toHaveURL(/\/certificados\.html$/);
+                        await loadClean(page, async () => {
+                            if (vp.width <= MENU_MAX) {
+                                await press(page.locator("#menu-toggle"), vp.touch);
+                                await press(page.locator(".menu-nav a.menu-page"), vp.touch);
+                            } else {
+                                await page.locator('.site-nav a[href="certificados.html"]').click();
+                            }
+                            await expect(page).toHaveURL(/\/certificados\.html$/);
+                        });
                         await expect(page.locator("#cert-grid > li").first()).toBeVisible();
 
-                        await page.goBack();
+                        await loadClean(page, () => page.goBack());
                         await expect(page).toHaveURL(/\/index\.html$/);
                         await expect(page.locator("#hero-title")).toBeVisible();
                     });

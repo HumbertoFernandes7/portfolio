@@ -31,6 +31,8 @@
             }
         })();
     </script>
+    <!-- síncrono e antes dos stylesheets: os componentes ficam definidos antes do <body> -->
+    <script src="components.js?v=2026-10"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -545,10 +547,6 @@
         </section>
     </main>
 
-    <footer class="site-footer">
-        <p>© 2026 Humberto Fernandes de Oliveira Pinto</p>
-        <p class="footer-made">HTML, CSS, JavaScript e Three.js — sem frameworks.</p>
-        <a href="#inicio" class="footer-top">voltar ao topo<span aria-hidden="true">↑</span></a>
-    </footer>
+    <site-footer page="home"></site-footer>
 </body>
 </html>

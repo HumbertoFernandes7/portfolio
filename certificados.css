@@ -611,16 +611,6 @@ html.lb-open body {
     border-color: var(--accent);
 }
 
-/* ---------- Rodapé ---------- */
-
-.footer-back span {
-    margin: 0 6px 0 0;
-}
-
-.footer-back:hover span {
-    transform: translateX(-3px);
-}
-
 /* ---------- Tema claro: ajustes finos ---------- */
 
 [data-theme="light"] .diploma-card,
@@ -731,23 +721,18 @@ html.lb-open body {
         min-height: 44px;
     }
 
-    /* links finos: a área tocável cresce por um ::after invisível, o visual fica igual */
+    /* links finos: a área tocável cresce por um ::after invisível, o visual
+       fica igual (a do .footer-back fica no style.css, junto do rodapé) */
     .cert-link,
-    .lb-link,
-    .footer-back {
+    .lb-link {
         position: relative;
     }
 
     .cert-link::after,
-    .lb-link::after,
-    .footer-back::after {
+    .lb-link::after {
         content: "";
         position: absolute;
         inset: -11px -8px;
-    }
-
-    .footer-back::after {
-        inset: -13px -8px;
     }
 
     .lb-close,

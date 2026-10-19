@@ -11,11 +11,18 @@
    O parser de HTML é um scanner por regex feito para as páginas deste
    site (tags fechadas explicitamente, atributos entre aspas). Não é um
    parser geral: serve para achar elementos, atributos, texto e linha.
+
+   Componentes: o components.js roda numa sandbox (node:vm) com um DOM
+   mínimo, e o HTML que cada elemento dele (<site-footer>…) gera entra na
+   árvore da página dentro do elemento, como no navegador. Assim as regras
+   de ids, âncoras, arquivos e classes enxergam esse HTML; o que estiver
+   errado nele aponta para a linha do elemento na página.
    ============================================================ */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 const started = performance.now();
 
@@ -85,8 +92,12 @@ function parseAttrs(str) {
 }
 
 /* Árvore simples: elemento = { tag, attrs, children, parent, line }; texto = { text, line }.
-   script/style/title/textarea guardam o conteúdo cru em `raw`. */
-function parseHtml(src) {
+   script/style/title/textarea guardam o conteúdo cru em `raw`.
+   `expand(el)`, se vier, devolve o HTML que um componente gera (ou null): ele é lido
+   como os primeiros filhos do elemento, com `generated` = tag do componente e a linha
+   do elemento. Como no navegador, o connectedCallback roda antes de o parser chegar
+   aos filhos escritos na página, que entram depois dos gerados. */
+function parseHtml(src, expand = null) {
     const text = src.text;
     const doc = { tag: "#document", attrs: {}, children: [], parent: null, line: 1 };
     const elements = [];
@@ -138,12 +149,101 @@ function parseHtml(src) {
             re.lastIndex = last = c ? close.lastIndex : text.length;
             continue;
         }
+        const html = expand ? expand(el) : null;
+        if (html) {
+            const frag = parseHtml(new Source(src.rel, html));
+            const mark = (node) => {
+                node.line = el.line;
+                node.generated = tag;
+                (node.children || []).forEach(mark);
+            };
+            frag.doc.children.forEach((node) => {
+                mark(node);
+                if (node.tag) {
+                    node.parent = el;
+                }
+                el.children.push(node);
+            });
+            elements.push(...frag.elements);
+        }
         if (!VOID_TAGS.has(tag) && !m[4]) {
             current = el;
         }
     }
     pushText(last, text.length);
     return { doc, elements };
+}
+
+/* ---------- Componentes (components.js) ---------- */
+
+/* Roda o components.js numa sandbox com o mínimo de DOM que ele usa: HTMLElement com
+   getAttribute/hasAttribute, firstElementChild (sempre null: o elemento acabou de
+   entrar) e innerHTML; customElements.define. render(el) monta como o navegador faz
+   (construtor e connectedCallback) e devolve o innerHTML gerado, ou null. */
+function loadComponents(ctx) {
+    const rel = "components.js";
+    const out = { rel, tags: new Set(), error: null, render: () => null };
+    const src = ctx.source(rel);
+    if (!src) {
+        out.error = { line: 1, msg: `${rel} não existe` };
+        return out;
+    }
+
+    let pending = {};
+    class HTMLElement {
+        constructor() {
+            this.__attrs = pending;
+            this.__html = null;
+        }
+
+        getAttribute(name) {
+            return Object.hasOwn(this.__attrs, name) ? this.__attrs[name] : null;
+        }
+
+        hasAttribute(name) {
+            return Object.hasOwn(this.__attrs, name);
+        }
+
+        get firstElementChild() {
+            return null;
+        }
+
+        get innerHTML() {
+            return this.__html ?? "";
+        }
+
+        set innerHTML(html) {
+            this.__html = String(html);
+        }
+    }
+
+    const classes = new Map();
+    const sandbox = {
+        HTMLElement,
+        customElements: {
+            define: (name, cls) => classes.set(name, cls),
+            get: (name) => classes.get(name)
+        }
+    };
+    sandbox.window = sandbox;
+    try {
+        vm.runInNewContext(src.text, sandbox, { filename: rel, timeout: 2000 });
+    } catch (e) {
+        const at = /components\.js:(\d+)/.exec(e.stack || "");
+        out.error = { line: at ? Number(at[1]) : 1, msg: `${rel} quebrou na sandbox do check: ${e.message}` };
+        return out;
+    }
+
+    out.tags = new Set(classes.keys());
+    out.render = (el) => {
+        pending = el.attrs;
+        const node = new (classes.get(el.tag))();
+        if (typeof node.connectedCallback === "function") {
+            node.connectedCallback();
+        }
+        return node.__html || null;
+    };
+    return out;
 }
 
 /* ---------- Consultas na árvore ---------- */
@@ -251,9 +351,25 @@ function createContext(root) {
 
     /* index.html primeiro: é a referência nas comparações entre páginas */
     const htmlFiles = ctx.list(".", ".html").sort((a, b) => (a === "index.html" ? -1 : b === "index.html" ? 1 : 0));
+    /* cada elemento do components.js nas páginas é montado durante o parse; o resultado
+       (ou o erro) fica no próprio elemento, para a regra de componentes */
+    ctx.components = loadComponents(ctx);
+    const expand = (el) => {
+        if (!ctx.components.tags.has(el.tag)) {
+            return null;
+        }
+        try {
+            el.rendered = ctx.components.render(el);
+        } catch (e) {
+            el.rendered = null;
+            el.renderError = e.message;
+        }
+        return el.rendered;
+    };
+
     ctx.pages = htmlFiles.map((rel) => {
         const src = ctx.source(rel);
-        const { doc, elements } = parseHtml(src);
+        const { doc, elements } = parseHtml(src, expand);
         const ids = new Map();
         elements.forEach((el) => {
             const id = attr(el, "id");
@@ -729,6 +845,90 @@ function ruleHead(ctx) {
     }
 }
 
+/* components.js no <head> de cada página do jeito que funciona: um só, comum e síncrono
+   (sem defer, async, module nem blocking), depois do script de tema e antes do primeiro
+   stylesheet (script síncrono depois de stylesheet espera o CSS baixar). Cada elemento
+   dele na página: vazio, com page válido (o componente monta algo com ele) e sem repetir
+   o page que outra página usa; um <site-footer> por página. */
+function ruleComponents(ctx) {
+    const ONE_PER_PAGE = ["site-footer"];
+    const comps = ctx.components;
+    const name = comps.rel;
+    if (comps.error) {
+        ctx.error(name, comps.error.line, comps.error.msg);
+    }
+
+    const owner = new Map(); /* "tag page" -> página que usa */
+    ctx.pages.forEach((page) => {
+        const head = findFirst(page.doc, is("head"));
+        const headLine = head ? head.line : 1;
+
+        const scripts = page.elements.filter((el) => el.tag === "script" && localPath(ctx, attr(el, "src") || "", page.rel) === name);
+        if (scripts.length !== 1) {
+            ctx.error(page.rel, scripts.length ? scripts[1].line : headLine, `esperado 1 <script src="${name}"> no <head>; há ${scripts.length}`);
+        }
+        const script = scripts[0];
+        if (script) {
+            const bad = ["defer", "async", "blocking"].filter((a) => hasAttr(script, a));
+            const type = attr(script, "type");
+            if (type !== null && !/^(text\/javascript)?$/i.test(type.trim())) {
+                bad.push(`type="${type}"`);
+            }
+            if (bad.length) {
+                ctx.error(page.rel, script.line, `<script src="${name}"> tem que ser comum e síncrono; tire ${bad.join(", ")} (com defer, async ou module os elementos só são definidos depois do parse e ficam vazios na primeira pintura)`);
+            }
+            if (!head || script.parent !== head) {
+                ctx.error(page.rel, script.line, `<script src="${name}"> tem que ficar direto no <head>`);
+            } else {
+                const kids = childElements(head);
+                const at = kids.indexOf(script);
+                const theme = kids.findIndex((el) => el.tag === "script" && !hasAttr(el, "src") && !attr(el, "type") && el.raw.includes("data-theme"));
+                const sheet = kids.findIndex((el) => el.tag === "link" && relHas(el, "stylesheet"));
+                if (theme === -1) {
+                    ctx.error(page.rel, headLine, `não achei o script de tema inline no <head> (o ${name} vem logo depois dele)`);
+                } else if (at < theme) {
+                    ctx.error(page.rel, script.line, `<script src="${name}"> vem antes do script de tema (linha ${kids[theme].line}); tem que vir depois`);
+                }
+                if (sheet !== -1 && at > sheet) {
+                    ctx.error(page.rel, script.line, `<script src="${name}"> vem depois do stylesheet da linha ${kids[sheet].line}: script síncrono depois de stylesheet espera o CSS baixar; tem que vir antes`);
+                }
+            }
+        }
+
+        const counts = new Map();
+        page.elements.filter((el) => comps.tags.has(el.tag) && !el.generated).forEach((el) => {
+            counts.set(el.tag, (counts.get(el.tag) || 0) + 1);
+            const value = attr(el, "page");
+            const label = `<${el.tag}${value === null ? "" : ` page="${value}"`}>`;
+            if (el.renderError) {
+                ctx.error(page.rel, el.line, `${label} quebrou ao montar: ${el.renderError}`);
+            } else if (value === null) {
+                ctx.error(page.rel, el.line, `<${el.tag}> sem o atributo page`);
+            } else if (!el.rendered) {
+                ctx.error(page.rel, el.line, `${label}: page inválido (o ${name} não monta nada com ele)`);
+            }
+            if (value !== null) {
+                const key = `${el.tag} ${value}`;
+                if (owner.has(key) && owner.get(key) !== page.rel) {
+                    ctx.error(page.rel, el.line, `${label} também está em ${owner.get(key)}; cada página usa o seu page`);
+                } else {
+                    owner.set(key, page.rel);
+                }
+            }
+            if (el.children.some((c) => !c.generated && (c.tag || c.text.trim()))) {
+                ctx.error(page.rel, el.line, `${label} tem conteúdo escrito na página; deixe vazio (quem monta é o ${name})`);
+            }
+        });
+        ONE_PER_PAGE.filter((tag) => comps.tags.has(tag)).forEach((tag) => {
+            const n = counts.get(tag) || 0;
+            if (n !== 1) {
+                const where = n ? page.elements.filter((el) => el.tag === tag && !el.generated)[1].line : (findFirst(page.doc, is("body")) || { line: 1 }).line;
+                ctx.error(page.rel, where, `esperado 1 <${tag}> na página; há ${n}`);
+            }
+        });
+    });
+}
+
 /* Cores do tema iguais em: script.js (THEME_META), script de tema inline do head, meta
    theme-color, --bg do style.css e névoa (fog) do scene.js. */
 function ruleThemeColors(ctx) {
@@ -960,6 +1160,7 @@ const RULES = [
     ["numeracao", ruleNumbering],
     ["menus", ruleMenus],
     ["head", ruleHead],
+    ["componentes", ruleComponents],
     ["cores", ruleThemeColors],
     ["css-sem-uso", warnUnusedCss],
     ["contagem", warnCertCount]

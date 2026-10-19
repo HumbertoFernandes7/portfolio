@@ -208,6 +208,13 @@ main,
     z-index: 5;
 }
 
+/* <site-header> e <site-footer> (components.js) só embrulham o HTML que
+   geram: sem caixa própria, o layout é o de um <header>/<footer> no body */
+site-header,
+site-footer {
+    display: contents;
+}
+
 /* ---------- Header ---------- */
 
 .site-header {
@@ -1403,6 +1410,15 @@ body.js-ready .rec-card[data-reveal] {
     transform: translateY(-3px);
 }
 
+/* certificados: "← voltar ao portfólio", com a seta antes do texto */
+.footer-back span {
+    margin: 0 6px 0 0;
+}
+
+.footer-back:hover span {
+    transform: translateX(-3px);
+}
+
 /* ---------- Animações de entrada ---------- */
 
 /* Hero: anima sozinho no load (CSS puro, não depende do script.js) */
@@ -1891,6 +1907,21 @@ html:active-view-transition-type(back)::view-transition-new(root) {
 
     .button {
         letter-spacing: 0.14em;
+    }
+}
+
+/* "voltar ao portfólio" (certificados): a área de toque vale também em
+   tela de toque mais larga e é um pouco mais larga que a do .footer-top
+   (vem depois do bloco acima para o inset ganhar do dele) */
+@media (max-width: 720px), (pointer: coarse) {
+    .footer-back {
+        position: relative;
+    }
+
+    .footer-back::after {
+        content: "";
+        position: absolute;
+        inset: -13px -8px;
     }
 }
 
