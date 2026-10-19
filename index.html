@@ -86,8 +86,9 @@
                 <a href="#sobre" data-nav>Sobre</a>
                 <a href="#projetos" data-nav>Projetos</a>
                 <a href="#trajetoria" data-nav>Trajetória</a>
-                <a href="certificados.html">Certificados</a>
+                <a href="#recomendacoes" data-nav>Recomendações</a>
                 <a href="#contato" data-nav>Contato</a>
+                <a href="certificados.html">Certificados</a>
             </nav>
 
             <div class="header-tools">
@@ -111,8 +112,10 @@
             <a href="#sobre"><span>01</span>Sobre</a>
             <a href="#projetos"><span>02</span>Projetos</a>
             <a href="#trajetoria"><span>03</span>Trajetória</a>
-            <a href="certificados.html"><span>04</span>Certificados</a>
+            <a href="#recomendacoes"><span>04</span>Recomendações</a>
             <a href="#contato"><span>05</span>Contato</a>
+            <!-- outra página: fora da numeração das seções, com a seta no lugar do número -->
+            <a class="menu-page" href="certificados.html"><span aria-hidden="true">→</span>Certificados</a>
         </nav>
         <div class="menu-meta">
             <a href="mailto:humbertofernandes08@hotmail.com">humbertofernandes08@hotmail.com</a>
@@ -442,74 +445,81 @@
                 </li>
             </ol>
 
+            <p class="section-step step-next"><a class="step-link" href="#recomendacoes" aria-label="Ir para 04 · Recomendações" title="Ir para 04 · Recomendações"><span class="step-arrow" aria-hidden="true">↓</span></a></p>
+        </section>
+
+        <section id="recomendacoes" class="section" data-section data-scene="4" aria-labelledby="recomendacoes-title">
+            <p class="section-step step-prev"><a class="step-link" href="#trajetoria" aria-label="Ir para 03 · Trajetória" title="Ir para 03 · Trajetória"><span class="step-arrow" aria-hidden="true">↑</span></a></p>
+
+            <header class="section-head" data-reveal>
+                <p class="kicker"><span>04</span>Recomendações</p>
+                <h2 id="recomendacoes-title">O que dizem do meu <em>trabalho.</em></h2>
+                <p class="lead">
+                    Recomendações recebidas no LinkedIn, sem edição.
+                </p>
+            </header>
+
             <!-- Recomendações do LinkedIn, com o texto exato. Para acrescentar uma: salve a foto da pessoa
                  em assets/recs/ (96x96), copie um <figure class="rec-card"> inteiro, cole depois do último e
                  troque iniciais, foto, nome, link do perfil, cargo, relação, data e o texto (os primeiros
                  parágrafos ficam à vista; o resto vai dentro do "ler completa"). Some 60 ao data-delay do
                  cartão anterior. O link "Ver recomendação" é o mesmo para todas: o LinkedIn não tem endereço
                  próprio por recomendação, e essa página lista as recebidas. -->
-            <div class="recs">
-                <header class="recs-head" data-reveal>
-                    <p class="recs-label">Recomendações · LinkedIn</p>
-                    <h3 class="recs-title">O que dizem do meu <em>trabalho.</em></h3>
-                </header>
-
-                <div class="recs-grid">
-                    <figure class="rec-card" data-reveal data-delay="60">
-                        <figcaption class="rec-by">
-                            <div class="rec-who">
-                                <span class="rec-avatar" aria-hidden="true">JB<img src="assets/recs/rec-julio-barros.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
-                                <div class="rec-person">
-                                    <p class="rec-name"><a href="https://www.linkedin.com/in/juliobarros8/" target="_blank" rel="noopener noreferrer">Julio Barros</a></p>
-                                    <p class="rec-role">Fundador e CEO da Evig</p>
-                                    <p class="rec-meta">Foi meu gestor direto na Evig · <time datetime="2026-10-15">out 2026</time></p>
-                                </div>
+            <div class="recs-grid">
+                <figure class="rec-card" data-reveal data-delay="60">
+                    <figcaption class="rec-by">
+                        <div class="rec-who">
+                            <span class="rec-avatar" aria-hidden="true">JB<img src="assets/recs/rec-julio-barros.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
+                            <div class="rec-person">
+                                <p class="rec-name"><a href="https://www.linkedin.com/in/juliobarros8/" target="_blank" rel="noopener noreferrer">Julio Barros</a></p>
+                                <p class="rec-role">Fundador e CEO da Evig</p>
+                                <p class="rec-meta">Foi meu gestor direto na Evig · <time datetime="2026-10-15">out 2026</time></p>
                             </div>
-                        </figcaption>
-                        <blockquote class="rec-quote" cite="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/">
-                            <p>Tive o prazer de liderar o Humberto durante os 9 meses em que ele esteve na Evig. Ele é o tipo de profissional que qualquer time de tecnologia gostaria de ter.</p>
-                            <p>Ele entrou como desenvolvedor back-end Java e logo se tornou uma das pessoas mais versáteis do time. Trabalhou em praticamente todas as camadas do produto: back-end em Java, serviços de IA em Python, gateway em Go e front-end em Angular. Muitas vezes cuidava de várias delas ao mesmo tempo, sem perder qualidade.</p>
-                            <details class="rec-more">
-                                <summary><span class="rec-more-open">ler completa</span><span class="rec-more-close">recolher</span></summary>
-                                <p>O que mais me marcou foi o quanto ele aprende rápido sem abrir mão do cuidado técnico. Nosso produto lida com IA e dados financeiros, e o Humberto sempre levou a sério os testes, a qualidade do código e a confiabilidade das entregas. Ele foi peça-chave para tirarmos ideias do papel e construirmos funcionalidades do zero até a produção.</p>
-                                <p>Além da parte técnica, é colaborativo e ajuda a deixar o ambiente do time leve e produtivo.</p>
-                                <p>Recomendo o Humberto fortemente para posições de back-end, full-stack ou projetos com IA.</p>
-                            </details>
-                        </blockquote>
-                        <a class="rec-source" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/" target="_blank" rel="noopener noreferrer" aria-label="Ver recomendação no LinkedIn de Julio Barros">Ver recomendação no LinkedIn<span aria-hidden="true">↗</span></a>
-                    </figure>
+                        </div>
+                    </figcaption>
+                    <blockquote class="rec-quote" cite="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/">
+                        <p>Tive o prazer de liderar o Humberto durante os 9 meses em que ele esteve na Evig. Ele é o tipo de profissional que qualquer time de tecnologia gostaria de ter.</p>
+                        <p>Ele entrou como desenvolvedor back-end Java e logo se tornou uma das pessoas mais versáteis do time. Trabalhou em praticamente todas as camadas do produto: back-end em Java, serviços de IA em Python, gateway em Go e front-end em Angular. Muitas vezes cuidava de várias delas ao mesmo tempo, sem perder qualidade.</p>
+                        <details class="rec-more">
+                            <summary><span class="rec-more-open">ler completa</span><span class="rec-more-close">recolher</span></summary>
+                            <p>O que mais me marcou foi o quanto ele aprende rápido sem abrir mão do cuidado técnico. Nosso produto lida com IA e dados financeiros, e o Humberto sempre levou a sério os testes, a qualidade do código e a confiabilidade das entregas. Ele foi peça-chave para tirarmos ideias do papel e construirmos funcionalidades do zero até a produção.</p>
+                            <p>Além da parte técnica, é colaborativo e ajuda a deixar o ambiente do time leve e produtivo.</p>
+                            <p>Recomendo o Humberto fortemente para posições de back-end, full-stack ou projetos com IA.</p>
+                        </details>
+                    </blockquote>
+                    <a class="rec-source" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/" target="_blank" rel="noopener noreferrer" aria-label="Ver recomendação no LinkedIn de Julio Barros">Ver recomendação no LinkedIn<span aria-hidden="true">↗</span></a>
+                </figure>
 
-                    <figure class="rec-card" data-reveal data-delay="120">
-                        <figcaption class="rec-by">
-                            <div class="rec-who">
-                                <span class="rec-avatar" aria-hidden="true">MS<img src="assets/recs/rec-miguel-sanz-boragan.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
-                                <div class="rec-person">
-                                    <p class="rec-name"><a href="https://www.linkedin.com/in/miguel-sanz-boragan/" target="_blank" rel="noopener noreferrer">Miguel Sanz Boragan</a></p>
-                                    <p class="rec-role">Back-end Software Engineer</p>
-                                    <p class="rec-meta">Trabalhou comigo no time da Evig · <time datetime="2026-10-09">out 2026</time></p>
-                                </div>
+                <figure class="rec-card" data-reveal data-delay="120">
+                    <figcaption class="rec-by">
+                        <div class="rec-who">
+                            <span class="rec-avatar" aria-hidden="true">MS<img src="assets/recs/rec-miguel-sanz-boragan.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"></span>
+                            <div class="rec-person">
+                                <p class="rec-name"><a href="https://www.linkedin.com/in/miguel-sanz-boragan/" target="_blank" rel="noopener noreferrer">Miguel Sanz Boragan</a></p>
+                                <p class="rec-role">Back-end Software Engineer</p>
+                                <p class="rec-meta">Trabalhou comigo no time da Evig · <time datetime="2026-10-09">out 2026</time></p>
                             </div>
-                        </figcaption>
-                        <blockquote class="rec-quote" cite="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/">
-                            <p>Recomendo o Humberto Fernandes como Engenheiro de Software. Na Evig, ele foi um dos principais autores da API em Java/Spring Boot e liderou a construção da IA financeira da empresa: um sistema multiagente que responde sobre saldo, extrato, cartões e faturas com dados reais de Open Finance, com cálculos feitos de forma determinística e avaliações (evals) próprias para medir a qualidade das respostas. Também construiu a IA vendedora (Sales AI) e o motor de gamificação com geração de missões, entregando com autonomia e consistência.</p>
-                            <details class="rec-more">
-                                <summary><span class="rec-more-open">ler completa</span><span class="rec-more-close">recolher</span></summary>
-                                <p>Tecnicamente, domina Java, Spring Boot, Python, desenvolvimento de APIs e integração com LLMs, com atenção constante a testes e à qualidade do código. Trabalhamos lado a lado nos mesmos projetos, e ele é o tipo de colega que eleva o nível do time: comunica com clareza e está sempre disposto a colaborar. É um profissional que recomendo com total confiança.</p>
-                            </details>
-                        </blockquote>
-                        <a class="rec-source" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/" target="_blank" rel="noopener noreferrer" aria-label="Ver recomendação no LinkedIn de Miguel Sanz Boragan">Ver recomendação no LinkedIn<span aria-hidden="true">↗</span></a>
-                    </figure>
-                </div>
+                        </div>
+                    </figcaption>
+                    <blockquote class="rec-quote" cite="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/">
+                        <p>Recomendo o Humberto Fernandes como Engenheiro de Software. Na Evig, ele foi um dos principais autores da API em Java/Spring Boot e liderou a construção da IA financeira da empresa: um sistema multiagente que responde sobre saldo, extrato, cartões e faturas com dados reais de Open Finance, com cálculos feitos de forma determinística e avaliações (evals) próprias para medir a qualidade das respostas. Também construiu a IA vendedora (Sales AI) e o motor de gamificação com geração de missões, entregando com autonomia e consistência.</p>
+                        <details class="rec-more">
+                            <summary><span class="rec-more-open">ler completa</span><span class="rec-more-close">recolher</span></summary>
+                            <p>Tecnicamente, domina Java, Spring Boot, Python, desenvolvimento de APIs e integração com LLMs, com atenção constante a testes e à qualidade do código. Trabalhamos lado a lado nos mesmos projetos, e ele é o tipo de colega que eleva o nível do time: comunica com clareza e está sempre disposto a colaborar. É um profissional que recomendo com total confiança.</p>
+                        </details>
+                    </blockquote>
+                    <a class="rec-source" href="https://www.linkedin.com/in/humberto-fernandes-9a4599234/details/recommendations/" target="_blank" rel="noopener noreferrer" aria-label="Ver recomendação no LinkedIn de Miguel Sanz Boragan">Ver recomendação no LinkedIn<span aria-hidden="true">↗</span></a>
+                </figure>
             </div>
 
-            <p class="section-step step-next"><a class="step-link" href="#contato" aria-label="Ir para 04 · Contato" title="Ir para 04 · Contato"><span class="step-arrow" aria-hidden="true">↓</span></a></p>
+            <p class="section-step step-next"><a class="step-link" href="#contato" aria-label="Ir para 05 · Contato" title="Ir para 05 · Contato"><span class="step-arrow" aria-hidden="true">↓</span></a></p>
         </section>
 
-        <section id="contato" class="section contact" data-section data-scene="4" aria-labelledby="contato-title">
-            <p class="section-step step-prev"><a class="step-link" href="#trajetoria" aria-label="Ir para 03 · Trajetória" title="Ir para 03 · Trajetória"><span class="step-arrow" aria-hidden="true">↑</span></a></p>
+        <section id="contato" class="section contact" data-section data-scene="5" aria-labelledby="contato-title">
+            <p class="section-step step-prev"><a class="step-link" href="#recomendacoes" aria-label="Ir para 04 · Recomendações" title="Ir para 04 · Recomendações"><span class="step-arrow" aria-hidden="true">↑</span></a></p>
 
             <header class="section-head" data-reveal>
-                <p class="kicker"><span>04</span>Contato</p>
+                <p class="kicker"><span>05</span>Contato</p>
                 <h2 id="contato-title">Disponível para novas <em>oportunidades.</em></h2>
                 <p class="lead">
                     Procuro desafios como engenheiro de software back-end, com Java, Python e IA aplicada.

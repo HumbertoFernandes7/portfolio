@@ -1,14 +1,15 @@
 /* ============================================================
    Cena 3D — campo de partículas persistente entre as seções.
-   Cada seção tem uma formação que remete a programação:
+   Cada seção tem uma formação que remete a ela:
    00 </> (código) → 01 xícara de café fumegante (símbolo do
    Java) → 02 janela de terminal (projetos) → 03 logo do Python
-   → 04 rede neural (IA). As formas planas são amostradas de um
+   → 04 balão de fala (recomendações) → 05 rede neural (IA).
+   As formas planas são amostradas de um
    canvas 2D; a rede neural é gerada por coordenadas. A xícara
    (azul com chamas laranja) e o Python (azul e dourado) são
    bicolores: cada parte é amostrada à parte e pintada com o seu
-   par de cores do tema. No desktop largo a formação
-   fica no lado livre da tela, alternando com o texto das seções.
+   par de cores do tema; o balão é todo dourado. No desktop largo
+   a formação fica no lado livre da tela, oposto ao texto da seção.
    Outras páginas declaram uma formação única no canvas
    (data-formation) presa a um bloco âncora (data-scene-anchor):
    em certificados.html, o capelo de formatura ao lado da introdução.
@@ -52,11 +53,13 @@
     const OPACITY_SCALE = isSmall ? 0.35 : 1;
 
     /* Layout dividido (mesma media query do style.css): o texto ocupa uma
-       coluna e a formação vai para o lado livre, alternando por seção —
-       cenas 0, 2 e 4 à direita; 1 e 3 à esquerda. */
+       coluna e a formação vai para o lado livre — o oposto do texto —,
+       alternando por seção: cenas 0, 2 e 4 à direita (texto à esquerda);
+       1, 3 e 5 à esquerda (#sobre, #trajetoria e #contato, que o CSS
+       empurra para a direita). */
     const splitQuery = window.matchMedia("(min-width: 1100px)");
     const narrowQuery = window.matchMedia("(max-width: 768px)");
-    const SIDE = [1, -1, 1, -1, 1];
+    const SIDE = [1, -1, 1, -1, 1, -1];
     const FREE_GAP = 40; /* px entre a coluna de texto e a formação */
     const FREE_EDGE = 28; /* px de folga na borda da janela */
     const FREE_OVERHANG = 160; /* px que a área livre pode avançar além do container */
@@ -513,7 +516,51 @@
     const drawPyTop = drawPySnake(PY_TOP);
     const drawPyBottom = drawPySnake(PY_BOTTOM);
 
-    /* 04 — IA: rede neural (camadas de nós + pontos ao longo das conexões) */
+    /* 04 — Recomendações: balão de fala com três pontinhos vazados ("…",
+       alguém falando). Medidas da prévia aprovada (unidades dela): corpo de
+       cantos arredondados 280×170 em (120, 60), raio 40; ponta saindo da
+       borda de baixo entre x = 190 e 230 até o vértice (180, 290); furos de
+       raio 17 na altura do meio, em x = 200, 260 e 320. O balão ocupa 80%
+       da largura do canvas (largura parecida com a do </> e a do Python).
+       A ponta "fala" para os cartões: aponta para o lado do texto, o oposto
+       do lado da formação (SIDE). Com a formação à direita, fica como na
+       prévia (perto do canto esquerdo, para baixo e à esquerda); à
+       esquerda, o desenho é espelhado (corpo e furos são simétricos). */
+    const RECS_SCENE = 4;
+    const drawRecsShape = (ctx, u) => {
+        const [x0, y0, x1, y1, r] = [120, 60, 400, 230, 40];
+        const k = (80 * u) / (x1 - x0);
+        ctx.save();
+        ctx.translate(50 * u, 50 * u);
+        ctx.scale(SIDE[RECS_SCENE] < 0 ? -k : k, k);
+        /* centro da caixa do desenho (corpo + ponta) na origem */
+        ctx.translate(-(x0 + x1) / 2, -(y0 + 290) / 2);
+
+        /* contorno único: corpo e ponta numa volta só, sem emenda */
+        const balloon = new Path2D();
+        balloon.moveTo(x0 + r, y0);
+        balloon.arcTo(x1, y0, x1, y1, r);
+        balloon.arcTo(x1, y1, x0, y1, r);
+        balloon.lineTo(230, y1);
+        balloon.lineTo(180, 290);
+        balloon.lineTo(190, y1);
+        balloon.arcTo(x0, y1, x0, y0, r);
+        balloon.arcTo(x0, y0, x1, y0, r);
+        balloon.closePath();
+        ctx.fill(balloon);
+
+        /* três pontinhos vazados */
+        const dots = new Path2D();
+        [200, 260, 320].forEach((cx) => {
+            dots.moveTo(cx + 17, (y0 + y1) / 2);
+            dots.arc(cx, (y0 + y1) / 2, 17, 0, Math.PI * 2);
+        });
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fill(dots);
+        ctx.restore();
+    };
+
+    /* 05 — IA: rede neural (camadas de nós + pontos ao longo das conexões) */
     const makeNetwork = () => {
         const layers = [
             { x: -13.5, ys: [-7.5, 0, 7.5] },
@@ -742,6 +789,15 @@
         return pts;
     };
 
+    /* Balão das recomendações: forma cheia, contorno como o da xícara (a
+       borda acesa recorta a silhueta e os três furos). Cor própria: a forma
+       inteira (at = 0) usa o par dourado do tema, que o site já usa no
+       Python, com ganho de alfa (recsGain) para não ficar sépia; destaca a
+       cena das vizinhas (Python e rede neural, azuis) */
+    const RECS_EDGE = 0.22;
+    const RECS_TONE = { at: 0, base: "gold", soft: "goldSoft", gain: "recsGain" };
+    const makeRecs = () => sampleShape(drawRecsShape, 30, 3, COUNT, RECS_EDGE);
+
     /* Centraliza a nuvem na origem (pelo retângulo envolvente) e devolve a
        meia largura/altura — usadas para a formação caber no lado livre. */
     const centerCloud = (pts) => {
@@ -766,7 +822,7 @@
 
     /* Páginas de formação única: o canvas declara qual (data-formation) e
        a formação acompanha o bloco marcado com data-scene-anchor. Sem
-       data-formation (index), valem as 5 formações por seção. */
+       data-formation (index), valem as 6 formações por seção. */
     const SOLO_PAGES = {
         cap: {
             make: () => sampleShape(drawGradCap, 30, 3, COUNT, 0.22),
@@ -787,10 +843,12 @@
             makeCup,
             () => sampleShape(drawTerminal, 30, 2.4, COUNT, 0.15),
             makePython,
+            makeRecs,
             makeNetwork
         ];
-    /* índice da formação → par de cores da 2ª parte (só as bicolores) */
-    const TONES = solo ? {} : { 1: CUP_TONE, 3: PY_TONE };
+    /* índice da formação → par de cores da 2ª parte (as bicolores) ou da
+       forma inteira (at = 0, recomendações) */
+    const TONES = solo ? {} : { 1: CUP_TONE, 3: PY_TONE, [RECS_SCENE]: RECS_TONE };
     const formations = [];
     for (let k = 0; k < builders.length; k += 1) {
         await yieldToPage();
@@ -809,6 +867,7 @@
             { rotX: -0.07, camZ: 44, amp: 0.2, speed: 0.45 },
             { rotX: -0.06, camZ: 44, amp: 0.2, speed: 0.5 },
             { rotX: -0.03, camZ: 43, amp: 0.1, speed: 0.42 },
+            { rotX: -0.05, camZ: 44, amp: 0.18, speed: 0.45 },
             { rotX: -0.06, camZ: 42, amp: 0.15, speed: 0.38 }
         ];
 
@@ -915,6 +974,9 @@
             flame: new THREE.Color("#ff7029"),
             flameSoft: new THREE.Color("#ffad55"),
             flameGain: 2.1,
+            /* balão das recomendações: o mesmo problema num dourado que cobre
+               a forma toda (sem azul ao lado, ficava sépia): 0.44 × 1.8 ≈ 0.79 */
+            recsGain: 1.8,
             fog: new THREE.Color("#060b16"),
             fogNear: 36,
             fogFar: 86,
@@ -938,6 +1000,8 @@
             /* terracota: escuro o bastante para contrastar com o papel */
             flame: new THREE.Color("#c2410c"),
             flameSoft: new THREE.Color("#8a2c0b"),
+            /* balão: tinta dourada mais firme no papel (0.7 × 1.4 ≈ 0.98) */
+            recsGain: 1.4,
             fog: new THREE.Color("#edf2f8"),
             fogNear: 60,
             fogFar: 150,
@@ -956,8 +1020,9 @@
         const colorAttr = geometry.getAttribute("color");
         const mixed = new THREE.Color();
         /* formação bicolor: a 2ª parte dos pontos pinta com o par dela
-           (Python: cobra dourada; xícara: chamas) e leva o ganho de alfa do
-           tema, se houver (só a chama no escuro); o resto fica com alfa 1 */
+           (Python: cobra dourada; xícara: chamas; recomendações: a forma
+           toda, at = 0) e leva o ganho de alfa do tema, se houver (a chama
+           no escuro; o balão nos dois temas); o resto fica com alfa 1 */
         const tone = TONES[activeIndex];
         const gain = (tone && theme[tone.gain]) || 1;
         for (let i = 0; i < COUNT; i += 1) {
