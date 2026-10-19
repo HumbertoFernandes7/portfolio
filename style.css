@@ -1201,24 +1201,65 @@ body.js-ready .rec-card[data-reveal] {
     text-wrap: pretty;
 }
 
-.rec-quote p::before,
-.rec-quote p::after {
+.rec-quote p + p,
+.rec-more p {
+    margin-top: 12px;
+}
+
+/* aspas só na abertura e no fim do texto completo (o fim fica dentro do "ler completa") */
+.rec-quote > p:first-child::before,
+.rec-quote p:last-child::after {
     font-family: var(--font-display);
     color: var(--accent);
 }
 
-.rec-quote p::before {
+.rec-quote > p:first-child::before {
     content: open-quote;
 }
 
-.rec-quote p::after {
+.rec-more p:last-child::after {
     content: close-quote;
 }
 
-/* "[…]" marca as frases puladas entre dois trechos */
-.rec-cut {
-    color: var(--text-faint);
-    white-space: nowrap;
+/* "ler completa": o resto do texto abre ali mesmo, sem sair da página */
+.rec-more summary {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    cursor: pointer;
+    list-style: none;
+}
+
+.rec-more summary::-webkit-details-marker {
+    display: none;
+}
+
+.rec-more summary::after {
+    content: "↓";
+    transition: transform 0.3s var(--ease-out);
+}
+
+.rec-more[open] summary {
+    order: 1;
+}
+
+.rec-more[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.rec-more[open] .rec-more-open,
+.rec-more:not([open]) .rec-more-close {
+    display: none;
+}
+
+.rec-more {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .rec-by {
@@ -1234,8 +1275,10 @@ body.js-ready .rec-card[data-reveal] {
     gap: 14px;
 }
 
-/* iniciais no lugar de foto */
+/* foto salva no site (assets/recs); as iniciais ficam por baixo e aparecem se ela faltar */
 .rec-avatar {
+    position: relative;
+    overflow: hidden;
     flex: 0 0 44px;
     width: 44px;
     height: 44px;
@@ -1249,6 +1292,15 @@ body.js-ready .rec-card[data-reveal] {
     font-size: 0.8rem;
     font-weight: 500;
     letter-spacing: 0.04em;
+}
+
+.rec-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .rec-person {
@@ -1755,6 +1807,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .project-links a,
     .rec-name a,
     .rec-source,
+    .rec-more summary,
     .about-notes a,
     .footer-top,
     .menu-meta a {
@@ -1768,6 +1821,7 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     .project-links a::after,
     .rec-name a::after,
     .rec-source::after,
+    .rec-more summary::before,
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after,
@@ -1786,6 +1840,8 @@ html:active-view-transition-type(back)::view-transition-new(root) {
     /* recomendações: nome (linha de ~23px) e link de origem (~26px) */
     .rec-name a::after { inset: -12px -6px; }
     .rec-source::after { inset: -11px -6px; }
+    /* o ::after do "ler completa" já é a seta, então a área de toque vai no ::before */
+    .rec-more summary::before { inset: -13px -6px; }
     .about-notes a::after,
     .footer-top::after,
     .menu-meta a::after { inset: -13px -6px; }
