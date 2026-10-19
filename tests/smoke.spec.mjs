@@ -101,10 +101,15 @@ async function refetch(request, url) {
 }
 
 const test = base.extend({
+    /* console.error que o próprio teste provoca (ex.: pedido abortado pelo page.route): RegExp
+       conferidas contra a linha inteira, "console.error: <texto> (<url>:<linha>)". Só um bloco
+       que provoca a falha liga (test.use); fora dele, todo console.error reprova. */
+    expectedConsole: [[], { option: true }],
+
     /* Coleta pageerror e console.error durante o teste inteiro e falha no fim. O erro de
        transporte (TRANSPORT_ERROR) só conta se o recurso falhar de novo no fim do teste. */
     pageErrors: [
-        async ({ page }, use, testInfo) => {
+        async ({ page, expectedConsole }, use, testInfo) => {
             const errors = [];
             const transport = new Map();
             page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
@@ -114,7 +119,7 @@ const test = base.extend({
                     const line = `console.error: ${msg.text()}${url ? ` (${url}:${lineNumber})` : ""}`;
                     if (url && TRANSPORT_ERROR.test(msg.text())) {
                         transport.set(url, line);
-                    } else {
+                    } else if (!expectedConsole.some((pattern) => pattern.test(line))) {
                         errors.push(line);
                     }
                 }
@@ -470,5 +475,236 @@ test.describe("cabeçalho nas duas páginas", () => {
             expect(other.site.map(top), `site-nav de ${other.name} × ${ref.name}`).toEqual(ref.site.map(top));
             expect(other.menu.map(top), `menu-nav de ${other.name} × ${ref.name}`).toEqual(ref.menu.map(top));
         }
+    });
+});
+
+/* scene.js: a formação ativa (data-active-scene no canvas) é a da seção que cruza a faixa do
+   meio da tela (de 42% a 58% da altura, o rootMargin do observer), também depois de redimensionar.
+   O caso: de 1080 para 1440px de largura o layout dividido e o snap entram, o conteúdo acima das
+   Recomendações cresce e, sem mudar a rolagem, a divisa Trajetória|Recomendações cai dentro da
+   faixa: a Trajetória "entra" e vira a ativa. O snap então rola até o início das Recomendações, a
+   Trajetória sai e as Recomendações, que nunca saíram da faixa, não avisam de novo: sem a
+   conferência pela geometria (resize/scrollend), o Python da Trajetória ficava preso. */
+test.describe("cena 3D: formação ativa depois de redimensionar", () => {
+    const HEIGHT = 900;
+    const FROM = 1080; /* abaixo de SPLIT_MIN: uma coluna, sem snap */
+    const TO = 1440;
+    test.use({ viewport: { width: TO, height: HEIGHT } });
+
+    /* data-scene das seções que cruzam a faixa do meio, e a formação ativa */
+    const sceneState = (page) =>
+        page.evaluate(() => {
+            const h = window.innerHeight;
+            const middle = [...document.querySelectorAll("[data-scene]")]
+                .filter((section) => {
+                    const r = section.getBoundingClientRect();
+                    return r.bottom > h * 0.42 && r.top < h * 0.58;
+                })
+                .map((section) => section.dataset.scene);
+            return { active: document.getElementById("scene-canvas").dataset.activeScene, middle: middle.join("+") };
+        });
+
+    /* espera a rolagem parar (o snap anima) */
+    const scrollSettled = async (page) => {
+        let last = null;
+        await expect
+            .poll(
+                async () => {
+                    const y = await page.evaluate(() => Math.round(window.scrollY));
+                    const same = y === last;
+                    last = y;
+                    return same;
+                },
+                { message: "a rolagem para", intervals: [300], timeout: 5_000 }
+            )
+            .toBe(true);
+    };
+
+    test("Recomendações: de 1080 para 1440px a formação não fica presa na Trajetória", async ({ page }) => {
+        await page.addInitScript((key) => {
+            try {
+                localStorage.setItem(key, "light");
+            } catch (e) {
+                /* about:blank */
+            }
+        }, THEME_KEY);
+        await open(page, "/index.html");
+        const ready = await page.waitForFunction(() =>
+            document.body.classList.contains("no-webgl") ||
+            document.querySelector("#scene-canvas.is-on[data-active-scene]")
+        , null, { timeout: 20_000 });
+        test.skip(await ready.evaluate((v) => v === true), "sem WebGL: não há formação");
+
+        const recs = page.locator("#recomendacoes");
+        const recsScene = await recs.getAttribute("data-scene");
+        const docTop = () => recs.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+
+        /* onde as Recomendações começam em 1440px; em 1080px, a rolagem que, de volta a 1440px,
+           põe esse começo no meio da tela (dentro da faixa e mais perto do snap das Recomendações
+           que do fim da Trajetória: é o caminho em que a Trajetória entra e sai da faixa) */
+        const topWide = await docTop();
+        await page.setViewportSize({ width: FROM, height: HEIGHT });
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), topWide - HEIGHT * 0.5);
+        await expect.poll(() => sceneState(page), { message: `${FROM}px: nas Recomendações` }).toEqual({
+            active: recsScene,
+            middle: recsScene
+        });
+
+        await page.setViewportSize({ width: TO, height: HEIGHT });
+        await scrollSettled(page);
+        expect((await sceneState(page)).middle, `${TO}px: o snap para nas Recomendações`).toBe(recsScene);
+        await expect
+            .poll(async () => (await sceneState(page)).active, { message: "a formação ativa é a das Recomendações" })
+            .toBe(recsScene);
+    });
+});
+
+/* certificados.js: o JSON que falha por rede (ou 5xx/429) ganha até 2 tentativas automáticas, com
+   a página no estado de carregamento; se ainda assim falhar, a mensagem de erro traz o botão
+   "Tentar de novo", que baixa só os dados. 404 (ou JSON inválido) mostra o erro na hora. As falhas
+   vêm do page.route; o console.error que o navegador solta para cada pedido abortado (ou o 404) é
+   esperado nestes testes, e só nestes. */
+test.describe("certificados: falha ao baixar os dados", () => {
+    /* espera do certificados.js antes da 2ª e da 3ª tentativa (RETRY_DELAYS) */
+    const RETRY_DELAYS = [600, 1500];
+    const failedLoad = (cause, files) =>
+        new RegExp(`^console\\.error: Failed to load resource: ${cause} \\(http://[^/]+/data/(?:${files})\\.json:\\d+\\)$`);
+
+    test.use({
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+        expectedConsole: [failedLoad("net::ERR_INTERNET_DISCONNECTED", "certificados|diplomas")]
+    });
+
+    /* Responde os pedidos de data/<file>: plan(n) diz o que fazer com o n-ésimo (1, 2…): "rede"
+       aborta como sem internet, "ok" deixa passar e um número responde com esse status (pode
+       devolver uma Promise, para segurar a resposta). O 1º pedido é o <link rel="preload"> do
+       certificados.html, que o fetch da 1ª tentativa reaproveita. Devolve o contador de pedidos. */
+    async function routeData(page, file, plan) {
+        const hits = { count: 0 };
+        await page.route(`**/data/${file}`, async (route) => {
+            hits.count += 1;
+            const step = await plan(hits.count);
+            if (step === "rede") {
+                await route.abort("internetdisconnected");
+            } else if (step === "ok") {
+                await route.continue();
+            } else {
+                await route.fulfill({ status: step, body: "" });
+            }
+        });
+        return hits;
+    }
+
+    /* anota quando a mensagem de erro aparece (ms desde o DOMContentLoaded), se aparecer */
+    async function watchError(page) {
+        await page.addInitScript(() => {
+            document.addEventListener(
+                "DOMContentLoaded",
+                () => {
+                    const start = performance.now();
+                    const box = document.getElementById("cert-error");
+                    new MutationObserver(() => {
+                        if (!box.hidden && window.__errorAfter === undefined) {
+                            window.__errorAfter = performance.now() - start;
+                        }
+                    }).observe(box, { attributes: true, attributeFilter: ["hidden"] });
+                },
+                { once: true }
+            );
+        });
+    }
+
+    test("(a) a 1ª tentativa falha e a 2ª dá certo: os cards aparecem sozinhos", async ({ page }) => {
+        await watchError(page);
+        const hits = await routeData(page, "certificados.json", (n) => (n === 1 ? "rede" : "ok"));
+        await page.goto("/certificados.html");
+
+        await expect(page.locator("#cert-grid > li").first()).toBeVisible();
+        expect(hits.count, "pedidos de certificados.json").toBe(2);
+        expect(await page.evaluate(() => window.__errorAfter), "a mensagem de erro não aparece").toBeUndefined();
+        await expect(page.locator("#cert-error")).toBeHidden();
+    });
+
+    test("(b) todas as tentativas falham: mensagem com o botão Tentar de novo", async ({ page }) => {
+        const hits = await routeData(page, "certificados.json", () => "rede");
+        await page.goto("/certificados.html");
+
+        const message = page.locator("#cert-error");
+        const retry = message.getByRole("button", { name: "Tentar de novo" });
+        await expect(message).toBeVisible();
+        expect(hits.count, "1 pedido e 2 novas tentativas").toBe(1 + RETRY_DELAYS.length);
+        await expect(message).toHaveAttribute("role", "alert");
+        await expect(message).toContainText("Não consegui carregar os certificados agora.");
+        await expect(retry).toBeVisible();
+        await expect(retry).toHaveAttribute("type", "button");
+        await expect(page.locator(".cert-toolbar")).toBeHidden();
+        const box = await retry.boundingBox();
+        expect(box.height, "área de toque do botão (px)").toBeGreaterThanOrEqual(44);
+
+        /* ainda sem rede: o botão tenta de novo (com as novas tentativas), a mensagem volta e o
+           foco volta para o botão */
+        await retry.tap();
+        await expect(message).toBeHidden();
+        await expect(message).toBeVisible();
+        expect(hits.count, "mais 1 pedido e 2 novas tentativas").toBe(2 * (1 + RETRY_DELAYS.length));
+        await expect(retry).toBeFocused();
+    });
+
+    test("(c) com o botão na tela, a rede volta e o clique traz os cards", async ({ page }) => {
+        let online = false;
+        let release;
+        const held = new Promise((resolve) => {
+            release = resolve;
+        });
+        /* com a rede de volta, a resposta fica presa até o teste conferir o estado de carregamento */
+        const plan = () => (online ? held.then(() => "ok") : "rede");
+        await routeData(page, "certificados.json", plan);
+        await routeData(page, "diplomas.json", plan);
+        await page.goto("/certificados.html");
+
+        const message = page.locator("#cert-error");
+        const retry = message.getByRole("button", { name: "Tentar de novo" });
+        const title = page.locator("#cursos-title");
+        await expect(retry).toBeVisible();
+        await expect(page.locator("#diplomas")).toBeHidden();
+        const before = await title.evaluate((el) => el.getBoundingClientRect().top);
+
+        online = true;
+        await retry.tap();
+        /* estado de carregamento: sem a mensagem, barra de filtros de volta, grid vazio */
+        await expect(message).toBeHidden();
+        await expect(page.locator(".cert-toolbar")).toBeVisible();
+        await expect(page.locator("#cert-grid > li")).toHaveCount(0);
+        await expect(title).toBeFocused();
+
+        release();
+        await expect(page.locator("#cert-grid > li").first()).toBeVisible();
+        await expect(page.locator("#cert-chips button").first()).toBeVisible();
+        await expect(page.locator("#diploma-list .diploma-card:not(.is-skeleton)").first()).toBeVisible();
+        await expect(title, "o foco fica no título da lista").toBeFocused();
+        const after = await title.evaluate((el) => el.getBoundingClientRect().top);
+        expect(Math.abs(after - before), `o título da lista fica no lugar (${before} → ${after})`).toBeLessThanOrEqual(1);
+    });
+
+    test.describe("404", () => {
+        test.use({
+            expectedConsole: [failedLoad("the server responded with a status of 404 \\([^)]*\\)", "certificados")]
+        });
+
+        test("(d) 404: erro na hora, sem novas tentativas", async ({ page }) => {
+            await watchError(page);
+            const hits = await routeData(page, "certificados.json", () => 404);
+            await page.goto("/certificados.html");
+
+            await expect(page.locator("#cert-error")).toBeVisible();
+            await expect(page.locator("#cert-retry")).toBeVisible();
+            const after = await page.evaluate(() => window.__errorAfter);
+            expect(after, `erro ${Math.round(after)} ms depois do DOMContentLoaded`).toBeLessThan(RETRY_DELAYS[0]);
+            /* nem depois do tempo que as tentativas levariam */
+            await page.waitForTimeout(RETRY_DELAYS.reduce((sum, ms) => sum + ms, 300));
+            expect(hits.count, "pedidos de certificados.json").toBe(1);
+        });
     });
 });

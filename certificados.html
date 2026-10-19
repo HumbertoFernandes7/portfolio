@@ -111,7 +111,10 @@
                 </div>
 
                 <p class="cert-message" id="cert-empty" hidden>Nenhum certificado encontrado para esse filtro.</p>
-                <p class="cert-message cert-error" id="cert-error" role="alert" hidden>Não consegui carregar os certificados agora. Tente recarregar a página.</p>
+                <p class="cert-message cert-error" id="cert-error" role="alert" hidden>
+                    <span>Não consegui carregar os certificados agora.</span>
+                    <button type="button" class="button button-line" id="cert-retry">Tentar de novo</button>
+                </p>
                 <ul class="cert-grid" id="cert-grid"></ul>
             </section>
         </div>

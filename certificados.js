@@ -52,12 +52,31 @@ const normalize = (value) =>
         .replace(/[̀-ͯ]/g, "")
         .toLowerCase();
 
+/* Espera antes da 2ª e da 3ª tentativa. Só vale tentar de novo o que pode passar sozinho:
+   sem rede (o fetch, ou a leitura do corpo, rejeita com TypeError) ou servidor fora do ar ou
+   sobrecarregado (5xx, 429). 404 e JSON inválido não melhoram: o erro sai na hora. */
+const RETRY_DELAYS = [600, 1500];
+
+const isTransient = (error) =>
+    error instanceof TypeError || error.status >= 500 || error.status === 429;
+
 const loadJson = async (url) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`${url}: ${response.status}`);
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const error = new Error(`${url}: ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+            return await response.json();
+        } catch (error) {
+            if (attempt >= RETRY_DELAYS.length || !isTransient(error)) {
+                throw error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
+        }
     }
-    return response.json();
 };
 
 /* ---------- Lightbox ---------- */
@@ -391,25 +410,74 @@ const renderCertificates = (items) => {
 /* ---------- Início ---------- */
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const [certificates, diplomas] = await Promise.allSettled([
-        loadJson("data/certificados.json"),
-        loadJson("data/diplomas.json")
-    ]);
+    const diplomaSection = document.getElementById("diplomas");
+    const toolbar = document.querySelector(".cert-toolbar");
+    const errorMessage = document.getElementById("cert-error");
+    const retryButton = document.getElementById("cert-retry");
+    const listTitle = document.getElementById("cursos-title");
+    let diplomasLoaded = false;
 
-    if (diplomas.status === "fulfilled" && Array.isArray(diplomas.value)) {
-        renderDiplomas(diplomas.value);
-    } else {
-        /* a seção nasce visível (com molduras reservadas): some só no erro */
-        const diplomaSection = document.getElementById("diplomas");
-        if (diplomaSection) {
-            diplomaSection.hidden = true;
+    const loaded = (result) => result.status === "fulfilled" && Array.isArray(result.value);
+
+    /* baixa os dados que ainda faltam (diplomas que já vieram não são pedidos de novo) */
+    const fetchData = () =>
+        Promise.allSettled([
+            loadJson("data/certificados.json"),
+            diplomasLoaded ? null : loadJson("data/diplomas.json")
+        ]);
+
+    /* monta o que chegou; true se os certificados vieram */
+    const render = ([certificates, diplomas]) => {
+        if (!diplomasLoaded && diplomaSection) {
+            if (loaded(diplomas)) {
+                diplomasLoaded = true;
+                diplomaSection.hidden = false;
+                renderDiplomas(diplomas.value);
+            } else {
+                /* a seção nasce visível (com molduras reservadas): some só no erro */
+                diplomaSection.hidden = true;
+            }
         }
-    }
+        if (loaded(certificates)) {
+            renderCertificates(certificates.value);
+            return true;
+        }
+        return false;
+    };
 
-    if (certificates.status === "fulfilled" && Array.isArray(certificates.value)) {
-        renderCertificates(certificates.value);
-    } else {
-        document.getElementById("cert-error").hidden = false;
-        document.querySelector(".cert-toolbar").hidden = true;
+    const showError = () => {
+        toolbar.hidden = true;
+        errorMessage.hidden = false;
+    };
+
+    /* "Tentar de novo": baixa só os dados, sem recarregar a página. Volta ao estado de
+       carregamento (sem a mensagem, com a barra de filtros vazia e o lugar do grid
+       reservado); o foco vai para o título da lista, que fica onde está: os diplomas que
+       entram acima dele não empurram a lista (a rolagem acompanha). Falhou de novo: a
+       mensagem volta e o foco, para o botão. */
+    retryButton.addEventListener("click", async () => {
+        listTitle.tabIndex = -1;
+        listTitle.focus({ preventScroll: true });
+        errorMessage.hidden = true;
+        toolbar.hidden = false;
+
+        const results = await fetchData();
+        const before = listTitle.getBoundingClientRect().top;
+        const ok = render(results);
+        if (!ok) {
+            showError();
+        }
+        /* "instant": o html tem scroll-behavior: smooth, e a lista não pode deslizar */
+        const shift = listTitle.getBoundingClientRect().top - before;
+        if (shift) {
+            window.scrollBy({ top: shift, behavior: "instant" });
+        }
+        if (!ok) {
+            retryButton.focus();
+        }
+    });
+
+    if (!render(await fetchData())) {
+        showError();
     }
 });

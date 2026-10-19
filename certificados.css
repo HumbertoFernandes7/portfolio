@@ -319,7 +319,13 @@
     color: var(--text-dim);
 }
 
+/* erro: a mensagem e o botão "Tentar de novo" (o .button-line do style.css, com a versão
+   do tema claro e a altura acima de 44px) lado a lado; sem espaço, o botão desce */
 .cert-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 24px;
     color: var(--accent-strong);
 }
 
